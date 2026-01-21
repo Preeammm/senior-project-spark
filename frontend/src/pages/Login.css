@@ -1,0 +1,67 @@
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: system-ui, sans-serif;
+}
+
+.login-header {
+  text-align: center;
+  margin-top: 40px;
+}
+
+.login-header h1 {
+  margin-bottom: 8px;
+}
+
+.login-card {
+  margin-top: 40px;
+  width: 420px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  text-align: center;
+  padding: 24px;
+}
+
+.login-card h2 {
+  margin-bottom: 24px;
+  color: #2e7d32;
+}
+
+.login-logo {
+  width: 180px;
+  margin-bottom: 24px;
+}
+
+.login-button {
+  width: 100%;
+  padding: 12px;
+  background-color: #5cb85c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.login-button:hover {
+  background-color: #4cae4c;
+}
+
+.login-footer {
+  margin-top: auto;
+  padding: 32px;
+  text-align: center;
+  font-size: 14px;
+  color: #555;
+}
+
+.login-footer a {
+  color: #2e7d32;
+  text-decoration: none;
+}
+
+.faculty {
+  margin-top: 16px;
+}
