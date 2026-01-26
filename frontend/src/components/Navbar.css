@@ -1,0 +1,100 @@
+.navbar {
+  height: 64px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+.navInner {
+  max-width: 1200px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+/* Left logos */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 5px;        /* ลดระยะห่าง */
+}
+
+.brandLogoMu {
+  height: 44px;   /* ปรับได้ */
+  width: auto;
+  display: block;
+}
+
+.brandLogoIct {
+  height: 40px;   /* ปรับได้ */
+  width: auto;
+  display: block;
+}
+
+/* Center menu */
+.menu {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  margin-left: 18px;
+  flex: 1;
+  height: 100%;
+}
+
+.menuLink {
+  position: relative;
+  height: 100%;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  text-decoration: none;
+  color: #4b5563;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.menuLinkActive {
+  color: #111827;
+}
+
+.menuLinkActive::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 0;
+  height: 3px;
+  background: #1f6f3b;
+  border-radius: 2px;
+}
+
+/* Right profile */
+.profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  color: #111827;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+}
+
+.caret {
+  font-size: 18px;
+  color: #374151;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 860px) {
+  .menu { gap: 14px; }
+  .menuLink { font-size: 16px; }
+}

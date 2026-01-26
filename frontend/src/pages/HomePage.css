@@ -1,0 +1,117 @@
+.homeTopBar {
+  height: 58px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+}
+
+.homeContainer {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 26px 16px 60px;
+}
+
+.hiTitle {
+  font-size: 34px;
+  font-weight: 600;
+  margin: 0 0 14px;
+}
+
+.sectionCard {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 22px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  color: #374151;
+  font-weight: 600;
+}
+
+.sectionBody {
+  padding: 18px 16px;
+}
+
+.studentGrid {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 18px;
+}
+
+.avatarBox {
+  width: 180px;
+  height: 180px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  font-size: 46px;
+  margin: 10px 0 0;
+}
+
+.infoRows {
+  border-left: 0;
+  padding-top: 6px;
+}
+
+.infoRow {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  padding: 14px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.infoLabel {
+  color: #374151;
+  font-weight: 600;
+  text-align: right;
+  padding-right: 18px;
+}
+
+.infoValue {
+  color: #111827;
+}
+
+.quickGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  padding: 18px 16px;
+}
+
+.quickCard {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  height: 140px;
+  background: white;
+}
+
+.quickTop {
+  height: 74px;
+}
+
+.quickLink {
+  display: inline-block;
+  padding: 14px 16px;
+  color: #1f2937;
+  text-decoration: underline;
+  font-size: 18px;
+}
+
+@media (max-width: 900px) {
+  .studentGrid { grid-template-columns: 1fr; }
+  .quickGrid { grid-template-columns: 1fr; }
+  .infoRow { grid-template-columns: 120px 1fr; }
+  .infoLabel { text-align: left; padding-right: 0; }
+}

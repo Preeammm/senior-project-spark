@@ -1,0 +1,103 @@
+.projects-table-wrapper {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+/* table */
+.projects-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+/* header */
+.projects-table thead tr {
+  background: #f9fafb;
+}
+
+.projects-table th {
+  text-align: left;
+  padding: 14px 12px;
+  font-weight: 600;
+  color: #374151;
+  white-space: nowrap;
+}
+
+/* body */
+.projects-table td {
+  padding: 14px 12px;
+  vertical-align: top;
+  color: #111827;
+}
+
+.projects-table tbody tr {
+  border-top: 1px solid #e5e7eb;
+}
+
+/* project name */
+.project-name {
+  font-weight: 600;
+}
+
+/* course link */
+.course-link {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.course-link:hover {
+  text-decoration: underline;
+}
+
+/* competency tags */
+.tag-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.tag-edit {
+  font-size: 12px;
+  color: #6b7280;
+  margin-left: 6px;
+  cursor: pointer;
+}
+
+.tag-edit:hover {
+  text-decoration: underline;
+}
+
+/* relevance */
+.relevance {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.relevance-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: #22c55e;
+}
+
+/* materials */
+.materials {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.material-link {
+  font-size: 13px;
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.material-link:hover {
+  text-decoration: underline;
+}
