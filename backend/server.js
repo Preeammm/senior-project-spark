@@ -1,5 +1,7 @@
 import express from "express";
 import cors from "cors";
+import me from "./me.js";
+
 
 const app = express();
 app.use(express.json());
@@ -15,14 +17,7 @@ app.use(
 app.use("/static", express.static("static"));
 
 app.get("/api/me", (req, res) => {
-  res.json({
-    studentId: "6588087",
-    name: "Yaowapa Sabkasedkid",
-    faculty: "Faculty of Information and Communication Technology",
-    major: "Database and Intelligent Systems (ITDB)",
-    classYear: 4,
-    avatarUrl: null,
-  });
+  res.json(me);
 });
 
 app.get("/api/projects", (req, res) => {
