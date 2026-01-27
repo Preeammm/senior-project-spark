@@ -1,117 +1,194 @@
-.homeTopBar {
-  height: 58px;
-  border-bottom: 1px solid #e5e7eb;
-  display: flex;
-  align-items: center;
-  padding: 0 16px;
+:root{
+  --border: #e5e7eb;
+  --text: #111827;
+  --muted: #6b7280;
+  --card: #ffffff;
+  --bg: #ffffff;
+}
+
+.homePage{
+  background: var(--bg);
 }
 
 .homeContainer {
-  max-width: 1100px;
+  max-width: 1020px;
   margin: 0 auto;
-  padding: 26px 16px 60px;
+  padding: 20px 16px 54px;
+}
+
+/* Loading fallback */
+.homeLoading{
+  padding: 28px 16px;
+  color: #374151;
+}
+
+/* Header */
+.homeHeader{
+  margin-bottom: 20px;
 }
 
 .hiTitle {
-  font-size: 34px;
-  font-weight: 600;
-  margin: 0 0 14px;
+  font-size: 25px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text);
+  letter-spacing: -0.2px;
 }
 
+.hiSub{
+  margin: 6px 0 0;
+  font-size: 15px;
+  color: var(--muted);
+}
+
+/* Section card */
 .sectionCard {
+  background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 14px;
   overflow: hidden;
-  margin-bottom: 22px;
+  margin-bottom: 18px;
+  box-shadow: 0 10px 26px rgba(17, 24, 39, 0.06);
 }
 
 .sectionHeader {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 14px 16px;
+  padding: 12px 14px;
   border-bottom: 1px solid var(--border);
+  background: linear-gradient(#fff, #fafafa);
+}
+
+.sectionTitle{
+  font-size: 15px;
+  font-weight: 700;
   color: #374151;
-  font-weight: 600;
 }
 
 .sectionBody {
-  padding: 18px 16px;
+  padding: 14px;
 }
 
+/* Student grid */
 .studentGrid {
   display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 18px;
+  grid-template-columns: 170px 1fr;
+  gap: 16px;
+  align-items: start;
 }
 
-.avatarBox {
-  width: 180px;
-  height: 180px;
+.avatarCol{
+  display:flex;
+  justify-content:center;
+}
+
+.avatarCircle{
+  width: 132px;
+  height: 132px;
+  border-radius: 999px;
   border: 1px solid var(--border);
-  border-radius: 6px;
-  background: #f3f4f6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: #f9fafb;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow: inset 0 0 0 6px rgba(17,24,39,0.02);
+}
+
+.avatarImg{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 999px;
+}
+
+.avatarPlaceholder{
+  font-weight: 800;
   color: #9ca3af;
-  font-size: 46px;
-  margin: 10px 0 0;
+  letter-spacing: 1px;
+  font-size: 20px;
 }
 
 .infoRows {
-  border-left: 0;
-  padding-top: 6px;
+  padding-top: 2px;
 }
 
 .infoRow {
   display: grid;
-  grid-template-columns: 160px 1fr;
-  padding: 14px 0;
-  border-bottom: 1px solid #e5e7eb;
+  grid-template-columns: 140px 1fr;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f2f5;
 }
 
 .infoLabel {
-  color: #374151;
-  font-weight: 600;
+  color: #6b7280;
+  font-weight: 400;
   text-align: right;
-  padding-right: 18px;
+  font-size: 14px;
 }
 
 .infoValue {
   color: #111827;
+  font-weight: 400;
+  font-size: 14px; 
 }
 
+/* Quick Look */
 .quickGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-  padding: 18px 16px;
+  gap: 14px;
+  padding: 14px;
 }
 
 .quickCard {
+  display: block;
+  text-decoration: none;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 14px;
   overflow: hidden;
-  height: 140px;
   background: white;
+  box-shadow: 0 10px 20px rgba(17, 24, 39, 0.05);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+  min-height: 134px;
 }
 
-.quickTop {
-  height: 74px;
+.quickCard:hover{
+  transform: translateY(-2px);
+  border-color: #d1d5db;
+  box-shadow: 0 14px 28px rgba(17, 24, 39, 0.08);
 }
 
-.quickLink {
-  display: inline-block;
-  padding: 14px 16px;
-  color: #1f2937;
-  text-decoration: underline;
-  font-size: 18px;
+.quickTop{
+  height: 100px;        /* ⬅️ เพิ่มจาก 74px */
+  border-bottom: 1px solid #e5e7eb;
 }
 
+.quickTop1{ background: #d5d1b8; }
+.quickTop2{ background: #b9a99f; }
+.quickTop3{ background: #a7b3a2; }
+
+.quickBody{
+  padding: 12px 14px 14px;
+}
+
+.quickTitle{
+  color: #111827;
+  font-weight: 800;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.quickDesc{
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+/* Responsive */
 @media (max-width: 900px) {
   .studentGrid { grid-template-columns: 1fr; }
-  .quickGrid { grid-template-columns: 1fr; }
   .infoRow { grid-template-columns: 120px 1fr; }
-  .infoLabel { text-align: left; padding-right: 0; }
+  .infoLabel { text-align: left; }
+  .quickGrid { grid-template-columns: 1fr; }
 }

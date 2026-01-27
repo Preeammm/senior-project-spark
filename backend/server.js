@@ -11,20 +11,38 @@ app.use(
   })
 );
 
-// (ถ้าจะเสิร์ฟไฟล์ pdf จริง)
-app.use("/static", express.static("static"));
+// ===== USER คนเดียว =====
+const USER = {
+  username: "u6588087",
+  password: "P1234567_",
+  studentId: "6588087",
+  name: "Yaowapa Sabkasedkid",
+  faculty: "Faculty of Information and Communication Technology",
+  major: "Database and Intelligent Systems (ITDB)",
+  classYear: 4,
+  avatarUrl: null,
+};
 
-app.get("/api/me", (req, res) => {
-  res.json({
-    studentId: "6588087",
-    name: "Yaowapa Sabkasedkid",
-    faculty: "Faculty of Information and Communication Technology",
-    major: "Database and Intelligent Systems (ITDB)",
-    classYear: 4,
-    avatarUrl: null,
-  });
+// ===== LOGIN =====
+app.post("/api/login", (req, res) => {
+  const { username, password } = req.body;
+
+  if (username !== USER.username || password !== USER.password) {
+    return res.status(401).json({ message: "Invalid username or password" });
+  }
+
+  // ไม่ส่ง password กลับ
+  const { password: _, ...userData } = USER;
+  res.json(userData);
 });
 
+// ===== ME =====
+app.get("/api/me", (req, res) => {
+  const { password: _, ...userData } = USER;
+  res.json(userData);
+});
+
+// ===== PROJECTS =====
 app.get("/api/projects", (req, res) => {
   res.json([
     {
@@ -36,16 +54,8 @@ app.get("/api/projects", (req, res) => {
       type: "Group",
       competencyTags: ["Tag 1", "Tag 2", "Tag 3"],
       relevancePercent: 90,
-      materials: [
-        { name: "Report.pdf", url: "http://localhost:3000/static/report.pdf" },
-        {
-          name: "Instruction.pdf",
-          url: "http://localhost:3000/static/instruction.pdf",
-        },
-      ],
+      materials: [],
     },
-
-    // 🔹 NEW DATA (แถวที่ 2)
     {
       id: "p2",
       projectName: "Database Mini Project",
@@ -54,19 +64,11 @@ app.get("/api/projects", (req, res) => {
       type: "Individual",
       competencyTags: ["Tag 1", "Tag 2"],
       relevancePercent: 85,
-      materials: [
-        { name: "Report.pdf", url: "http://localhost:3000/static/report2.pdf" },
-        {
-          name: "Instruction.pdf",
-          url: "http://localhost:3000/static/instruction2.pdf",
-        },
-        {
-          name: "query.sql",
-          url: "http://localhost:3000/static/query.sql",
-        },
-      ],
+      materials: [],
     },
   ]);
 });
 
-app.listen(3000, () => console.log("API on http://localhost:3000"));
+app.listen(3000, () => {
+  console.log("API running at http://localhost:3000");
+});
