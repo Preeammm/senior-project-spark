@@ -1,0 +1,62 @@
+.coursesTableWrap {
+  background: #f6f7f9;
+  padding: 26px 22px;
+  border-radius: 10px;
+}
+
+.coursesTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.coursesTable thead tr {
+  background: #f3f4f6;
+}
+
+.coursesTable th,
+.coursesTable td {
+  padding: 18px 18px;
+  font-size: 14px;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: middle;
+  text-align: center;
+}
+
+.coursesTable .thLeft,
+.coursesTable .courseNameCell {
+  text-align: left;
+}
+
+.courseLink {
+  color: #1d4ed8;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.tagsWrap {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.moreText {
+  color: #6b7280;
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding-left: 6px;
+}
+
+.relevanceCell {
+  width: 160px;
+}
+
+.gradeCell {
+  width: 90px;
+  font-weight: 600;
+  color: #111827;
+}

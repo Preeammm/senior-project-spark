@@ -4,6 +4,7 @@ import cors from "cors";
 // ✅ import จาก mock_data
 import me from "./mock_data/me.js";
 import projects from "./mock_data/project.js";
+import courses from "./mock_data/course.js";
 
 const app = express();
 app.use(express.json());
@@ -44,6 +45,12 @@ app.get("/api/me", (req, res) => {
 app.get("/api/projects", (req, res) => {
   res.json(projects);
 });
+
+// ===== COURSES =====
+app.get("/api/courses", (req, res) => {
+  res.json(courses);
+});
+
 
 app.listen(3000, () => {
   console.log("✅ API running at http://localhost:3000");

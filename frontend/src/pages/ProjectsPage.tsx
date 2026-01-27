@@ -1,3 +1,4 @@
+// src/pages/ProjectsPage.tsx
 import { useState } from "react";
 import PageHeader from "../components/PageHeader";
 import ProjectsTable from "../features/projects/components/ProjectsTable";
@@ -12,12 +13,33 @@ export default function ProjectsPage() {
   const { data, isLoading, error } = useProjects(careerFocus);
 
   return (
-    <div>
+    <div style={{ maxWidth: 1100, margin: "0 auto", padding: "26px 16px 60px" }}>
       <PageHeader
         title="My Projects"
+        titleSize={25}
         careerFocus={careerFocus}
+        careerFocusOptions={CAREER_FOCUS} // ✅ สำคัญ ไม่งั้นหาย
         onCareerFocusChange={setCareerFocus}
+        careerExtra={
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              alert("TODO: Career details page");
+            }}
+            style={{
+              fontSize: 12,
+              color: "#2563eb",
+              textDecoration: "underline",
+              fontWeight: 700,
+            }}
+          >
+            View all career details
+          </a>
+        }
       />
+
+      <div style={{ borderBottom: "1px solid #e5e7eb", margin: "18px 0 22px" }} />
 
       <div
         style={{

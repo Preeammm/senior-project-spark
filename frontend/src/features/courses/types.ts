@@ -1,9 +1,10 @@
 export type Course = {
   id: string;
+  courseCode: string;
   courseName: string;
   competencyTags: string[];
-  relevancePercent: number;
-  grade: string; // "A", "B+"
+  relevancePercent: number; // 0-100
+  grade: string;
 };
 
 export type CourseDetail = {
