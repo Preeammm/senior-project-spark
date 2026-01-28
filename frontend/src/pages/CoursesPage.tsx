@@ -3,10 +3,12 @@ import PageHeader from "../components/PageHeader";
 import CoursesTable from "../features/courses/components/CoursesTable";
 import { useCourses } from "../features/courses/hooks/useCourses";
 import "../styles/page.css";
+import { useProtectedRoute } from "../hooks/useProtectedRoute";
 
 const CAREER_FOCUS = ["Data Analyst", "Data Engineer", "Software Engineer"] as const;
 
 export default function CoursesPage() {
+  useProtectedRoute();
   const [careerFocus, setCareerFocus] =
     useState<(typeof CAREER_FOCUS)[number]>("Data Analyst");
 

@@ -2,11 +2,13 @@ import { useState } from "react";
 import PageHeader from "../components/PageHeader";
 import ProjectsTable from "../features/projects/components/ProjectsTable";
 import { useProjects } from "../features/projects/hooks/useProjects";
+import { useProtectedRoute } from "../hooks/useProtectedRoute";
 import "../styles/page.css";
 
 const CAREER_FOCUS = ["Data Analyst", "Data Engineer", "Software Engineer"] as const;
 
 export default function ProjectsPage() {
+  useProtectedRoute();
   const [careerFocus, setCareerFocus] =
     useState<(typeof CAREER_FOCUS)[number]>("Data Analyst");
 

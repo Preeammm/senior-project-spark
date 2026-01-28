@@ -1,9 +1,12 @@
 import { Link } from "react-router-dom";
 import { useMe } from "../features/student/hooks/useMe";
+import { useProtectedRoute } from "../hooks/useProtectedRoute";
 import "./HomePage.css";
 
 export default function HomePage() {
+  useProtectedRoute();
   const { data: me, isLoading, error } = useMe();
+
 
   if (isLoading) return <div className="homeLoading">Loading...</div>;
   if (error || !me) return <div className="homeLoading">Failed to load user</div>;

@@ -1,4 +1,5 @@
 import { NavLink, type NavLinkRenderProps } from "react-router-dom";
+import { useState } from "react";
 import "./Navbar.css";
 
 import muLogo from "../assets/mu-logo.png";
@@ -9,6 +10,17 @@ function linkClassName({ isActive }: NavLinkRenderProps) {
 }
 
 export default function Navbar() {
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    window.location.href = "/login";
+  };
+
+  const toggleDropdown = () => {
+    setShowDropdown(!showDropdown);
+  };
+
   return (
     <header className="navbar">
       <div className="navInner">
@@ -37,7 +49,16 @@ export default function Navbar() {
         {/* Right: profile */}
         <div className="profile">
           <div className="avatar">YS</div>
-          <div className="caret">▾</div>
+          <div className="caret" onClick={toggleDropdown} style={{ cursor: "pointer" }}>
+            ▾
+          </div>
+          {showDropdown && (
+            <div className="dropdown">
+              <button className="dropdownItem" onClick={handleLogout}>
+                Logout
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>
