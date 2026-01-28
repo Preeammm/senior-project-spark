@@ -9,6 +9,11 @@ function linkClassName({ isActive }: NavLinkRenderProps) {
 }
 
 export default function Navbar() {
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    window.location.href = "/login";
+  };
+
   return (
     <header className="navbar">
       <div className="navInner">
@@ -35,7 +40,7 @@ export default function Navbar() {
         </nav>
 
         {/* Right: profile */}
-        <div className="profile">
+        <div className="profile" onClick={handleLogout}>
           <div className="avatar">YS</div>
           <div className="caret">▾</div>
         </div>
