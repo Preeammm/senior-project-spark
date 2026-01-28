@@ -1,46 +1,93 @@
+/* src/features/courses/components/CoursesTable.css */
+
 .coursesTableWrap {
-  background: #f6f7f9;
-  padding: 26px 22px;
-  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
 }
 
 .coursesTable {
   width: 100%;
   border-collapse: collapse;
   background: #fff;
-  border-radius: 10px;
-  overflow: hidden;
+  font-size: 14px;
+  table-layout: fixed; /* ✅ ทำให้ column ไม่เด้ง */
 }
 
 .coursesTable thead tr {
-  background: #f3f4f6;
+  background: #f8fafc;
 }
 
-.coursesTable th,
+.coursesTable th {
+  padding: 16px 18px;
+  font-weight: 800;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  white-space: nowrap;
+  font-size: 14px;
+}
+
+/* body */
 .coursesTable td {
   padding: 18px 18px;
-  font-size: 14px;
-  border-bottom: 1px solid #e5e7eb;
-  vertical-align: middle;
-  text-align: center;
+  color: #111827;
+  border-bottom: 1px solid #eef2f7;
+  vertical-align: top;
 }
 
-.coursesTable .thLeft,
-.coursesTable .courseNameCell {
-  text-align: left;
+.coursesTable tbody tr:hover {
+  background: #fbfdff;
 }
 
+.coursesTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ✅ column widths (ปรับให้สวยเหมือน screenshot) */
+.coursesTable th:nth-child(1),
+.coursesTable td:nth-child(1) {
+  width: 50%;
+}
+
+.coursesTable th:nth-child(2),
+.coursesTable td:nth-child(2) {
+  width: 28%;
+}
+
+.coursesTable th:nth-child(3),
+.coursesTable td:nth-child(3) {
+  width: 14%;
+}
+
+.coursesTable th:nth-child(4),
+.coursesTable td:nth-child(4) {
+  width: 8%;
+}
+
+/* links */
 .courseLink {
   color: #1d4ed8;
   text-decoration: underline;
-  font-weight: 500;
+  font-weight: 650;
+  line-height: 1.35;
+  display: inline-block;
 }
 
-.tagsWrap {
+/* tags block */
+.tagsBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tagsRow {
   display: flex;
   gap: 10px;
-  flex-wrap: wrap;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .moreText {
@@ -48,15 +95,32 @@
   font-size: 13px;
   text-decoration: underline;
   cursor: pointer;
-  padding-left: 6px;
+  margin-left: 4px;
+  white-space: nowrap;
+  line-height: 1;
 }
 
-.relevanceCell {
-  width: 160px;
+/* ✅ Center relevance badge under header */
+.relevanceCol {
+  text-align: center;
+  vertical-align: middle;
 }
 
-.gradeCell {
-  width: 90px;
-  font-weight: 600;
+/* ✅ make ProgressBadge centered */
+.relevanceCol > * {
+  margin: 0 auto;
+}
+
+/* grade */
+.gradeCol {
+  text-align: center;
+  font-weight: 800;
   color: #111827;
+  vertical-align: middle;
+}
+
+.emptyRow {
+  padding: 24px !important;
+  color: #6b7280;
+  text-align: center;
 }

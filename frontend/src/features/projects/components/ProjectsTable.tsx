@@ -6,27 +6,38 @@ import "./ProjectsTable.css";
 
 export default function ProjectsTable({ projects }: { projects: Project[] }) {
   return (
-    <div className="projects-table-wrapper">
-      <table className="projects-table">
+    <div className="projectsTableWrap">
+      <table className="projectsTable">
         <thead>
           <tr>
-            <th>Project Name</th>
-            <th>Course</th>
-            <th>Year/Semester</th>
-            <th>Type</th>
-            <th>Competency Tags</th>
-            <th>Relevance %</th>
-            <th>Materials</th>
+            <th className="thLeft">Project Name</th>
+            <th className="thLeft">Course</th>
+            <th className="thLeft">Year/Semester</th>
+            <th className="thLeft">Type</th>
+            <th className="thLeft">Competency Tags</th>
+            <th className="relevanceCell">Relevance %</th>
+            <th className="thLeft materialsCell">Materials</th>
           </tr>
         </thead>
 
         <tbody>
           {projects.map((p) => (
             <tr key={p.id}>
-              <td className="project-name">📄 {p.projectName}</td>
-
               <td>
-                <a className="course-link" href="#">
+                <div className="projectNameCell">
+                  <span className="projectIcon" aria-hidden>
+                    📄
+                  </span>
+                  <span className="projectName">{p.projectName}</span>
+                </div>
+              </td>
+
+              <td className="courseCell">
+                <a
+                  className="courseLink"
+                  href="#"
+                  onClick={(e) => e.preventDefault()}
+                >
                   {p.courseName}
                 </a>
               </td>
@@ -35,23 +46,36 @@ export default function ProjectsTable({ projects }: { projects: Project[] }) {
               <td>{p.type}</td>
 
               <td>
-                <div className="tag-group">
-                  {p.competencyTags.map((t) => (
-                    <TagPill key={t} label={t} />
+                <div className="tagsWrap">
+                  {p.competencyTags.map((t, i) => (
+                    <TagPill key={`${p.id}-${t}-${i}`} label={t} />
                   ))}
-                  <span className="tag-edit">Edit</span>
+                  <span className="tagEdit" onClick={() => alert("TODO: Edit tags")}>
+                    Edit
+                  </span>
                 </div>
               </td>
 
-              <td>
-                <ProgressBadge value={p.relevancePercent} />
+              {/* ✅ ครอบ badge ด้วย div เพื่อจัดกลาง */}
+              <td className="relevanceCell">
+                <div className="relevanceInner">
+                  <ProgressBadge value={p.relevancePercent} />
+                </div>
               </td>
 
-              <td className="materials">
+              <td className="materialsCell">
                 <MaterialsLinks materials={p.materials} />
               </td>
             </tr>
           ))}
+
+          {projects.length === 0 && (
+            <tr>
+              <td className="emptyRow" colSpan={7}>
+                No projects
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>

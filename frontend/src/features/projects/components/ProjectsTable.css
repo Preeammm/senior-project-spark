@@ -1,103 +1,124 @@
-.projects-table-wrapper {
+/* ProjectsTable.css */
+
+.projectsTableWrap {
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  padding: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
 }
 
-/* table */
-.projects-table {
+.projectsTable {
   width: 100%;
   border-collapse: collapse;
+  background: #fff;
   font-size: 14px;
 }
 
-/* header */
-.projects-table thead tr {
-  background: #f9fafb;
+.projectsTable thead tr {
+  background: #f8fafc;
 }
 
-.projects-table th {
-  text-align: left;
-  padding: 14px 12px;
-  font-weight: 600;
+.projectsTable th {
+  padding: 18px 18px;
+  font-weight: 700;
   color: #374151;
+  border-bottom: 1px solid #e5e7eb;
   white-space: nowrap;
 }
 
-/* body */
-.projects-table td {
-  padding: 14px 12px;
-  vertical-align: top;
+.thLeft {
+  text-align: left;
+}
+
+.projectsTable td {
+  padding: 22px 18px;
   color: #111827;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: top;
+  line-height: 1.35;
 }
 
-.projects-table tbody tr {
-  border-top: 1px solid #e5e7eb;
+.projectsTable tbody tr:last-child td {
+  border-bottom: none;
 }
 
-/* project name */
-.project-name {
+/* Project name cell */
+.projectNameCell {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-weight: 700;
+}
+
+.projectIcon {
+  opacity: 0.7;
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.projectName {
+  font-weight: 700;
+}
+
+/* Course link */
+.courseCell {
+  text-align: left;
+}
+
+.courseLink {
+  color: #1d4ed8;
+  text-decoration: underline;
   font-weight: 600;
 }
 
-/* course link */
-.course-link {
-  color: #2563eb;
-  text-decoration: none;
-}
-
-.course-link:hover {
-  text-decoration: underline;
-}
-
-/* competency tags */
-.tag-group {
+/* Tags */
+.tagsWrap {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
+  gap: 10px;
+  align-items: flex-start;
 }
 
-.tag-edit {
-  font-size: 12px;
+.tagEdit {
   color: #6b7280;
-  margin-left: 6px;
-  cursor: pointer;
-}
-
-.tag-edit:hover {
+  font-size: 13px;
   text-decoration: underline;
+  cursor: pointer;
+  padding-left: 2px;
 }
 
-/* relevance */
-.relevance {
+/* ✅ Relevance: ทำหัวข้อ + ค่าให้อยู่กลาง */
+.relevanceCell {
+  width: 190px;
+  white-space: nowrap;
+}
+
+/* header center */
+.projectsTable th.relevanceCell {
+  text-align: center;
+}
+
+/* td กลับเป็น table-cell ปกติ */
+.projectsTable td.relevanceCell {
+  text-align: center;
+  /* vertical-align: middle; */
+}
+
+/* จัดกลางด้วย wrapper ข้างในแทน */
+.relevanceInner {
   display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 6px;
-  font-weight: 600;
-}
-
-.relevance-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
-  background: #22c55e;
 }
 
 /* materials */
-.materials {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.materialsCell {
+  width: 160px;
 }
 
-.material-link {
-  font-size: 13px;
-  color: #2563eb;
-  text-decoration: none;
-}
-
-.material-link:hover {
-  text-decoration: underline;
+.emptyRow {
+  padding: 24px !important;
+  color: #6b7280;
+  text-align: center;
 }
