@@ -41,7 +41,7 @@ export default function LoginPage() {
   return (
     <div className="loginPage">
       <div className="loginHeader">
-        <div style={{ fontSize: 34 }}>🎒</div>
+        <div style={{ fontSize: 34 }}></div>
         <div>
           <div className="loginHeaderTitle">SPARK</div>
           <div className="loginHeaderSub">
