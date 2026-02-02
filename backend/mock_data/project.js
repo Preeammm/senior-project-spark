@@ -1,4 +1,3 @@
-// mock_data/project.js
 const projects = [
   {
     id: "p1",
@@ -10,6 +9,7 @@ const projects = [
     competencyTags: ["Tag 1", "Tag 2", "Tag 3"],
     relevancePercent: 90,
     materials: [],
+    visibleTo: ["u1"], // ✅ only user 1
   },
   {
     id: "p2",
@@ -20,6 +20,7 @@ const projects = [
     competencyTags: ["Tag 1", "Tag 2"],
     relevancePercent: 85,
     materials: [],
+    visibleTo: ["u1","u2", "u3"], // ✅ users 2 & 3
   },
 ];
 
