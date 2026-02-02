@@ -127,7 +127,7 @@ export default function LoginPage() {
             </button>
 
             <div className="loginHint">
-              Example: <b>u6588000</b> / <b>P1234567</b>
+              Example: <b>u6588000</b> / <b>ICT000</b>
             </div>
           </div>
         </div>

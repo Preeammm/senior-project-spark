@@ -1,0 +1,295 @@
+/* Title */
+.detailTitle {
+  font-size: 23px;
+  font-weight: 650;
+  color: #111827;
+  margin: 6px 0 18px;
+}
+
+/* Headings */
+.cardTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 14px;
+}
+
+.sectionTitle {
+  margin-top: 18px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.backLink{
+  color: #2563eb;
+  text-decoration: underline;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Competency Tags heading must be 14px */
+.tagsTitle {
+  margin-top: 18px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Divider line between blocks */
+.thinDivider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 25px 0;
+}
+
+/* ✅ One-column list (each topic in each line) */
+.infoList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Info row typography 14px */
+.infoRow {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 14px;
+  color: #111827;
+}
+
+.infoLabel {
+  min-width: 160px; /* makes label align nicely like screenshot */
+  font-weight: 600;
+  color: #111827;
+}
+
+.infoValue {
+  font-weight: 400;
+  color: #111827;
+  flex: 1;
+}
+
+.instructorLine {
+  margin-bottom: 2px;
+}
+
+.emailLink {
+  color: #2563eb;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+/* Summary */
+.summaryText {
+  margin: 8px 0 0;
+  font-size: 14px;
+  font-weight: 400;
+  color: #111827;
+  line-height: 1.55;
+}
+
+/* Tags */
+.tagWrap {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 6px;
+}
+
+/* Final Grade / Overall / Relevance */
+.statsRow {
+  margin-top: 6px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.statLabel {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.statValue {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.statValueInline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* colored percent box (like screenshot) */
+.pctBox {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.pctBox.green { background: #16a34a; }
+.pctBox.yellow { background: #fbbf24; }
+.pctBox.orange { background: #f59e0b; }
+
+/* Percent text stays bold 16px */
+.pctText {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+}
+
+
+
+/* Breakdown */
+.breakdownCard {
+  margin-top: 18px;
+}
+
+.breakDivider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 10px 0 18px;
+}
+
+.breakTableWrap {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 14px;
+  border: 1px solid #eef2f7;
+}
+
+.breakTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: transparent;
+  table-layout: fixed; /* ✅ สำคัญ */
+}
+
+
+.breakTable th {
+  text-align: left;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 14px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.breakTable td {
+  padding: 16px 14px;
+  border-bottom: 1px solid #eef2f7;
+  vertical-align: middle;
+  font-size: 14px;
+  font-weight: 400;
+  color: #111827;
+}
+
+/* ✅ ล็อกคอลัมน์ให้หัวตารางตรงกับข้อมูล */
+.breakTable th:nth-child(1),
+.breakTable td:nth-child(1) {
+  width: 26%;
+}
+
+.breakTable th:nth-child(2),
+.breakTable td:nth-child(2) {
+  width: 12%;
+  text-align: center;     /* ✅ weight อยู่กลาง */
+}
+
+.breakTable th:nth-child(3),
+.breakTable td:nth-child(3) {
+  width: 44%;
+}
+
+.breakTable th:nth-child(4),
+.breakTable td:nth-child(4) {
+  width: 18%;
+}
+
+
+.breakTable tr:last-child td {
+  border-bottom: none;
+}
+
+.center {
+  text-align: center;
+  font-weight: 600;
+}
+
+.wWeight { width: auto; }
+.wIndex { width: auto; }
+
+
+.assessCell {
+  font-weight: 600;
+}
+
+.indexCell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.idxSquare {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.idxSquare.orange { background: #f59e0b; }
+.idxSquare.yellow { background: #fbbf24; }
+.idxSquare.green { background: #16a34a; }
+
+.idxText {
+  font-size: 14px;
+  font-weight: 400;
+  color: #111827;
+}
+
+.overallRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 14px;
+  padding: 12px 12px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.overallLabel {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.overallRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* responsive */
+@media (max-width: 860px) {
+  .infoLabel {
+    min-width: 140px;
+  }
+  .statItem {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

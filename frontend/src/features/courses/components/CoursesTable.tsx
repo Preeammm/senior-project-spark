@@ -1,4 +1,5 @@
 // src/features/courses/components/CoursesTable.tsx
+import { Link } from "react-router-dom";
 import type { Course } from "../types";
 import TagPill from "./TagPill";
 import ProgressBadge from "../../../components/ProgressBadge";
@@ -34,13 +35,10 @@ export default function CoursesTable({ courses }: Props) {
             return (
               <tr key={c.id}>
                 <td>
-                  <a
-                    className="courseLink"
-                    href="#"
-                    onClick={(e) => e.preventDefault()}
-                  >
+                  {/* ✅ real navigation */}
+                  <Link className="courseLink" to={`/courses/${c.id}`}>
                     {c.courseCode}_ {c.courseName}
-                  </a>
+                  </Link>
                 </td>
 
                 <td>
