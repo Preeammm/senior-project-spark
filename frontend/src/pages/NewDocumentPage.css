@@ -1,0 +1,285 @@
+.ndWrap {
+  margin-top: 10px;
+  max-width: 820px;
+}
+
+.ndRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+  flex-wrap: wrap;
+}
+
+.ndLabel {
+  min-width: 120px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.ndLabel.wide {
+  min-width: 340px;
+}
+
+.ndValueBox {
+  height: 32px;
+  min-width: 140px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+}
+
+.ndChange {
+  border: none;
+  background: transparent;
+  color: #2563eb;
+  text-decoration: underline;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ndHint {
+  font-size: 12px;
+  color: #6b7280;
+  flex-basis: 100%;
+  margin-left: 132px;
+}
+
+.ndCheck {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #111827;
+  font-weight: 500;
+}
+
+/* Fields */
+.ndField {
+  margin: 18px 0;
+}
+
+.ndFieldLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 8px;
+}
+
+.ndReq {
+  color: #dc2626;
+  margin-left: 3px;
+}
+
+.ndInput {
+  width: 340px;
+  height: 36px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 0 12px;
+  font-size: 14px;
+  color: #111827;
+  outline: none;
+}
+
+.ndTextarea {
+  width: 340px;
+  height: 150px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 14px;
+  color: #111827;
+  outline: none;
+  resize: none;
+  line-height: 1.45;
+}
+
+.ndInput.error,
+.ndTextarea.error {
+  border-color: #ef4444;
+}
+
+.ndError {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #ef4444;
+  font-weight: 600;
+}
+
+/* Projects selected */
+.projectsRow {
+  margin-top: 22px;
+}
+
+.ndSelectedBox {
+  height: 34px;
+  min-width: 180px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 12px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  font-size: 13px;
+  color: #374151;
+}
+
+.ndClearX {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  color: #6b7280;
+}
+
+/* Actions */
+.ndActions {
+  margin-top: 36px;
+  display: flex;
+  gap: 14px;
+}
+
+.ndBtn {
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 12px;
+  border: 1px solid #d1d5db;
+  background: #9ca3af;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ndBtn.primary {
+  background: #0b63c7;
+  border-color: #0b63c7;
+}
+
+.ndBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ndBtn.small {
+  height: 34px;
+  border-radius: 10px;
+  font-size: 13px;
+  padding: 0 14px;
+}
+
+/* ===== Modal ===== */
+.ndModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.ndModal {
+  width: 680px;
+  max-width: calc(100vw - 24px);
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.ndModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.ndModalTitle {
+  font-size: 14px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.ndModalClose {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+  color: #6b7280;
+}
+
+.ndModalBody {
+  padding: 14px 16px;
+  max-height: 340px;
+  overflow: auto;
+}
+
+.ndModalHint {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.ndProjectList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ndProjectItem {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  cursor: pointer;
+}
+
+.ndProjectItem:hover {
+  background: #f9fafb;
+}
+
+.ndProjectInfo {
+  flex: 1;
+}
+
+.ndProjectName {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.ndProjectMeta {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.ndModalFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-top: 1px solid #e5e7eb;
+  background: #fafafa;
+}
+
+.ndModalCount {
+  font-size: 13px;
+  color: #374151;
+  font-weight: 600;
+}

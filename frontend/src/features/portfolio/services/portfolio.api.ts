@@ -1,17 +1,43 @@
 import { http } from "../../../services/http";
-import type { CreateDocumentPayload, PortfolioDocument } from "../types";
 
-export async function listDocuments(): Promise<PortfolioDocument[]> {
-  const { data } = await http.get("/api/portfolio/documents");
-  return data;
+export type PortfolioDocLite = {
+  id: string;
+  title: string;
+  createdAt: string;
+};
+
+export type PortfolioDoc = PortfolioDocLite & {
+  content: string;
+};
+
+// LIST
+export async function getDocuments(): Promise<PortfolioDocLite[]> {
+  const res = await http.get("/api/portfolio/documents");
+  return res.data;
 }
 
-export async function createDocument(payload: CreateDocumentPayload): Promise<PortfolioDocument> {
-  const { data } = await http.post("/api/portfolio/documents", payload);
-  return data;
+// CREATE
+export async function createDocument(input: {
+  title: string;
+  content?: string;
+}): Promise<PortfolioDocLite> {
+  const res = await http.post("/api/portfolio/documents", input);
+  return res.data;
 }
 
-export function downloadDocument(docId: string) {
-  // เปิดแท็บใหม่ให้ backend stream file
-  window.open(`${import.meta.env.VITE_API_BASE_URL}/api/portfolio/documents/${docId}/download`, "_blank");
+// DETAIL (with content)
+export async function getDocument(docId: string): Promise<PortfolioDoc> {
+  const res = await http.get(`/api/portfolio/documents/${docId}`);
+  return res.data;
+}
+
+// DELETE
+export async function deleteDocument(docId: string): Promise<void> {
+  await http.delete(`/api/portfolio/documents/${docId}`);
+}
+
+// RENAME (PATCH)
+export async function renameDocument(docId: string, title: string): Promise<{ id: string; title: string }> {
+  const res = await http.patch(`/api/portfolio/documents/${docId}`, { title });
+  return res.data;
 }

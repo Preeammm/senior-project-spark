@@ -29,7 +29,6 @@ function pickSession(user) {
     id: user.id,
     username: user.username,
     defaultPath: user.defaultPath,
-    // optional info for navbar display quickly
     studentId: profile?.studentId,
     name: profile?.name,
   };
@@ -59,7 +58,6 @@ app.post("/api/login", (req, res) => {
     return res.status(401).json({ message: "Invalid username or password" });
   }
 
-  // ✅ return session, not the whole me object
   res.json(pickSession(user));
 });
 
@@ -70,19 +68,17 @@ app.get("/api/me", requireUser, (req, res) => {
   res.json(profile);
 });
 
-// ===== PROJECTS (protected or public — choose one) =====
+// ===== PROJECTS (protected) =====
 app.get("/api/projects", requireUser, (req, res) => {
   const userId = req.user.id;
 
   const filtered = projects.filter((p) => {
-    // if visibleTo missing -> show all (optional)
     if (!p.visibleTo) return true;
     return p.visibleTo.includes(userId);
   });
 
   res.json(filtered);
 });
-
 
 // ===== COURSES (protected) =====
 app.get("/api/courses", requireUser, (req, res) => {
@@ -96,7 +92,7 @@ app.get("/api/courses", requireUser, (req, res) => {
   res.json(filtered);
 });
 
-
+// ===== COURSE DETAIL (protected) =====
 app.get("/api/courses/:courseId", requireUser, (req, res) => {
   const userId = req.user.id;
   const { courseId } = req.params;
@@ -112,9 +108,16 @@ app.get("/api/courses/:courseId", requireUser, (req, res) => {
     ...course,
     description: "Mock course detail data (replace later).",
     learningOutcomes: ["Outcome 1 (mock)", "Outcome 2 (mock)", "Outcome 3 (mock)"],
+    credits: "3 (3–0–6)",
+    semester: 1,
+    year: 4,
+    instructors: [
+      { name: "Asst. Prof. Dr. (Mock Instructor)", email: "instructor@mahidol.ac.th" },
+    ],
+    courseTitleEN: course.courseName,
+    courseTitleTH: "—",
   });
 });
-
 
 // ===== PORTFOLIO DOCUMENTS (protected, in-memory) =====
 let portfolioDocs = [
@@ -127,10 +130,12 @@ let portfolioDocs = [
   },
 ];
 
+// list (no content)
 app.get("/api/portfolio/documents", requireUser, (req, res) => {
   res.json(portfolioDocs.map(({ content, ...rest }) => rest));
 });
 
+// create
 app.post("/api/portfolio/documents", requireUser, (req, res) => {
   const { title, content } = req.body ?? {};
   if (!title || typeof title !== "string") {
@@ -145,19 +150,64 @@ app.post("/api/portfolio/documents", requireUser, (req, res) => {
   };
 
   portfolioDocs = [doc, ...portfolioDocs];
-  res.status(201).json({ id: doc.id, title: doc.title, createdAt: doc.createdAt });
+
+  res.status(201).json({
+    id: doc.id,
+    title: doc.title,
+    createdAt: doc.createdAt,
+  });
 });
 
+// get doc detail (with content)
+app.get("/api/portfolio/documents/:docId", requireUser, (req, res) => {
+  const { docId } = req.params;
+  const doc = portfolioDocs.find((d) => d.id === docId);
+  if (!doc) return res.status(404).json({ message: "Document not found" });
+  res.json(doc);
+});
+
+// download as txt
 app.get("/api/portfolio/documents/:docId/download", requireUser, (req, res) => {
   const { docId } = req.params;
   const doc = portfolioDocs.find((d) => d.id === docId);
   if (!doc) return res.status(404).json({ message: "Document not found" });
 
   res.setHeader("Content-Type", "text/plain; charset=utf-8");
-  res.setHeader("Content-Disposition", `attachment; filename=portfolio-${docId}.txt`);
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename=portfolio-${docId}.txt`
+  );
   res.send(`${doc.title}\n\n${doc.content}`);
 });
 
+// ✅ PATCH rename doc
+app.patch("/api/portfolio/documents/:docId", requireUser, (req, res) => {
+  const { docId } = req.params;
+  const { title } = req.body ?? {};
+
+  if (!title || typeof title !== "string") {
+    return res.status(400).json({ message: "title is required" });
+  }
+
+  const doc = portfolioDocs.find((d) => d.id === docId);
+  if (!doc) return res.status(404).json({ message: "Document not found" });
+
+  doc.title = title;
+  res.json({ id: doc.id, title: doc.title });
+});
+
+// ✅ DELETE document (ONLY ONCE)
+app.delete("/api/portfolio/documents/:docId", requireUser, (req, res) => {
+  const { docId } = req.params;
+
+  const idx = portfolioDocs.findIndex((d) => d.id === docId);
+  if (idx === -1) return res.status(404).json({ message: "Document not found" });
+
+  portfolioDocs.splice(idx, 1);
+  res.status(204).send();
+});
+
+// ===== START SERVER =====
 app.listen(3000, () => {
   console.log("✅ API running at http://localhost:3000");
 });

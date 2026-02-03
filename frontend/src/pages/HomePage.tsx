@@ -61,7 +61,7 @@ export default function HomePage() {
                 </div>
 
                 <div className="infoRow" style={{ borderBottom: "none" }}>
-                  <div className="infoLabel">Class</div>
+                  <div className="infoLabel">Year</div>
                   <div className="infoValue">{me.classYear}</div>
                 </div>
               </div>

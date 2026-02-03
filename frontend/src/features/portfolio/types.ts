@@ -1,16 +1,20 @@
 export type PortfolioDocument = {
   id: string;
   title: string;
-  updatedAt: string; // ISO
-  downloadUrl?: string; // optional if backend provides
+  createdAt?: string;
+  updatedAt?: string;
+  content?: string;
 };
 
 export type CreateDocumentPayload = {
-  careerFocus: string;
-  usePersonalInfo: boolean;
   title: string;
-  shortDescription: string;
-  projectIds: string[];
-  experienceIds: string[];
-  activityIds: string[];
+  content?: string;
+
+  // optional for future use
+  careerFocus?: string;
+  usePersonalInfo?: boolean;
+  shortDescription?: string;
+  projectIds?: string[];
+  experienceIds?: string[];
+  activityIds?: string[];
 };
