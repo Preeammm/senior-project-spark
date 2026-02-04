@@ -6,7 +6,7 @@ const courses = [
     competencyTags: ["Tag 1", "Tag 2", "Tag 3", "Tag 4", "Tag 5", "Tag 6"],
     relevancePercent: 90,
     grade: "A",
-    visibleTo: ["u1"], // ✅ only user 1
+    visibleTo: ["u1", "u2", "u3"],
   },
   {
     id: "c2",
@@ -15,7 +15,16 @@ const courses = [
     competencyTags: ["Tag 1", "Tag 2", "Tag 3"],
     relevancePercent: 75,
     grade: "B+",
-    visibleTo: ["u1", "u2", "u3"], // ✅ users 2 & 3
+    visibleTo: ["u1", "u2", "u3"],
+  },
+  {
+    id: "c3",
+    courseCode: "ITCS241",
+    courseName: "Database Management Systems",
+    competencyTags: ["Tag 1", "Tag 2"],
+    relevancePercent: 85,
+    grade: "A",
+    visibleTo: ["u1", "u2", "u3"],
   },
 ];
 

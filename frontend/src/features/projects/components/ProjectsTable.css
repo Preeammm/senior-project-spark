@@ -1,5 +1,3 @@
-/* ProjectsTable.css */
-
 .projectsTableWrap {
   background: #ffffff;
   border: 1px solid #e5e7eb;
@@ -72,7 +70,7 @@
   font-weight: 600;
 }
 
-/* Tags */
+/* Tags (read-only) */
 .tagsWrap {
   display: flex;
   flex-wrap: wrap;
@@ -80,39 +78,24 @@
   align-items: flex-start;
 }
 
-.tagEdit {
-  color: #6b7280;
-  font-size: 13px;
-  text-decoration: underline;
-  cursor: pointer;
-  padding-left: 2px;
-}
-
-/* ✅ Relevance: ทำหัวข้อ + ค่าให้อยู่กลาง */
+/* Relevance */
 .relevanceCell {
   width: 190px;
   white-space: nowrap;
+  text-align: center;
 }
 
-/* header center */
 .projectsTable th.relevanceCell {
   text-align: center;
 }
 
-/* td กลับเป็น table-cell ปกติ */
-.projectsTable td.relevanceCell {
-  text-align: center;
-  /* vertical-align: middle; */
-}
-
-/* จัดกลางด้วย wrapper ข้างในแทน */
 .relevanceInner {
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-/* materials */
+/* Materials */
 .materialsCell {
   width: 160px;
 }

@@ -1,8 +1,26 @@
+import { Link } from "react-router-dom";
 import type { Project } from "../types";
-import TagPill from "./TagPill";
 import MaterialsLinks from "./MaterialsLinks";
 import ProgressBadge from "../../../components/ProgressBadge";
+import TagPill from "../../courses/components/TagPill"; // ✅ reuse colored TagPill
 import "./ProjectsTable.css";
+
+function toneByIndex(i: number) {
+  return (["pink", "green", "blue", "sand"] as const)[i % 4];
+}
+
+function getCourseCodeFromCourseName(courseName: string) {
+  if (!courseName) return "";
+
+  // "ITCS495 - Something..." -> "ITCS495"
+  const match = courseName.trim().match(/^([A-Za-z]{2,10}\d{2,6})\b/);
+  if (match?.[1]) return match[1];
+
+  const parts = courseName.split(" - ");
+  if (parts[0]?.trim()) return parts[0].trim();
+
+  return courseName.trim();
+}
 
 export default function ProjectsTable({ projects }: { projects: Project[] }) {
   return (
@@ -10,7 +28,7 @@ export default function ProjectsTable({ projects }: { projects: Project[] }) {
       <table className="projectsTable">
         <thead>
           <tr>
-            <th className="thLeft">Project Name</th>
+            <th className="thLeft">Assessment Name</th>
             <th className="thLeft">Course</th>
             <th className="thLeft">Year/Semester</th>
             <th className="thLeft">Type</th>
@@ -21,58 +39,61 @@ export default function ProjectsTable({ projects }: { projects: Project[] }) {
         </thead>
 
         <tbody>
-          {projects.map((p) => (
-            <tr key={p.id}>
-              <td>
-                <div className="projectNameCell">
-                  <span className="projectIcon" aria-hidden>
-                    📄
-                  </span>
-                  <span className="projectName">{p.projectName}</span>
-                </div>
-              </td>
+          {projects.map((p) => {
+            const courseCode = getCourseCodeFromCourseName(p.courseName);
 
-              <td className="courseCell">
-                <a
-                  className="courseLink"
-                  href="#"
-                  onClick={(e) => e.preventDefault()}
-                >
-                  {p.courseName}
-                </a>
-              </td>
+            return (
+              <tr key={p.id}>
+                <td>
+                  <div className="projectNameCell">
+                    <span className="projectIcon" aria-hidden>
+                      📄
+                    </span>
+                    <span className="projectName">{p.projectName}</span>
+                  </div>
+                </td>
 
-              <td>{p.yearSemester}</td>
-              <td>{p.type}</td>
+                <td className="courseCell">
+                  <Link
+                    className="courseLink"
+                    to={`/courses/${encodeURIComponent(courseCode)}`}
+                  >
+                    {p.courseName}
+                  </Link>
+                </td>
 
-              <td>
-                <div className="tagsWrap">
-                  {p.competencyTags.map((t, i) => (
-                    <TagPill key={`${p.id}-${t}-${i}`} label={t} />
-                  ))}
-                  <span className="tagEdit" onClick={() => alert("TODO: Edit tags")}>
-                    Edit
-                  </span>
-                </div>
-              </td>
+                <td>{p.yearSemester}</td>
+                <td>{p.type}</td>
 
-              {/* ✅ ครอบ badge ด้วย div เพื่อจัดกลาง */}
-              <td className="relevanceCell">
-                <div className="relevanceInner">
-                  <ProgressBadge value={p.relevancePercent} />
-                </div>
-              </td>
+                <td>
+                  <div className="tagsWrap">
+                    {p.competencyTags.map((t, i) => (
+                      <TagPill
+                        key={`${p.id}-${t}-${i}`}
+                        label={t}
+                        tone={toneByIndex(i)}
+                      />
+                    ))}
+                  </div>
+                </td>
 
-              <td className="materialsCell">
-                <MaterialsLinks materials={p.materials} />
-              </td>
-            </tr>
-          ))}
+                <td className="relevanceCell">
+                  <div className="relevanceInner">
+                    <ProgressBadge value={p.relevancePercent} />
+                  </div>
+                </td>
+
+                <td className="materialsCell">
+                  <MaterialsLinks materials={p.materials} />
+                </td>
+              </tr>
+            );
+          })}
 
           {projects.length === 0 && (
             <tr>
               <td className="emptyRow" colSpan={7}>
-                No projects
+                No assessments
               </td>
             </tr>
           )}

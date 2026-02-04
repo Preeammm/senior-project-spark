@@ -97,7 +97,9 @@ app.get("/api/courses/:courseId", requireUser, (req, res) => {
   const userId = req.user.id;
   const { courseId } = req.params;
 
-  const course = courses.find((c) => c.id === courseId);
+  // ✅ IMPORTANT FIX: allow lookup by internal id (c1/c2/...) OR courseCode (ITCS495/ITCS241/...)
+  const course = courses.find((c) => c.id === courseId || c.courseCode === courseId);
+
   if (!course) return res.status(404).json({ message: "Course not found" });
 
   if (course.visibleTo && !course.visibleTo.includes(userId)) {
@@ -173,10 +175,7 @@ app.get("/api/portfolio/documents/:docId/download", requireUser, (req, res) => {
   if (!doc) return res.status(404).json({ message: "Document not found" });
 
   res.setHeader("Content-Type", "text/plain; charset=utf-8");
-  res.setHeader(
-    "Content-Disposition",
-    `attachment; filename=portfolio-${docId}.txt`
-  );
+  res.setHeader("Content-Disposition", `attachment; filename=portfolio-${docId}.txt`);
   res.send(`${doc.title}\n\n${doc.content}`);
 });
 
