@@ -1,4 +1,7 @@
-import { useMemo } from "react";
+// CourseDetailPage.tsx  (FULL - career dropdown can change now)
+// NOTE: this file assumes your PageHeader calls onCareerFocusChange(newValue)
+
+import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 
@@ -10,6 +13,8 @@ import TagPill from "../features/courses/components/TagPill";
 
 import "../styles/page.css";
 import "./CourseDetailPage.css";
+
+type CareerFocus = "Data Analyst" | "Data Engineer" | "Software Engineer";
 
 type Instructor = { name: string; email?: string };
 
@@ -110,6 +115,19 @@ export default function CourseDetailPage() {
   useProtectedRoute();
   const { courseId } = useParams();
 
+  // ✅ requested defaults:
+  // - Course Information: hidden by default
+  // - Competency Breakdown: shown by default
+  const [courseInfoOpen, setCourseInfoOpen] = useState(false);
+  const [breakdownOpen, setBreakdownOpen] = useState(true);
+
+  // ✅ make career dropdown changeable
+  const [careerFocus, setCareerFocus] = useState<CareerFocus>("Data Analyst");
+  const careerFocusOptions = useMemo(
+    () => ["Data Analyst", "Data Engineer", "Software Engineer"] as const,
+    []
+  );
+
   const { data, isLoading, error } = useQuery({
     queryKey: ["course-detail", courseId],
     enabled: !!courseId,
@@ -125,9 +143,9 @@ export default function CourseDetailPage() {
     <div className="pageContainer">
       <PageHeader
         title="My Courses"
-        careerFocus="Data Analyst"
-        careerFocusOptions={["Data Analyst"] as const}
-        onCareerFocusChange={() => {}}
+        careerFocus={careerFocus}
+        careerFocusOptions={careerFocusOptions}
+        onCareerFocusChange={setCareerFocus}
         careerExtra={
           <Link className="backLink" to="/courses">
             Back to My Courses
@@ -137,130 +155,152 @@ export default function CourseDetailPage() {
 
       <div className="dividerLine" />
 
-      {/* Title */}
       <h1 className="detailTitle">
         {data.courseCode}_{data.courseTitleEN}
       </h1>
 
-      {/* ===== Course Information ===== */}
+      {/* ===== Course Information (Collapsible, default hidden) ===== */}
       <div className="dataCard">
         <div className="dataCardInner">
-          <div className="cardTitle">Course Information</div>
+          <button
+            type="button"
+            className="cardTitleRow"
+            onClick={() => setCourseInfoOpen((v) => !v)}
+            aria-expanded={courseInfoOpen}
+            aria-controls="course-info-panel"
+          >
+            <span className="cardTitleText">Course Information</span>
+            <span className={`chev ${courseInfoOpen ? "open" : ""}`}>›</span>
+          </button>
 
-          <div className="infoList">
-            <InfoRow label="Course Code:" value={data.courseCode} />
-            <InfoRow label="Course Title (EN):" value={data.courseTitleEN} />
-            <InfoRow label="Course Title (TH):" value={data.courseTitleTH ?? "—"} />
-            <InfoRow label="Credits:" value={data.credits} />
-            <InfoRow label="Semester:" value={data.semester} />
-            <InfoRow label="Year:" value={String(data.year)} />
+          <div
+            id="course-info-panel"
+            className={`collapse ${courseInfoOpen ? "open" : ""}`}
+          >
+            <div className="infoList">
+              <InfoRow label="Course Code:" value={data.courseCode} />
+              <InfoRow label="Course Title (EN):" value={data.courseTitleEN} />
+              <InfoRow label="Course Title (TH):" value={data.courseTitleTH ?? "—"} />
+              <InfoRow label="Credits:" value={data.credits} />
+              <InfoRow label="Semester:" value={data.semester} />
+              <InfoRow label="Year:" value={String(data.year)} />
 
-            <div className="infoRow">
-              <div className="infoLabel">Instructors:</div>
-              <div className="infoValue">
-                {data.instructors.map((ins, idx) => (
-                  <div key={`${ins.name}-${idx}`} className="instructorLine">
-                    {ins.name}{" "}
-                    {ins.email && (
-                      <a className="emailLink" href={`mailto:${ins.email}`}>
-                        [{ins.email}]
-                      </a>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="thinDivider" />
-
-          <div className="sectionTitle">Course Summary</div>
-          <p className="summaryText">{data.summary}</p>
-
-          <div className="tagsTitle">Competency Tags:</div>
-          <div className="tagWrap">
-            {data.competencyTags.map((t, i) => (
-              <TagPill key={`${t}-${i}`} label={t} tone={toneByIndex(i)} />
-            ))}
-          </div>
-
-          <div className="thinDivider" />
-
-          {/* Final / Overall / Relevance */}
-          <div className="statsRow">
-            <div className="statItem">
-              <div className="statLabel">Final Grade:</div>
-              <div className="statValue">{data.finalGrade}</div>
-            </div>
-
-            <div className="statItem">
-              <div className="statLabel">Overall Competency Index:</div>
-              <div className="statValueInline">
-                <span className={`pctBox ${pctTone(data.overallCompetencyIndex)}`} />
-                <span className="pctText">{data.overallCompetencyIndex}%</span>
+              <div className="infoRow">
+                <div className="infoLabel">Instructors:</div>
+                <div className="infoValue">
+                  {data.instructors.map((ins, idx) => (
+                    <div key={`${ins.name}-${idx}`} className="instructorLine">
+                      {ins.name}{" "}
+                      {ins.email && (
+                        <a className="emailLink" href={`mailto:${ins.email}`}>
+                          [{ins.email}]
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
-            <div className="statItem">
-              <div className="statLabel">Relevance to career:</div>
-              <div className="statValueInline">
-                <span className={`pctBox ${pctTone(data.relevancePercent)}`} />
-                <span className="pctText">{data.relevancePercent}%</span>
+            <div className="thinDivider" />
+
+            <div className="sectionTitle">Course Summary</div>
+            <p className="summaryText">{data.summary}</p>
+
+            <div className="tagsTitle">Competency Tags:</div>
+            <div className="tagWrap">
+              {data.competencyTags.map((t, i) => (
+                <TagPill key={`${t}-${i}`} label={t} tone={toneByIndex(i)} />
+              ))}
+            </div>
+
+            <div className="thinDivider" />
+
+            <div className="statsRow">
+              <div className="statItem">
+                <div className="statLabel">Final Grade:</div>
+                <div className="statValue">{data.finalGrade}</div>
+              </div>
+
+              <div className="statItem">
+                <div className="statLabel">Overall Competency Index:</div>
+                <div className="statValueInline">
+                  <span className={`pctBox ${pctTone(data.overallCompetencyIndex)}`} />
+                  <span className="pctText">{data.overallCompetencyIndex}%</span>
+                </div>
+              </div>
+
+              <div className="statItem">
+                <div className="statLabel">Relevance to career:</div>
+                <div className="statValueInline">
+                  <span className={`pctBox ${pctTone(data.relevancePercent)}`} />
+                  <span className="pctText">{data.relevancePercent}%</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ===== Competency Index Breakdown ===== */}
+      {/* ===== Competency Index Breakdown (Collapsible, default shown) ===== */}
       <div className="dataCard breakdownCard">
         <div className="dataCardInner">
-          <div className="cardTitle">
-            Competency Index Breakdown{" "}
-            <span className="mockNote">(Mock)</span>
-          </div>
+          <button
+            type="button"
+            className="cardTitleRow"
+            onClick={() => setBreakdownOpen((v) => !v)}
+            aria-expanded={breakdownOpen}
+            aria-controls="breakdown-panel"
+          >
+            <span className="cardTitleText">
+              Competency Index Breakdown <span className="mockNote">(Mock)</span>
+            </span>
+            <span className={`chev ${breakdownOpen ? "open" : ""}`}>›</span>
+          </button>
 
-          <div className="breakDivider" />
+          <div id="breakdown-panel" className={`collapse ${breakdownOpen ? "open" : ""}`}>
+            <div className="breakDivider" />
 
-          <div className="breakTableWrap">
-            <table className="breakTable">
-              <thead>
-                <tr>
-                  <th>Assessment Type</th>
-                  <th className="wWeight">Weight</th>
-                  <th>Competency Type</th>
-                  <th className="wIndex">Competency Index</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {breakdownRows.map((r, i) => (
-                  <tr key={i}>
-                    <td className="assessCell">{r.assessmentType}</td>
-                    <td className="center">{r.weightPercent}%</td>
-                    <td>
-                      <div className="tagWrap">
-                        {r.competencyTags.map((t, j) => (
-                          <TagPill key={`${i}-${j}`} label={t} tone={toneByIndex(j)} />
-                        ))}
-                      </div>
-                    </td>
-                    <td>
-                      <div className="indexCell">
-                        <span className={indexColorClass(r.competencyIndex)} />
-                        <span className="idxText">{r.competencyIndex}%</span>
-                      </div>
-                    </td>
+            <div className="breakTableWrap">
+              <table className="breakTable">
+                <thead>
+                  <tr>
+                    <th>Assessment Type</th>
+                    <th className="wWeight">Weight</th>
+                    <th>Competency Type</th>
+                    <th className="wIndex">Competency Index</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
 
-            <div className="overallRow">
-              <div className="overallLabel">Overall Competency Index:</div>
-              <div className="overallRight">
-                <span className={`pctBox ${pctTone(data.overallCompetencyIndex)}`} />
-                <span className="pctText">{data.overallCompetencyIndex}%</span>
+                <tbody>
+                  {breakdownRows.map((r, i) => (
+                    <tr key={i}>
+                      <td className="assessCell">{r.assessmentType}</td>
+                      <td className="center">{r.weightPercent}%</td>
+                      <td>
+                        <div className="tagWrap">
+                          {r.competencyTags.map((t, j) => (
+                            <TagPill key={`${i}-${j}`} label={t} tone={toneByIndex(j)} />
+                          ))}
+                        </div>
+                      </td>
+                      <td>
+                        <div className="indexCell">
+                          <span className={indexColorClass(r.competencyIndex)} />
+                          <span className="idxText">{r.competencyIndex}%</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              <div className="overallRow">
+                <div className="overallLabel">Overall Competency Index:</div>
+                <div className="overallRight">
+                  <span className={`pctBox ${pctTone(data.overallCompetencyIndex)}`} />
+                  <span className="pctText">{data.overallCompetencyIndex}%</span>
+                </div>
               </div>
             </div>
           </div>

@@ -56,7 +56,7 @@ export default function HomePage() {
                 </div>
 
                 <div className="infoRow">
-                  <div className="infoLabel">Major</div>
+                  <div className="infoLabel">Minor</div>
                   <div className="infoValue">{me.major}</div>
                 </div>
 

@@ -1,134 +1,228 @@
+/* NewDocumentPage.css (FULL)
+   - Beautiful card UI
+   - Career Focus ONLY inside the card (nice row)
+   - Keeps your existing class names so nothing breaks
+*/
+
+/* =========================
+   Layout
+========================= */
+
 .ndWrap {
-  margin-top: 10px;
-  max-width: 820px;
+  margin: 14px auto 0;
+  max-width: 920px;
 }
+
+/* Card wrapper */
+.ndCard {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 10px 22px rgba(17, 24, 39, 0.05);
+}
+
+/* =========================
+   Rows / Labels
+========================= */
 
 .ndRow {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 18px 0;
+  margin: 16px 0;
   flex-wrap: wrap;
 }
 
 .ndLabel {
-  min-width: 120px;
+  min-width: 140px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 800;
   color: #111827;
 }
 
 .ndLabel.wide {
-  min-width: 340px;
+  min-width: 380px;
 }
 
-.ndValueBox {
-  height: 32px;
-  min-width: 140px;
-  padding: 0 12px;
+/* default hint (used below checkbox row) */
+.ndHint {
+  font-size: 12px;
+  color: #6b7280;
+  flex-basis: 100%;
+  margin-left: 152px; /* align hint under label */
+  line-height: 1.45;
+}
+
+/* checkbox row */
+.ndCheck {
   display: inline-flex;
   align-items: center;
-  border: 1px solid #d1d5db;
-  background: #fff;
+  gap: 10px;
   font-size: 14px;
-  font-weight: 500;
   color: #111827;
+  font-weight: 700;
 }
 
+/* link button (Change) */
 .ndChange {
   border: none;
   background: transparent;
   color: #2563eb;
   text-decoration: underline;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 800;
   cursor: pointer;
 }
-
-.ndHint {
-  font-size: 12px;
-  color: #6b7280;
-  flex-basis: 100%;
-  margin-left: 132px;
+.ndChange:hover {
+  color: #1d4ed8;
 }
 
-.ndCheck {
+/* value box (if used somewhere else) */
+.ndValueBox {
+  height: 34px;
+  min-width: 160px;
+  padding: 0 12px;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  background: #fff;
   font-size: 14px;
+  font-weight: 700;
   color: #111827;
-  font-weight: 500;
 }
 
-/* Fields */
+/* =========================
+   Career Focus row (inside card)
+========================= */
+
+.ndCareerRow {
+  margin-top: 6px;
+  margin-bottom: 10px;
+  padding: 12px 12px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+}
+
+.ndCareerHint {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 700;
+}
+
+/* divider line inside card */
+.ndLine {
+  height: 1px;
+  background: #eef2f7;
+  margin: 14px 0;
+}
+
+/* select style */
+.ndSelect {
+  height: 36px;
+  min-width: 240px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 0 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+  outline: none;
+  background: #ffffff;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.ndSelect:focus {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.14);
+}
+
+/* =========================
+   Fields
+========================= */
+
 .ndField {
   margin: 18px 0;
 }
 
 .ndFieldLabel {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 900;
   color: #111827;
   margin-bottom: 8px;
 }
 
 .ndReq {
   color: #dc2626;
-  margin-left: 3px;
+  margin-left: 4px;
+}
+
+.ndInput,
+.ndTextarea {
+  width: 420px;
+  max-width: 100%;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  font-size: 14px;
+  color: #111827;
+  outline: none;
+  transition: box-shadow 120ms ease, border-color 120ms ease;
 }
 
 .ndInput {
-  width: 340px;
-  height: 36px;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
+  height: 38px;
+  border-radius: 12px;
   padding: 0 12px;
-  font-size: 14px;
-  color: #111827;
-  outline: none;
 }
 
 .ndTextarea {
-  width: 340px;
-  height: 150px;
-  border: 1px solid #d1d5db;
-  border-radius: 12px;
+  height: 160px;
+  border-radius: 14px;
   padding: 12px;
-  font-size: 14px;
-  color: #111827;
-  outline: none;
   resize: none;
-  line-height: 1.45;
+  line-height: 1.55;
+}
+
+.ndInput:focus,
+.ndTextarea:focus {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.14);
 }
 
 .ndInput.error,
 .ndTextarea.error {
   border-color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12);
 }
 
 .ndError {
   margin-top: 6px;
   font-size: 12px;
   color: #ef4444;
-  font-weight: 600;
+  font-weight: 800;
 }
 
-/* Projects selected */
+/* =========================
+   Projects Selected
+========================= */
+
 .projectsRow {
-  margin-top: 22px;
+  margin-top: 20px;
 }
 
 .ndSelectedBox {
-  height: 34px;
-  min-width: 180px;
+  height: 36px;
+  min-width: 240px;
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 0 12px;
-  background: #f3f4f6;
+  background: #f8fafc;
   border: 1px solid #e5e7eb;
+  border-radius: 12px;
   font-size: 13px;
   color: #374151;
 }
@@ -137,52 +231,88 @@
   border: none;
   background: transparent;
   cursor: pointer;
-  font-size: 18px;
+  font-size: 20px;
   line-height: 1;
   color: #6b7280;
+  padding: 0 4px;
+}
+.ndClearX:hover {
+  color: #111827;
 }
 
-/* Actions */
+/* =========================
+   Actions
+========================= */
+
 .ndActions {
-  margin-top: 36px;
+  margin-top: 28px;
   display: flex;
-  gap: 14px;
+  gap: 12px;
 }
 
 .ndBtn {
-  height: 40px;
+  height: 42px;
   padding: 0 18px;
-  border-radius: 12px;
+  border-radius: 14px;
   border: 1px solid #d1d5db;
   background: #9ca3af;
   color: #fff;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 900;
   cursor: pointer;
+  transition: transform 80ms ease, opacity 120ms ease;
 }
 
 .ndBtn.primary {
-  background: #0b63c7;
-  border-color: #0b63c7;
+  background: #2563eb;
+  border-color: #2563eb;
+}
+.ndBtn.primary:hover {
+  opacity: 0.95;
+}
+
+.ndBtn:active {
+  transform: translateY(1px);
 }
 
 .ndBtn:disabled {
-  opacity: 0.5;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
 .ndBtn.small {
-  height: 34px;
-  border-radius: 10px;
+  height: 36px;
+  border-radius: 12px;
   font-size: 13px;
   padding: 0 14px;
 }
 
-/* ===== Modal ===== */
+/* =========================
+   Back button in header
+========================= */
+
+.ndBackBtn {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #111827;
+  font-size: 13px;
+  font-weight: 900;
+  padding: 8px 10px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+.ndBackBtn:hover {
+  background: #f9fafb;
+}
+
+/* =========================
+   Modal
+========================= */
+
 .ndModalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(17, 24, 39, 0.35);
+  background: rgba(17, 24, 39, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -190,12 +320,13 @@
 }
 
 .ndModal {
-  width: 680px;
+  width: 720px;
   max-width: calc(100vw - 24px);
   background: #fff;
-  border-radius: 16px;
+  border-radius: 18px;
   border: 1px solid #e5e7eb;
   overflow: hidden;
+  box-shadow: 0 20px 60px rgba(17, 24, 39, 0.25);
 }
 
 .ndModalHeader {
@@ -204,11 +335,12 @@
   align-items: center;
   padding: 14px 16px;
   border-bottom: 1px solid #e5e7eb;
+  background: #fff;
 }
 
 .ndModalTitle {
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 900;
   color: #111827;
 }
 
@@ -216,14 +348,17 @@
   border: none;
   background: transparent;
   cursor: pointer;
-  font-size: 22px;
+  font-size: 24px;
   line-height: 1;
   color: #6b7280;
+}
+.ndModalClose:hover {
+  color: #111827;
 }
 
 .ndModalBody {
   padding: 14px 16px;
-  max-height: 340px;
+  max-height: 360px;
   overflow: auto;
 }
 
@@ -232,6 +367,7 @@
   color: #6b7280;
 }
 
+/* project list */
 .ndProjectList {
   display: flex;
   flex-direction: column;
@@ -242,15 +378,16 @@
   display: flex;
   gap: 12px;
   align-items: flex-start;
-  padding: 10px 12px;
-  border-radius: 12px;
+  padding: 12px 12px;
+  border-radius: 14px;
   border: 1px solid #e5e7eb;
   background: #fff;
   cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
 }
-
 .ndProjectItem:hover {
-  background: #f9fafb;
+  background: #f8fafc;
+  border-color: #dbeafe;
 }
 
 .ndProjectInfo {
@@ -259,7 +396,7 @@
 
 .ndProjectName {
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 900;
   color: #111827;
 }
 
@@ -267,6 +404,7 @@
   margin-top: 4px;
   font-size: 12px;
   color: #6b7280;
+  line-height: 1.4;
 }
 
 .ndModalFooter {
@@ -281,5 +419,33 @@
 .ndModalCount {
   font-size: 13px;
   color: #374151;
-  font-weight: 600;
+  font-weight: 800;
+}
+
+/* =========================
+   Responsive
+========================= */
+
+@media (max-width: 720px) {
+  .ndLabel,
+  .ndLabel.wide {
+    min-width: 100%;
+  }
+
+  .ndHint {
+    margin-left: 0;
+  }
+
+  .ndActions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ndBtn {
+    width: 100%;
+  }
+
+  .ndSelect {
+    min-width: 100%;
+  }
 }

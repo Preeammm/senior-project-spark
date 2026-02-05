@@ -1,3 +1,5 @@
+/* CourseDetailPage.css */
+
 /* Title */
 .detailTitle {
   font-size: 23px;
@@ -21,7 +23,7 @@
   color: #111827;
 }
 
-.backLink{
+.backLink {
   color: #2563eb;
   text-decoration: underline;
   font-size: 13px;
@@ -140,9 +142,15 @@
   display: inline-block;
 }
 
-.pctBox.green { background: #16a34a; }
-.pctBox.yellow { background: #fbbf24; }
-.pctBox.orange { background: #f59e0b; }
+.pctBox.green {
+  background: #16a34a;
+}
+.pctBox.yellow {
+  background: #fbbf24;
+}
+.pctBox.orange {
+  background: #f59e0b;
+}
 
 /* Percent text stays bold 16px */
 .pctText {
@@ -150,8 +158,6 @@
   font-weight: 700;
   color: #111827;
 }
-
-
 
 /* Breakdown */
 .breakdownCard {
@@ -177,7 +183,6 @@
   background: transparent;
   table-layout: fixed; /* ✅ สำคัญ */
 }
-
 
 .breakTable th {
   text-align: left;
@@ -206,7 +211,7 @@
 .breakTable th:nth-child(2),
 .breakTable td:nth-child(2) {
   width: 12%;
-  text-align: center;     /* ✅ weight อยู่กลาง */
+  text-align: center; /* ✅ weight อยู่กลาง */
 }
 
 .breakTable th:nth-child(3),
@@ -219,7 +224,6 @@
   width: 18%;
 }
 
-
 .breakTable tr:last-child td {
   border-bottom: none;
 }
@@ -229,9 +233,12 @@
   font-weight: 600;
 }
 
-.wWeight { width: auto; }
-.wIndex { width: auto; }
-
+.wWeight {
+  width: auto;
+}
+.wIndex {
+  width: auto;
+}
 
 .assessCell {
   font-weight: 600;
@@ -250,9 +257,15 @@
   display: inline-block;
 }
 
-.idxSquare.orange { background: #f59e0b; }
-.idxSquare.yellow { background: #fbbf24; }
-.idxSquare.green { background: #16a34a; }
+.idxSquare.orange {
+  background: #f59e0b;
+}
+.idxSquare.yellow {
+  background: #fbbf24;
+}
+.idxSquare.green {
+  background: #16a34a;
+}
 
 .idxText {
   font-size: 14px;
@@ -292,4 +305,54 @@
     flex-direction: column;
     align-items: flex-start;
   }
+}
+
+/* ========================= */
+/* ✅ Collapsible (NEW)      */
+/* ========================= */
+
+.cardTitleRow {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  margin-bottom: 14px;
+}
+
+.cardTitleText {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Chevron ">" */
+.chev {
+  font-size: 22px;
+  line-height: 1;
+  color: #111827;
+  transform: rotate(0deg);
+  transition: transform 180ms ease;
+  user-select: none;
+}
+
+.chev.open {
+  transform: rotate(90deg);
+}
+
+/* Collapse animation */
+.collapse {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 220ms ease, opacity 220ms ease;
+}
+
+.collapse.open {
+  max-height: 2000px;
+  opacity: 1;
 }

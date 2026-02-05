@@ -1,3 +1,7 @@
+// server.js (FULL CODE) ✅
+// Change: /api/portfolio/documents list now returns a "snippet" preview
+// so your /portfolio page can show something without fetching full content.
+
 import express from "express";
 import cors from "cors";
 
@@ -97,7 +101,7 @@ app.get("/api/courses/:courseId", requireUser, (req, res) => {
   const userId = req.user.id;
   const { courseId } = req.params;
 
-  // ✅ IMPORTANT FIX: allow lookup by internal id (c1/c2/...) OR courseCode (ITCS495/ITCS241/...)
+  // ✅ allow lookup by internal id OR courseCode
   const course = courses.find((c) => c.id === courseId || c.courseCode === courseId);
 
   if (!course) return res.status(404).json({ message: "Course not found" });
@@ -132,9 +136,18 @@ let portfolioDocs = [
   },
 ];
 
-// list (no content)
+// ✅ list (WITH snippet preview)
 app.get("/api/portfolio/documents", requireUser, (req, res) => {
-  res.json(portfolioDocs.map(({ content, ...rest }) => rest));
+  res.json(
+    portfolioDocs.map(({ content, ...rest }) => {
+      const text = typeof content === "string" ? content : "";
+      const oneLine = text.replace(/\n+/g, " ").trim();
+      return {
+        ...rest,
+        snippet: oneLine.slice(0, 180),
+      };
+    })
+  );
 });
 
 // create
@@ -153,6 +166,7 @@ app.post("/api/portfolio/documents", requireUser, (req, res) => {
 
   portfolioDocs = [doc, ...portfolioDocs];
 
+  // keep create response light (like before)
   res.status(201).json({
     id: doc.id,
     title: doc.title,
@@ -179,7 +193,7 @@ app.get("/api/portfolio/documents/:docId/download", requireUser, (req, res) => {
   res.send(`${doc.title}\n\n${doc.content}`);
 });
 
-// ✅ PATCH rename doc
+// PATCH rename doc
 app.patch("/api/portfolio/documents/:docId", requireUser, (req, res) => {
   const { docId } = req.params;
   const { title } = req.body ?? {};
@@ -195,7 +209,7 @@ app.patch("/api/portfolio/documents/:docId", requireUser, (req, res) => {
   res.json({ id: doc.id, title: doc.title });
 });
 
-// ✅ DELETE document (ONLY ONCE)
+// DELETE document
 app.delete("/api/portfolio/documents/:docId", requireUser, (req, res) => {
   const { docId } = req.params;
 

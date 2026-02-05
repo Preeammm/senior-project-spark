@@ -11,6 +11,8 @@ import { createDocument } from "../features/portfolio/services/portfolio.api";
 import "../styles/page.css";
 import "./NewDocumentPage.css";
 
+type CareerFocus = "Data Analyst" | "Data Engineer" | "Software Engineer";
+
 type Project = {
   id: string;
   projectName: string;
@@ -24,12 +26,19 @@ async function fetchProjects(): Promise<Project[]> {
   return data;
 }
 
+// ✅ change if your portfolio content route is different
+const PORTFOLIO_CONTENT_ROUTE = "/portfolio";
+
 export default function NewDocumentPage() {
   useProtectedRoute();
   const navigate = useNavigate();
   const qc = useQueryClient();
 
-  const careerFocus = "Data Analyst";
+  const careerFocusOptions = useMemo(
+    () => ["Data Analyst", "Data Engineer", "Software Engineer"] as const,
+    []
+  );
+  const [careerFocus, setCareerFocus] = useState<CareerFocus>("Data Analyst");
 
   const [usePersonalInfo, setUsePersonalInfo] = useState<boolean>(true);
   const [title, setTitle] = useState<string>("");
@@ -37,9 +46,10 @@ export default function NewDocumentPage() {
   const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([]);
   const [showProjectModal, setShowProjectModal] = useState<boolean>(false);
 
-  const [touched, setTouched] = useState<{ title: boolean; shortDesc: boolean }>(
-    { title: false, shortDesc: false }
-  );
+  const [touched, setTouched] = useState<{ title: boolean; shortDesc: boolean }>({
+    title: false,
+    shortDesc: false,
+  });
 
   const { data: projects, isLoading } = useQuery({
     queryKey: ["projects"],
@@ -74,80 +84,116 @@ export default function NewDocumentPage() {
     setSelectedProjectIds([]);
   }
 
-  async function onGenerate() {
-    setTouched({ title: true, shortDesc: true });
-    if (!canGenerate) return;
-
-    // ✅ mock content: เอา title/desc/projects ไปเขียนเป็น content ก่อน
-    const contentLines: string[] = [];
-    contentLines.push(`# ${title.trim()}`);
-    contentLines.push("");
-    contentLines.push(`Career Focus: ${careerFocus}`);
-    contentLines.push(`Use SPARK Personal Info: ${usePersonalInfo ? "Yes" : "No"}`);
-    contentLines.push("");
-
-    contentLines.push("## Short Description");
-    contentLines.push(shortDesc.trim());
-    contentLines.push("");
-
-    contentLines.push("## Selected Projects");
-    if (selectedProjects.length === 0) {
-      contentLines.push("- (none)");
-    } else {
-      selectedProjects.forEach((p) => {
-        contentLines.push(
-          `- ${p.projectName}${p.courseName ? ` (${p.courseName})` : ""}${
-            p.yearSemester ? ` — ${p.yearSemester}` : ""
-          }`
-        );
-      });
-    }
-
-    const content = contentLines.join("\n");
-
-    // ✅ create portfolio doc (mock)
-    await createDocument({
-      title: title.trim(),
-      content,
-    });
-
-    // ✅ refresh list in portfolio page แล้วกลับไป /portfolio เพื่อเห็น doc ใหม่
-    await qc.invalidateQueries({ queryKey: ["portfolioDocs"] });
-    navigate("/portfolio");
+  function goBack() {
+    navigate(PORTFOLIO_CONTENT_ROUTE);
   }
+
+async function onGenerate() {
+  setTouched({ title: true, shortDesc: true });
+  if (!canGenerate) return;
+
+  const contentLines: string[] = [];
+
+  // ===== Title =====
+  contentLines.push(`# ${title.trim()}`);
+  contentLines.push("");
+
+  // ===== Basic Information =====
+  contentLines.push("## Basic Information");
+  contentLines.push(`- Career Focus: **${careerFocus}**`);
+  contentLines.push(`- Use SPARK Personal Info: **${usePersonalInfo ? "Yes" : "No"}**`);
+  contentLines.push("");
+
+  // ===== Short Description =====
+  contentLines.push("## Short Description");
+  contentLines.push(shortDesc.trim());
+  contentLines.push("");
+
+  // ===== Selected Projects =====
+  contentLines.push("## Selected Projects");
+  if (selectedProjects.length === 0) {
+    contentLines.push("- (none)");
+  } else {
+    selectedProjects.forEach((p, idx) => {
+      const metaParts: string[] = [];
+      if (p.courseName) metaParts.push(p.courseName);
+      if (p.yearSemester) metaParts.push(p.yearSemester);
+      if (p.type) metaParts.push(p.type);
+
+      const meta = metaParts.length ? ` — ${metaParts.join(" • ")}` : "";
+      contentLines.push(`${idx + 1}. **${p.projectName}**${meta}`);
+    });
+  }
+  contentLines.push("");
+
+  // ===== Project Summary Blocks (blank) =====
+  contentLines.push("## Project Summaries");
+  if (selectedProjects.length === 0) {
+    contentLines.push("_No projects selected._");
+  } else {
+    selectedProjects.forEach((p, idx) => {
+      contentLines.push(`### ${idx + 1}) ${p.projectName}`);
+      contentLines.push("- Summary:");
+      contentLines.push("");
+      contentLines.push("- Key responsibilities:");
+      contentLines.push("");
+      contentLines.push("- Tools / Technologies:");
+      contentLines.push("");
+      contentLines.push("- Outcome / Impact:");
+      contentLines.push("");
+    });
+  }
+
+  const content = contentLines.join("\n");
+
+  await createDocument({
+    title: title.trim(),
+    content,
+  });
+
+  await qc.invalidateQueries({ queryKey: ["portfolioDocs"] });
+  navigate(PORTFOLIO_CONTENT_ROUTE);
+}
 
   return (
     <div className="pageContainer">
+      {/* ✅ Header: only title + Back (NO career focus at top) */}
       <PageHeader
         title="New Document"
-        careerFocus={careerFocus}
-        careerFocusOptions={
-          ["Data Analyst", "Data Engineer", "Software Engineer"] as const
+        careerExtra={
+          <button type="button" className="ndBackBtn" onClick={goBack}>
+            ← Back
+          </button>
         }
-        onCareerFocusChange={() => {}}
       />
 
       <div className="dividerLine" />
 
-      <div className="ndWrap">
-        {/* Row: Career focus box + Change */}
-        <div className="ndRow">
+      <div className="ndWrap ndCard">
+        {/* ✅ Career Focus ONLY inside card (beautiful row) */}
+        <div className="ndRow ndCareerRow">
           <div className="ndLabel">Career Focus:</div>
-          <div className="ndValueBox">{careerFocus}</div>
-          <button
-            type="button"
-            className="ndChange"
-            onClick={() => alert("TODO: Change career focus (use header dropdown)")}
+
+          <select
+            className="ndSelect"
+            value={careerFocus}
+            onChange={(e) => setCareerFocus(e.target.value as CareerFocus)}
           >
-            Change
-          </button>
+            {careerFocusOptions.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+
+          <div className="ndCareerHint">Included in the generated document</div>
         </div>
 
-        {/* Row: Use personal info checkbox */}
+        <div className="ndLine" />
+
+        {/* Use personal info */}
         <div className="ndRow">
-          <div className="ndLabel wide">
-            Use Personal Information from SPARK Database?
-          </div>
+          <div className="ndLabel wide">Use Personal Information from SPARK Database?</div>
 
           <label className="ndCheck">
             <input
@@ -158,9 +204,7 @@ export default function NewDocumentPage() {
             <span>Yes</span>
           </label>
 
-          <div className="ndHint">
-            (Mock) If enabled, the system will use your SPARK profile later.
-          </div>
+          <div className="ndHint">(Mock) If enabled, the system will use your SPARK profile later.</div>
         </div>
 
         {/* Title */}
@@ -211,16 +255,12 @@ export default function NewDocumentPage() {
             ) : null}
           </div>
 
-          <button
-            type="button"
-            className="ndChange"
-            onClick={() => setShowProjectModal(true)}
-          >
+          <button type="button" className="ndChange" onClick={() => setShowProjectModal(true)}>
             Change
           </button>
         </div>
 
-        {/* Buttons */}
+        {/* Actions */}
         <div className="ndActions">
           <button
             type="button"
@@ -230,26 +270,12 @@ export default function NewDocumentPage() {
           >
             Generate Document
           </button>
-
-          {/* ✅ Cancel = ไม่ navigate ไม่ reset อยู่กรอกต่อได้ */}
-          <button
-            type="button"
-            className="ndBtn"
-            onClick={() => {
-              // do nothing — stay here, continue filling form
-            }}
-          >
-            Cancel
-          </button>
         </div>
       </div>
 
       {/* ===== Modal: select projects ===== */}
       {showProjectModal ? (
-        <div
-          className="ndModalOverlay"
-          onMouseDown={() => setShowProjectModal(false)}
-        >
+        <div className="ndModalOverlay" onMouseDown={() => setShowProjectModal(false)}>
           <div className="ndModal" onMouseDown={(e) => e.stopPropagation()}>
             <div className="ndModalHeader">
               <div className="ndModalTitle">Select Projects</div>
