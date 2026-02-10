@@ -148,7 +148,7 @@ export default function CourseDetailPage() {
         onCareerFocusChange={setCareerFocus}
         careerExtra={
           <Link className="backLink" to="/courses">
-            Back to My Courses
+            ← Back to My Courses
           </Link>
         }
       />

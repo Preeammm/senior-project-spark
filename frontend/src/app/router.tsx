@@ -9,6 +9,7 @@ import CoursesPage from "../pages/CoursesPage";
 import CourseDetailPage from "../pages/CourseDetailPage";
 import PortfolioGeneratorPage from "../pages/PortfolioGeneratorPage";
 import NewDocumentPage from "../pages/NewDocumentPage";
+import CareerDetailsPage from "../pages/CareerDetailsPage";
 import NotFoundPage from "../pages/NotFoundPage";
 
 const router = createBrowserRouter([
@@ -26,6 +27,7 @@ const router = createBrowserRouter([
       { path: "/courses/:courseId", element: <CourseDetailPage /> },
       { path: "/portfolio", element: <PortfolioGeneratorPage /> },
       { path: "/portfolio/new", element: <NewDocumentPage /> },
+      { path: "/careers", element: <CareerDetailsPage /> }, 
     ],
   },
   { path: "*", element: <NotFoundPage /> },

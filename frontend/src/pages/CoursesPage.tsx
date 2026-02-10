@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+
 import PageHeader from "../components/PageHeader";
 import CoursesTable from "../features/courses/components/CoursesTable";
 import { useCourses } from "../features/courses/hooks/useCourses";
@@ -7,8 +9,16 @@ import { useProtectedRoute } from "../hooks/useProtectedRoute";
 
 const CAREER_FOCUS = ["Data Analyst", "Data Engineer", "Software Engineer"] as const;
 
+// ✅ helper: "Data Engineer" -> "data-engineer"
+function toCareerId(label: string) {
+  return label.trim().toLowerCase().replace(/\./g, "").replace(/\s+/g, "-");
+}
+
 export default function CoursesPage() {
   useProtectedRoute();
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [careerFocus, setCareerFocus] =
     useState<(typeof CAREER_FOCUS)[number]>("Data Analyst");
 
@@ -26,7 +36,12 @@ export default function CoursesPage() {
             href="#"
             onClick={(e) => {
               e.preventDefault();
-              alert("TODO: Career details page");
+              const careerId = toCareerId(careerFocus);
+              const from = location.pathname + location.search;
+
+              navigate(
+                `/careers?careerId=${encodeURIComponent(careerId)}&from=${encodeURIComponent(from)}`
+              );
             }}
             style={{
               display: "inline-block",
@@ -47,7 +62,6 @@ export default function CoursesPage() {
       {error && <div>Failed to load courses</div>}
 
       {data && <CoursesTable courses={data} />}
-
     </div>
   );
 }

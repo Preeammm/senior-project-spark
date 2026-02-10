@@ -1,0 +1,203 @@
+/* CareerDetailsPage.css — polished UI */
+
+.cdLayout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 18px;
+  margin-top: 14px;
+  align-items: start;
+}
+
+/* ===== Sidebar ===== */
+.cdSidebar {
+  position: sticky;
+  top: 88px; /* adjust if your header height differs */
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: 0 1px 0 rgba(17, 24, 39, 0.02);
+}
+
+.cdSidebarTitle {
+  font-weight: 900;
+  font-size: 14px;
+  color: #111827;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cdSidebarList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Group container */
+.cdGroup {
+  border-radius: 14px;
+  background: #fafafa;
+  border: 1px solid #f1f5f9;
+  overflow: hidden;
+}
+
+.cdGroupHeader {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  border: none;
+  background: transparent;
+  cursor: pointer;
+
+  padding: 12px 12px;
+  font-weight: 900;
+  font-size: 13px;
+  color: #111827;
+
+  transition: background 120ms ease;
+}
+
+.cdGroupHeader:hover {
+  background: #f3f4f6;
+}
+
+.cdChevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+
+  transition: transform 140ms ease, background 140ms ease;
+  font-size: 14px;
+  opacity: 0.85;
+}
+
+.cdChevron.open {
+  transform: rotate(180deg);
+  background: #f9fafb;
+}
+
+.cdGroupItems {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 10px 12px 10px;
+}
+
+/* Items */
+.cdSidebarItem {
+  width: 100%;
+  text-align: left;
+
+  padding: 10px 10px;
+  border-radius: 12px;
+
+  border: 1px solid transparent;
+  background: transparent;
+
+  color: #111827;
+  cursor: pointer;
+  font-weight: 650;
+  font-size: 13px;
+
+  transition: background 120ms ease, border-color 120ms ease, transform 80ms ease;
+}
+
+.cdSidebarItem:hover {
+  background: #ffffff;
+  border-color: #e5e7eb;
+  transform: translateY(-1px);
+}
+
+.cdSidebarItem.active {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1) inset;
+}
+
+/* ===== Main content ===== */
+.cdMain {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 1px 0 rgba(17, 24, 39, 0.02);
+}
+
+.cdTitle {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 950;
+  color: #111827;
+  letter-spacing: -0.02em;
+}
+
+.cdIntro {
+  margin-top: 10px;
+  margin-bottom: 18px;
+  color: #4b5563;
+  line-height: 1.65;
+  font-size: 14px;
+  max-width: 80ch;
+}
+
+/* Section blocks */
+.cdSection {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.cdSectionTitle {
+  margin: 0 0 12px 0;
+  font-size: 15px;
+  font-weight: 950;
+  color: #111827;
+  letter-spacing: -0.01em;
+}
+
+.cdList {
+  margin: 0;
+  padding-left: 18px;
+  color: #374151;
+  line-height: 1.75;
+  font-size: 14px;
+}
+
+.cdList li {
+  margin-bottom: 10px;
+}
+
+/* Back link */
+.cdBackLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  font-size: 13px;
+  font-weight: 800;
+  color: #2563eb;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 980px) {
+  .cdLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .cdSidebar {
+    position: static;
+  }
+}

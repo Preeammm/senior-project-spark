@@ -288,21 +288,34 @@
 }
 
 /* =========================
-   Back button in header
+   Back button in header (FIXED)
 ========================= */
 
 .ndBackBtn {
-  border: 1px solid #d1d5db;
-  background: #fff;
-  color: #111827;
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+
   font-size: 13px;
   font-weight: 900;
-  padding: 8px 10px;
-  border-radius: 12px;
+  color: #2563eb;
+  text-decoration: underline;
   cursor: pointer;
 }
+
 .ndBackBtn:hover {
-  background: #f9fafb;
+  color: #1d4ed8;
+}
+
+.ndBackBtn:focus {
+  outline: none;
+}
+
+.ndBackBtn:focus-visible {
+  outline: 3px solid rgba(59, 130, 246, 0.3);
+  outline-offset: 4px;
+  border-radius: 6px;
 }
 
 /* =========================

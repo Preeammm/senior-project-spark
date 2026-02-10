@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import PageHeader from "../components/PageHeader";
@@ -28,6 +28,7 @@ function formatDate(iso: string) {
 export default function PortfolioGeneratorPage() {
   useProtectedRoute();
   const navigate = useNavigate();
+  const location = useLocation(); // ✅ ADD
   const qc = useQueryClient();
 
   // menu state (⋮)
@@ -105,13 +106,16 @@ export default function PortfolioGeneratorPage() {
 
   return (
     <div className="pageContainer">
-      {/* ✅ ไม่มี Career Focus แต่ยังมี View all career details */}
       <PageHeader
         title="Portfolio Content Generator"
         careerExtra={
           <span
             className="pcgCareerLink"
-            onClick={() => alert("TODO: Career details page")}
+            role="button"
+            onClick={() => {
+              const from = location.pathname + location.search; // ✅ so Back returns here
+              navigate(`/careers?from=${encodeURIComponent(from)}`);
+            }}
           >
             View all career details
           </span>
@@ -123,7 +127,11 @@ export default function PortfolioGeneratorPage() {
       {/* Your Items */}
       <div className="pcgSectionTitle">Your Items</div>
       <div className="pcgItemsRow">
-        <div className="pcgItemCard" onClick={() => navigate("/projects")} role="button">
+        <div
+          className="pcgItemCard"
+          onClick={() => navigate("/projects")}
+          role="button"
+        >
           <div className="pcgItemCardTop" />
           <div className="pcgItemCardBottom">
             <span className="pcgItemLink">My Projects</span>
@@ -167,7 +175,7 @@ export default function PortfolioGeneratorPage() {
                 onClick={() => onOpenDoc(doc.id)}
                 role="button"
               >
-                {/* ✅ 3 dots ALWAYS visible TOP-RIGHT (inside pcgThumbCard) */}
+                {/* 3 dots */}
                 <button
                   type="button"
                   className="pcgMenuBtn"
@@ -180,7 +188,7 @@ export default function PortfolioGeneratorPage() {
                   ⋮
                 </button>
 
-                {/* dropdown menu (ใต้ปุ่ม ⋮) */}
+                {/* dropdown menu */}
                 {isMenuOpen ? (
                   <div className="pcgMenu" onClick={(e) => e.stopPropagation()}>
                     <button
@@ -211,7 +219,9 @@ export default function PortfolioGeneratorPage() {
 
                 <div className="pcgThumbFooter">
                   <div className="pcgThumbTitle">{doc.title}</div>
-                  <div className="pcgThumbMeta">Last modified: {formatDate(doc.createdAt)}</div>
+                  <div className="pcgThumbMeta">
+                    Last modified: {formatDate(doc.createdAt)}
+                  </div>
                 </div>
               </div>
             );
@@ -241,7 +251,11 @@ export default function PortfolioGeneratorPage() {
             />
 
             <div className="pcgModalActions">
-              <button type="button" className="pcgBtn" onClick={() => setRenameTarget(null)}>
+              <button
+                type="button"
+                className="pcgBtn"
+                onClick={() => setRenameTarget(null)}
+              >
                 Cancel
               </button>
               <button
@@ -268,10 +282,18 @@ export default function PortfolioGeneratorPage() {
             </div>
 
             <div className="pcgModalActions">
-              <button type="button" className="pcgBtn" onClick={() => setDeleteTarget(null)}>
+              <button
+                type="button"
+                className="pcgBtn"
+                onClick={() => setDeleteTarget(null)}
+              >
                 Cancel
               </button>
-              <button type="button" className="pcgBtn danger" onClick={onConfirmDelete}>
+              <button
+                type="button"
+                className="pcgBtn danger"
+                onClick={onConfirmDelete}
+              >
                 Delete
               </button>
             </div>

@@ -8,6 +8,7 @@ import cors from "cors";
 import me from "./mock_data/me.js";
 import projects from "./mock_data/project.js";
 import courses from "./mock_data/course.js";
+import careers from "./mock_data/careers.js";
 
 const app = express();
 app.use(express.json());
@@ -102,7 +103,9 @@ app.get("/api/courses/:courseId", requireUser, (req, res) => {
   const { courseId } = req.params;
 
   // ✅ allow lookup by internal id OR courseCode
-  const course = courses.find((c) => c.id === courseId || c.courseCode === courseId);
+  const course = courses.find(
+    (c) => c.id === courseId || c.courseCode === courseId
+  );
 
   if (!course) return res.status(404).json({ message: "Course not found" });
 
@@ -123,6 +126,23 @@ app.get("/api/courses/:courseId", requireUser, (req, res) => {
     courseTitleEN: course.courseName,
     courseTitleTH: "—",
   });
+});
+
+// ===== CAREERS (protected) ✅ NEW =====
+
+// List all career details
+app.get("/api/careers", requireUser, (req, res) => {
+  res.json(careers);
+});
+
+// Get a single career detail by id
+app.get("/api/careers/:careerId", requireUser, (req, res) => {
+  const { careerId } = req.params;
+
+  const career = careers.find((c) => c.id === careerId);
+  if (!career) return res.status(404).json({ message: "Career not found" });
+
+  res.json(career);
 });
 
 // ===== PORTFOLIO DOCUMENTS (protected, in-memory) =====
@@ -189,7 +209,10 @@ app.get("/api/portfolio/documents/:docId/download", requireUser, (req, res) => {
   if (!doc) return res.status(404).json({ message: "Document not found" });
 
   res.setHeader("Content-Type", "text/plain; charset=utf-8");
-  res.setHeader("Content-Disposition", `attachment; filename=portfolio-${docId}.txt`);
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename=portfolio-${docId}.txt`
+  );
   res.send(`${doc.title}\n\n${doc.content}`);
 });
 

@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+
 import PageHeader from "../components/PageHeader";
 import ProjectsTable from "../features/projects/components/ProjectsTable";
 import { useProjects } from "../features/projects/hooks/useProjects";
@@ -7,8 +9,15 @@ import "../styles/page.css";
 
 const CAREER_FOCUS = ["Data Analyst", "Data Engineer", "Software Engineer"] as const;
 
+function toCareerId(label: string) {
+  return label.trim().toLowerCase().replace(/\./g, "").replace(/\s+/g, "-");
+}
+
 export default function ProjectsPage() {
   useProtectedRoute();
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [careerFocus, setCareerFocus] =
     useState<(typeof CAREER_FOCUS)[number]>("Data Analyst");
 
@@ -26,7 +35,12 @@ export default function ProjectsPage() {
             href="#"
             onClick={(e) => {
               e.preventDefault();
-              alert("TODO: Career details page");
+              const careerId = toCareerId(careerFocus);
+              const from = location.pathname + location.search;
+
+              navigate(
+                `/careers?careerId=${encodeURIComponent(careerId)}&from=${encodeURIComponent(from)}`
+              );
             }}
             style={{
               display: "inline-block",
@@ -43,19 +57,10 @@ export default function ProjectsPage() {
 
       <div className="dividerLine" />
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 14,
-        }}
-      >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
         <div style={{ color: "#6b7280" }}>
           {isLoading ? "Loading..." : data ? `${data.length} assessments` : ""}
         </div>
-
-        {/* removed Add new project button */}
       </div>
 
       {isLoading && <div>Loading assessments...</div>}
