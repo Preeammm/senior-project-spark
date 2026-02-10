@@ -1,203 +1,292 @@
-/* CareerDetailsPage.css — polished UI */
+/* CareerDetailsPage.css (FULL) — Read Easier Version
+   Goals:
+   - Bigger line-height + font-size for reading long bullets
+   - Softer colors + more whitespace
+   - Sidebar groups clearer (Developer/Data)
+   - Main content uses "reading width" so lines aren’t too long
+*/
+
+:root {
+  --cd-border: #e5e7eb;
+  --cd-border2: #eef2f7;
+  --cd-text: #111827;
+  --cd-muted: #6b7280;
+  --cd-card: #ffffff;
+  --cd-bg: #ffffff;
+  --cd-primary: #2563eb;
+  --cd-soft: #f8fafc;
+  --cd-soft2: #f3f4f6;
+  --cd-reading: #374151;
+  --cd-shadow: 0 10px 22px rgba(17, 24, 39, 0.06);
+}
+
+/* ===== States (loading / error) ===== */
+
+.cdState {
+  padding: 18px;
+  color: var(--cd-text);
+}
+.cdStateTitle {
+  font-weight: 900;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+.cdStateMsg {
+  color: var(--cd-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* ===== Back button ===== */
+
+.cdBackBtn {
+  border: none;
+  background: transparent;
+  color: var(--cd-primary);
+  font-weight: 900;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 13px;
+  padding: 0;
+}
+.cdBackBtn:hover {
+  color: #1d4ed8;
+}
+
+/* ===== Layout ===== */
 
 .cdLayout {
   display: grid;
-  grid-template-columns: 300px 1fr;
+  grid-template-columns: 340px 1fr;
   gap: 18px;
-  margin-top: 14px;
   align-items: start;
+  margin-top: 14px;
 }
 
 /* ===== Sidebar ===== */
+
 .cdSidebar {
-  position: sticky;
-  top: 88px; /* adjust if your header height differs */
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--cd-card);
+  border: 1px solid var(--cd-border);
   border-radius: 16px;
-  padding: 14px;
-  box-shadow: 0 1px 0 rgba(17, 24, 39, 0.02);
-}
-
-.cdSidebarTitle {
-  font-weight: 900;
-  font-size: 14px;
-  color: #111827;
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.cdSidebarList {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-/* Group container */
-.cdGroup {
-  border-radius: 14px;
-  background: #fafafa;
-  border: 1px solid #f1f5f9;
+  box-shadow: var(--cd-shadow);
   overflow: hidden;
 }
 
+.cdSidebarHeader {
+  padding: 14px 14px 12px;
+  border-bottom: 1px solid var(--cd-border);
+  background: linear-gradient(#ffffff, #fafafa);
+}
+
+.cdSidebarTitle {
+  font-size: 15px;
+  font-weight: 950;
+  color: var(--cd-text);
+  letter-spacing: -0.1px;
+}
+
+.cdSidebarSub {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--cd-muted);
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+/* Group block */
+.cdGroup {
+  padding: 10px 10px 12px;
+}
+
+/* Group header button */
 .cdGroupHeader {
   width: 100%;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-
-  border: none;
-  background: transparent;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid transparent;
+  background: var(--cd-soft);
   cursor: pointer;
-
-  padding: 12px 12px;
-  font-weight: 900;
-  font-size: 13px;
-  color: #111827;
-
-  transition: background 120ms ease;
+  padding: 10px 12px;
+  border-radius: 14px;
+  color: var(--cd-text);
+  font-weight: 950;
+  transition: background 120ms ease, border-color 120ms ease;
 }
 
 .cdGroupHeader:hover {
-  background: #f3f4f6;
+  background: #eef2ff;              /* very light */
+  border-color: #c7d2fe;            /* subtle outline */
 }
 
+.cdGroupLabel {
+  font-size: 13px;
+}
+
+/* Chevron */
 .cdChevron {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 28px;
-  height: 28px;
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-
-  transition: transform 140ms ease, background 140ms ease;
   font-size: 14px;
-  opacity: 0.85;
+  color: var(--cd-muted);
+  transform: rotate(0deg);
+  transition: transform 140ms ease;
 }
-
 .cdChevron.open {
   transform: rotate(180deg);
-  background: #f9fafb;
 }
 
-.cdGroupItems {
+/* Group list */
+.cdGroupList {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 10px 10px 12px 10px;
+  gap: 8px;
+  padding: 10px 6px 0;
 }
 
-/* Items */
-.cdSidebarItem {
-  width: 100%;
+/* Career item */
+.cdItem {
   text-align: left;
-
-  padding: 10px 10px;
-  border-radius: 12px;
-
   border: 1px solid transparent;
-  background: transparent;
-
-  color: #111827;
+  background: #fff;
   cursor: pointer;
-  font-weight: 650;
+  padding: 10px 12px;
+  border-radius: 14px;
   font-size: 13px;
-
-  transition: background 120ms ease, border-color 120ms ease, transform 80ms ease;
+  font-weight: 800;
+  color: var(--cd-text);
+  transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
 }
 
-.cdSidebarItem:hover {
-  background: #ffffff;
-  border-color: #e5e7eb;
-  transform: translateY(-1px);
+.cdItem:hover {
+  background: #f9fafb;
+  border-color: var(--cd-border2);
 }
 
-.cdSidebarItem.active {
+.cdItem.active {
   background: #eff6ff;
   border-color: #bfdbfe;
   color: #1d4ed8;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1) inset;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
 }
 
-/* ===== Main content ===== */
+/* ===== Main ===== */
+
 .cdMain {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  min-width: 0;
+}
+
+/* main card */
+.cdMainCard {
+  background: var(--cd-card);
+  border: 1px solid var(--cd-border);
   border-radius: 16px;
-  padding: 22px;
-  box-shadow: 0 1px 0 rgba(17, 24, 39, 0.02);
+  box-shadow: var(--cd-shadow);
+  padding: 20px 22px;
+}
+
+/* keep reading width so paragraphs aren't too long */
+.cdMainInner {
+  max-width: 860px;
+}
+
+/* title row */
+.cdTitleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .cdTitle {
   margin: 0;
-  font-size: 26px;
+  font-size: 26px;     /* bigger */
   font-weight: 950;
-  color: #111827;
-  letter-spacing: -0.02em;
+  color: var(--cd-text);
+  letter-spacing: -0.2px;
+  line-height: 1.25;
 }
 
+/* category badge */
+.cdBadge {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--cd-border);
+  background: #fafafa;
+  font-size: 12px;
+  color: var(--cd-muted);
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+/* intro paragraph: easier reading */
 .cdIntro {
-  margin-top: 10px;
-  margin-bottom: 18px;
-  color: #4b5563;
-  line-height: 1.65;
-  font-size: 14px;
-  max-width: 80ch;
+  margin: 10px 0 0;
+  color: var(--cd-reading);
+  line-height: 1.8;    /* key for readability */
+  font-size: 15px;
 }
 
-/* Section blocks */
+/* sections */
+.cdSections {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* each section as a soft card */
 .cdSection {
-  margin-top: 18px;
-  padding-top: 16px;
-  border-top: 1px solid #f1f5f9;
+  border: 1px solid var(--cd-border2);
+  background: #fafafa;
+  border-radius: 14px;
+  padding: 14px 16px;
 }
 
 .cdSectionTitle {
-  margin: 0 0 12px 0;
-  font-size: 15px;
+  margin: 0 0 10px;
+  font-size: 16px;
   font-weight: 950;
-  color: #111827;
-  letter-spacing: -0.01em;
+  color: var(--cd-text);
 }
 
+/* list */
 .cdList {
   margin: 0;
-  padding-left: 18px;
-  color: #374151;
-  line-height: 1.75;
-  font-size: 14px;
+  padding-left: 20px;
 }
 
-.cdList li {
-  margin-bottom: 10px;
+.cdListItem {
+  margin: 10px 0;       /* more breathing room */
+  color: var(--cd-reading);
+  font-size: 14.5px;    /* slightly bigger */
+  line-height: 1.8;     /* easier reading */
 }
 
-/* Back link */
-.cdBackLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-
-  font-size: 13px;
-  font-weight: 800;
-  color: #2563eb;
-  cursor: pointer;
-  text-decoration: underline;
+/* make bullets slightly nicer */
+.cdListItem::marker {
+  color: var(--cd-primary);
 }
 
 /* ===== Responsive ===== */
+
 @media (max-width: 980px) {
   .cdLayout {
     grid-template-columns: 1fr;
   }
 
-  .cdSidebar {
-    position: static;
+  .cdMainCard {
+    padding: 16px;
+  }
+
+  .cdTitle {
+    font-size: 22px;
+  }
+
+  .cdIntro {
+    font-size: 14.5px;
   }
 }

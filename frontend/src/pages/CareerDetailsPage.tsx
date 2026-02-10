@@ -14,7 +14,10 @@ function normalize(s: string) {
   return s.trim().toLowerCase();
 }
 
-function resolveActiveCareer(careers: CareerDetail[], params: URLSearchParams): CareerDetail | null {
+function resolveActiveCareer(
+  careers: CareerDetail[],
+  params: URLSearchParams
+): CareerDetail | null {
   const careerId = params.get("careerId");
   if (careerId) {
     const byId = careers.find((c) => c.id === careerId);
@@ -30,12 +33,35 @@ function resolveActiveCareer(careers: CareerDetail[], params: URLSearchParams): 
   return careers[0] ?? null;
 }
 
+type GroupKey = "Developer" | "Data" | "Other";
+
+function groupKeyForCareer(title: string): GroupKey {
+  const t = normalize(title);
+
+  // ✅ Data group
+  if (
+    t.includes("data engineer") ||
+    t.includes("data scientist") ||
+    t.includes("data analyst")
+  ) {
+    return "Data";
+  }
+
+  // ✅ Developer group
+  if (
+    t.includes("software engineer") ||
+    t.includes("front-end developer")
+  ) {
+    return "Developer";
+  }
+
+  return "Other";
+}
+
 export default function CareerDetailsPage() {
   useProtectedRoute();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
-
-  const from = params.get("from") ?? ""; // ✅ source page
 
   const careersQuery = useQuery({
     queryKey: ["careers"],
@@ -47,71 +73,76 @@ export default function CareerDetailsPage() {
     return resolveActiveCareer(careersQuery.data, params);
   }, [careersQuery.data, params]);
 
-  // ✅ open/close groups
+  // ✅ Back behavior: go to `from` if provided, otherwise history back
+  const from = params.get("from"); // ex: "/projects"
+  function goBack() {
+    if (from) navigate(from);
+    else navigate(-1);
+  }
+
+  // ✅ Group careers
+  const grouped = useMemo(() => {
+    const list = careersQuery.data ?? [];
+    const dev: CareerDetail[] = [];
+    const data: CareerDetail[] = [];
+    const other: CareerDetail[] = [];
+
+    for (const c of list) {
+      const g = groupKeyForCareer(c.title);
+      if (g === "Developer") dev.push(c);
+      else if (g === "Data") data.push(c);
+      else other.push(c);
+    }
+
+    // optional: sort alphabetically
+    const byTitle = (a: CareerDetail, b: CareerDetail) => a.title.localeCompare(b.title);
+    dev.sort(byTitle);
+    data.sort(byTitle);
+    other.sort(byTitle);
+
+    return { Developer: dev, Data: data, Other: other };
+  }, [careersQuery.data]);
+
+  // ✅ accordion open/close
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     Developer: true,
     Data: true,
+    Other: false,
   });
 
-  // ✅ group careers by "group" field from API
-  const grouped = useMemo(() => {
-    const list = careersQuery.data ?? [];
-    const map = new Map<string, CareerDetail[]>();
+  function toggleGroup(key: string) {
+    setOpenGroups((p) => ({ ...p, [key]: !p[key] }));
+  }
 
-    list.forEach((c) => {
-      const g = c.group ?? "Other";
-      if (!map.has(g)) map.set(g, []);
-      map.get(g)!.push(c);
+  function setActive(c: CareerDetail) {
+    setParams((prev) => {
+      prev.set("careerId", c.id);
+      prev.delete("focus");
+      // keep from param
+      if (from) prev.set("from", from);
+      return prev;
     });
-
-    // sort in each group
-    for (const [g, items] of map.entries()) {
-      items.sort((a, b) => a.title.localeCompare(b.title));
-      map.set(g, items);
-    }
-
-    const order = ["Developer", "Data", "Other"];
-    const out: { group: string; items: CareerDetail[] }[] = [];
-
-    order.forEach((g) => {
-      if (map.has(g)) out.push({ group: g, items: map.get(g)! });
-    });
-
-    // extra groups
-    for (const [g, items] of map.entries()) {
-      if (!order.includes(g)) out.push({ group: g, items });
-    }
-
-    return out;
-  }, [careersQuery.data]);
+  }
 
   return (
     <div className="pageContainer">
       <PageHeader
         title="Career Details"
         careerExtra={
-          <span
-            className="cdBackLink"
-            role="button"
-            onClick={() => {
-              // ✅ always go back to the page you came from
-              if (from) navigate(from);
-              else navigate("/home");
-            }}
-          >
+          <button type="button" className="cdBackBtn" onClick={goBack}>
             ← Back
-          </span>
+          </button>
         }
       />
 
       <div className="dividerLine" />
 
-      {careersQuery.isLoading && <div style={{ padding: 16 }}>Loading careers…</div>}
+      {careersQuery.isLoading && <div className="cdState">Loading careers…</div>}
 
       {careersQuery.isError && (
-        <div style={{ padding: 16 }}>
-          <div style={{ fontWeight: 700, marginBottom: 8 }}>Failed to load careers</div>
-          <div style={{ opacity: 0.8 }}>
+        <div className="cdState">
+          <div className="cdStateTitle">Failed to load careers</div>
+          <div className="cdStateMsg">
             {(careersQuery.error as Error)?.message ?? "Unknown error"}
           </div>
         </div>
@@ -119,70 +150,127 @@ export default function CareerDetailsPage() {
 
       {careersQuery.data && activeCareer && (
         <div className="cdLayout">
+          {/* Sidebar */}
           <aside className="cdSidebar">
-            <div className="cdSidebarTitle">Careers</div>
-
-            <div className="cdSidebarList">
-              {grouped.map(({ group, items }) => {
-                const isOpen = openGroups[group] ?? true;
-
-                return (
-                  <div key={group} className="cdGroup">
-                    <button
-                      type="button"
-                      className="cdGroupHeader"
-                      onClick={() => setOpenGroups((prev) => ({ ...prev, [group]: !isOpen }))}
-                    >
-                      <span>{group}</span>
-                      <span className={`cdChevron ${isOpen ? "open" : ""}`}>▾</span>
-                    </button>
-
-                    {isOpen ? (
-                      <div className="cdGroupItems">
-                        {items.map((c) => {
-                          const isActive = c.id === activeCareer.id;
-
-                          return (
-                            <button
-                              key={c.id}
-                              type="button"
-                              className={`cdSidebarItem ${isActive ? "active" : ""}`}
-                              onClick={() => {
-                                // ✅ IMPORTANT: keep `from` in URL
-                                setParams((prev) => {
-                                  prev.set("careerId", c.id);
-                                  prev.delete("focus");
-                                  if (from) prev.set("from", from);
-                                  return prev;
-                                });
-                              }}
-                            >
-                              {c.title}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ) : null}
-                  </div>
-                );
-              })}
+            <div className="cdSidebarHeader">
+              <div className="cdSidebarTitle">Careers</div>
+              <div className="cdSidebarSub">Select a career to view details</div>
             </div>
+
+            {/* Group: Developer */}
+            <div className="cdGroup">
+              <button
+                type="button"
+                className="cdGroupHeader"
+                onClick={() => toggleGroup("Developer")}
+              >
+                <span className="cdGroupLabel">Developer</span>
+                <span className={`cdChevron ${openGroups.Developer ? "open" : ""}`}>▾</span>
+              </button>
+
+              {openGroups.Developer ? (
+                <div className="cdGroupList">
+                  {grouped.Developer.map((c) => {
+                    const isActive = c.id === activeCareer.id;
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        className={`cdItem ${isActive ? "active" : ""}`}
+                        onClick={() => setActive(c)}
+                      >
+                        {c.title}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
+
+            {/* Group: Data */}
+            <div className="cdGroup">
+              <button type="button" className="cdGroupHeader" onClick={() => toggleGroup("Data")}>
+                <span className="cdGroupLabel">Data</span>
+                <span className={`cdChevron ${openGroups.Data ? "open" : ""}`}>▾</span>
+              </button>
+
+              {openGroups.Data ? (
+                <div className="cdGroupList">
+                  {grouped.Data.map((c) => {
+                    const isActive = c.id === activeCareer.id;
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        className={`cdItem ${isActive ? "active" : ""}`}
+                        onClick={() => setActive(c)}
+                      >
+                        {c.title}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
+
+            {/* Group: Other (optional) */}
+            {grouped.Other.length > 0 ? (
+              <div className="cdGroup">
+                <button
+                  type="button"
+                  className="cdGroupHeader"
+                  onClick={() => toggleGroup("Other")}
+                >
+                  <span className="cdGroupLabel">Other</span>
+                  <span className={`cdChevron ${openGroups.Other ? "open" : ""}`}>▾</span>
+                </button>
+
+                {openGroups.Other ? (
+                  <div className="cdGroupList">
+                    {grouped.Other.map((c) => {
+                      const isActive = c.id === activeCareer.id;
+                      return (
+                        <button
+                          key={c.id}
+                          type="button"
+                          className={`cdItem ${isActive ? "active" : ""}`}
+                          onClick={() => setActive(c)}
+                        >
+                          {c.title}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
           </aside>
 
+          {/* Main content */}
           <main className="cdMain">
-            <h1 className="cdTitle">{activeCareer.title}</h1>
-            <p className="cdIntro">{activeCareer.intro}</p>
+            <div className="cdMainCard">
+              <div className="cdTitleRow">
+                <h1 className="cdTitle">{activeCareer.title}</h1>
+                <span className="cdBadge">{groupKeyForCareer(activeCareer.title)}</span>
+              </div>
 
-            {activeCareer.sections.map((sec) => (
-              <section key={sec.title} className="cdSection">
-                <h2 className="cdSectionTitle">{sec.title}</h2>
-                <ul className="cdList">
-                  {sec.bullets.map((b, idx) => (
-                    <li key={idx}>{b}</li>
-                  ))}
-                </ul>
-              </section>
-            ))}
+              <p className="cdIntro">{activeCareer.intro}</p>
+
+              <div className="cdSections">
+                {activeCareer.sections.map((sec) => (
+                  <section key={sec.title} className="cdSection">
+                    <h2 className="cdSectionTitle">{sec.title}</h2>
+                    <ul className="cdList">
+                      {sec.bullets.map((b, idx) => (
+                        <li key={idx} className="cdListItem">
+                          {b}
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ))}
+              </div>
+            </div>
           </main>
         </div>
       )}

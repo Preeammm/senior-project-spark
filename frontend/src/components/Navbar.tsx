@@ -36,7 +36,7 @@ export default function Navbar() {
             Home
           </NavLink>
           <NavLink to="/projects" className={linkClassName}>
-            My Projects
+            My Assessments
           </NavLink>
           <NavLink to="/courses" className={linkClassName}>
             My Courses
