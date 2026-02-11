@@ -1,11 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
-import { getMe } from "../services/student.api";
-import type { Student } from "../types";
+import { http } from "../../../services/http";
+import type { Me } from "../types";
 
 export function useMe() {
-  return useQuery<Student>({
+  return useQuery<Me>({
     queryKey: ["me"],
-    queryFn: getMe,
-    staleTime: 1000 * 60 * 5,
+    queryFn: async () => {
+      const res = await http.get("/api/me");
+      return res.data;
+    },
   });
 }

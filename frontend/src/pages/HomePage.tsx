@@ -141,15 +141,19 @@ export default function HomePage() {
   if (isLoading) return <div className="homeLoading">Loading...</div>;
   if (error || !me) return <div className="homeLoading">Failed to load user</div>;
 
-  const firstName = me.name?.split(" ")?.[0] ?? "Student";
+  // ✅ FIX: now name is first name, surname is last name
+  const firstName = me.name ?? "Student";
+  const fullName = `${me.name ?? ""} ${me.surname ?? ""}`.trim() || "Student";
 
-  const initials = (me.name ?? "Student")
-    .split(" ")
-    .filter(Boolean)
-    .map((x: string) => x[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  // ✅ FIX: initials from name + surname
+  const initials =
+    fullName
+      .split(" ")
+      .filter(Boolean)
+      .map((x: string) => x[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "U";
 
   return (
     <div className="homePage">
@@ -185,7 +189,8 @@ export default function HomePage() {
 
                 <div className="infoRow">
                   <div className="infoLabel">Name</div>
-                  <div className="infoValue">{me.name}</div>
+                  {/* ✅ FIX: show name + surname */}
+                  <div className="infoValue">{fullName}</div>
                 </div>
 
                 <div className="infoRow">
@@ -195,15 +200,17 @@ export default function HomePage() {
 
                 <div className="infoRow">
                   <div className="infoLabel">Minor</div>
-                  <div className="infoValue">{me.major}</div>
+                  {/* ✅ FIX: was me.major */}
+                  <div className="infoValue">{me.minor}</div>
                 </div>
 
                 <div className="infoRow">
                   <div className="infoLabel">Year</div>
-                  <div className="infoValue">{me.classYear}</div>
+                  {/* ✅ FIX: was me.classYear */}
+                  <div className="infoValue">{me.year}</div>
                 </div>
 
-                {/* ✅ NEW: LinkedIn / GitHub */}
+                {/* LinkedIn / GitHub */}
                 <div className="infoRow" style={{ borderBottom: "none" }}>
                   <div className="infoLabel">Links</div>
                   <div className="infoValue">

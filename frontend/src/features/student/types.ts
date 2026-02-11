@@ -1,10 +1,13 @@
-export type Student = {
+export type Me = {
   studentId: string;
   name: string;
+  surname: string;
   faculty: string;
-  major: string;
-  classYear: number;
-  avatarUrl: string | null;
-  linkedinUrl: string;
-  githubUrl: string;
+  minor: string;
+  year: number;
+
+  avatarUrl?: string | null;
+
+  githubUrl?: string;
+  linkedinUrl?: string;
 };

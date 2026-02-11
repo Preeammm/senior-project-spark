@@ -7,43 +7,62 @@
 const me = {
   u1: {
     studentId: "6588087",
-    name: "Yaowapa Sabkasedkid",
+    name: "Yaowapa",
+    surname: "Sabkasedkid",
     faculty: "Faculty of Information and Communication Technology",
-    major: "Database and Intelligent Systems (ITDB)",
-    classYear: 4,
+    minor: "Database and Intelligent Systems (ITDB)",
+    year: 4,
 
-    // Optional fields
     avatarUrl: null,
 
-    // ✅ Social Links (editable via /api/me/links)
-    linkedinUrl: "",
-    githubUrl: "",
+    // editable
+    email: "yaowapa@gmail.com",
+    contactNumber: "",
+    address: "",
+    githubUrl: "https://github.com/Preeammm",
+    linkedinUrl: "https://www.linkedin.com/in/yaowapa-sabkasedkid",
+    dateOfBirth: "",
+    gender: "",
   },
 
   u2: {
     studentId: "6588096",
-    name: "Panipak Sittiprasert",
+    name: "Panipak",
+    surname: "Sittiprasert",
     faculty: "Faculty of Information and Communication Technology",
-    major: "Database and Intelligent Systems (ITDB)",
-    classYear: 4,
+    minor: "Database and Intelligent Systems (ITDB)",
+    year: 4,
 
     avatarUrl: null,
 
-    linkedinUrl: "",
+    // editable
+    email: "panipak@gmail.com",
+    contactNumber: "",
+    address: "",
     githubUrl: "",
+    linkedinUrl: "",
+    dateOfBirth: "",
+    gender: "",
   },
 
   u3: {
     studentId: "6588107",
-    name: "Apivich Preedaarkaraphun",
+    name: "Apivich",
+    surname: "Preedaarkaraphun",
     faculty: "Faculty of Information and Communication Technology",
-    major: "Database and Intelligent Systems (ITDB)",
-    classYear: 4,
+    minor: "Database and Intelligent Systems (ITDB)",
+    year: 4,
 
     avatarUrl: null,
 
-    linkedinUrl: "",
+    // editable
+    email: "apivich@gmail.com",
+    contactNumber: "",
+    address: "",
     githubUrl: "",
+    linkedinUrl: "",
+    dateOfBirth: "",
+    gender: "",
   },
 };
 

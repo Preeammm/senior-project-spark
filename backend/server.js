@@ -56,6 +56,7 @@ function pickSession(user) {
     defaultPath: user.defaultPath,
     studentId: profile?.studentId,
     name: profile?.name,
+    surname: profile?.surname,
   };
 }
 
@@ -87,13 +88,25 @@ app.post("/api/login", (req, res) => {
 });
 
 // ===== ME (protected) =====
+// Used by Home page student info card
 app.get("/api/me", requireUser, (req, res) => {
   const profile = meStore[req.user.id];
   if (!profile) return res.status(404).json({ message: "Profile not found" });
-  res.json(profile);
+
+  // Home wants: name, surname, year, minor, studentId, faculty, githubUrl, linkedinUrl
+  res.json({
+    studentId: profile.studentId ?? "",
+    name: profile.name ?? "",
+    surname: profile.surname ?? "",
+    faculty: profile.faculty ?? "",
+    minor: profile.minor ?? "",
+    year: profile.year ?? "",
+    githubUrl: profile.githubUrl ?? "",
+    linkedinUrl: profile.linkedinUrl ?? "",
+  });
 });
 
-// ===== ME LINKS (LinkedIn / GitHub) =====
+// ===== Helpers =====
 function sanitizeUrl(url) {
   if (!url) return "";
   const trimmed = String(url).trim();
@@ -104,6 +117,40 @@ function sanitizeUrl(url) {
   return trimmed;
 }
 
+function sanitizeText(value, max = 300) {
+  if (value == null) return "";
+  return String(value).trim().slice(0, max);
+}
+
+function sanitizeEmail(email) {
+  const v = sanitizeText(email, 120);
+  if (!v) return "";
+  // simple check (OK for mock)
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return "";
+  return v;
+}
+
+function sanitizePhone(phone) {
+  const v = sanitizeText(phone, 40);
+  if (!v) return "";
+  return v.replace(/[^\d+\-\s()]/g, "");
+}
+
+function sanitizeDob(dob) {
+  const v = sanitizeText(dob, 20);
+  if (!v) return "";
+  // allow YYYY-MM-DD only
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return "";
+  return v;
+}
+
+function sanitizeGender(g) {
+  const v = sanitizeText(g, 20);
+  const allowed = ["Male", "Female", "Other", ""];
+  return allowed.includes(v) ? v : "";
+}
+
+// ===== ME LINKS (legacy endpoints, optional keep) =====
 app.get("/api/me/links", requireUser, (req, res) => {
   const profile = meStore[req.user.id];
   if (!profile) return res.status(404).json({ message: "Profile not found" });
@@ -127,6 +174,66 @@ app.put("/api/me/links", requireUser, (req, res) => {
   res.json({
     linkedinUrl: profile.linkedinUrl,
     githubUrl: profile.githubUrl,
+  });
+});
+
+// ===== ME PROFILE (FULL PROFILE PAGE) =====
+// Profile page needs default+editable fields
+app.get("/api/me/profile", requireUser, (req, res) => {
+  const profile = meStore[req.user.id];
+  if (!profile) return res.status(404).json({ message: "Profile not found" });
+
+  res.json({
+    // default read-only
+    studentId: profile.studentId ?? "",
+    name: profile.name ?? "",
+    surname: profile.surname ?? "",
+    faculty: profile.faculty ?? "",
+    minor: profile.minor ?? "",
+    year: profile.year ?? "",
+
+    // editable
+    email: profile.email ?? "",
+    contactNumber: profile.contactNumber ?? "",
+    address: profile.address ?? "",
+    githubUrl: profile.githubUrl ?? "",
+    linkedinUrl: profile.linkedinUrl ?? "",
+    dateOfBirth: profile.dateOfBirth ?? "",
+    gender: profile.gender ?? "",
+  });
+});
+
+app.put("/api/me/profile", requireUser, (req, res) => {
+  const profile = meStore[req.user.id];
+  if (!profile) return res.status(404).json({ message: "Profile not found" });
+
+  // update only editable fields
+  profile.email = sanitizeEmail(req.body?.email);
+  profile.contactNumber = sanitizePhone(req.body?.contactNumber);
+  profile.address = sanitizeText(req.body?.address, 300);
+
+  profile.githubUrl = sanitizeUrl(req.body?.githubUrl);
+  profile.linkedinUrl = sanitizeUrl(req.body?.linkedinUrl);
+
+  profile.dateOfBirth = sanitizeDob(req.body?.dateOfBirth);
+  profile.gender = sanitizeGender(req.body?.gender);
+
+  // return full profile again
+  res.json({
+    studentId: profile.studentId ?? "",
+    name: profile.name ?? "",
+    surname: profile.surname ?? "",
+    faculty: profile.faculty ?? "",
+    minor: profile.minor ?? "",
+    year: profile.year ?? "",
+
+    email: profile.email ?? "",
+    contactNumber: profile.contactNumber ?? "",
+    address: profile.address ?? "",
+    githubUrl: profile.githubUrl ?? "",
+    linkedinUrl: profile.linkedinUrl ?? "",
+    dateOfBirth: profile.dateOfBirth ?? "",
+    gender: profile.gender ?? "",
   });
 });
 
@@ -176,9 +283,7 @@ app.get("/api/courses/:courseId", requireUser, (req, res) => {
     credits: "3 (3–0–6)",
     semester: 1,
     year: 4,
-    instructors: [
-      { name: "Asst. Prof. Dr. (Mock Instructor)", email: "instructor@mahidol.ac.th" },
-    ],
+    instructors: [{ name: "Asst. Prof. Dr. (Mock Instructor)", email: "instructor@mahidol.ac.th" }],
     courseTitleEN: course.courseName,
     courseTitleTH: "—",
   });
