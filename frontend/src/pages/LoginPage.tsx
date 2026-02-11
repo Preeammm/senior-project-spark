@@ -1,7 +1,6 @@
 import { useState } from "react";
-import axios from "axios";
 import "./LoginPage.css";
-
+import { http } from "../services/http";
 import ictFullLogo from "../assets/ictfull-logo.png";
 
 export default function LoginPage() {
@@ -20,28 +19,20 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/login`,
-        { username, password }
-      );
-
+      const res = await http.post("/api/login", { username, password });
       localStorage.setItem("user", JSON.stringify(res.data));
       window.location.href = "/home";
-    } catch (e) {
+    } catch {
       setError("Invalid username or password");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
-    if (e.key === "Enter") handleLogin();
-  };
-
   return (
     <div className="loginPage">
+      {/* Header */}
       <div className="loginHeader">
-        <div style={{ fontSize: 34 }}></div>
         <div>
           <div className="loginHeaderTitle">SPARK</div>
           <div className="loginHeaderSub">
@@ -54,23 +45,27 @@ export default function LoginPage() {
 
       <hr className="hr" />
 
+      {/* Main Card */}
       <div className="loginCard">
         <div className="loginCardBody">
-          <img className="ictfullLogo" src={ictFullLogo} alt="ICT" />
+          <img className="ictfullLogo" src={ictFullLogo} alt="Mahidol ICT" />
 
-          <div className="loginFormCard">
+          {/* ✅ Form wrapper: Enter works + better UX */}
+          <form
+            className="loginFormCard"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleLogin();
+            }}
+          >
             {/* Username */}
             <div className="loginField">
-              <div className="loginLabelRow">
-                <span className="loginLabelText">Username</span>
-              </div>
-
+              <span className="loginLabelText">Username</span>
               <div className="inputWrap">
                 <input
                   className="loginInput"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  onKeyDown={handleKeyDown}
                   placeholder="Enter your username"
                   autoComplete="username"
                 />
@@ -79,17 +74,13 @@ export default function LoginPage() {
 
             {/* Password */}
             <div className="loginField">
-              <div className="loginLabelRow">
-                <span className="loginLabelText">Password</span>
-              </div>
-
+              <span className="loginLabelText">Password</span>
               <div className="inputWrap">
                 <input
                   className="loginInput"
                   type={showPw ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  onKeyDown={handleKeyDown}
                   placeholder="Enter your password"
                   autoComplete="current-password"
                 />
@@ -99,6 +90,7 @@ export default function LoginPage() {
                   className="pwToggle"
                   onClick={() => setShowPw((v) => !v)}
                   aria-label={showPw ? "Hide password" : "Show password"}
+                  title={showPw ? "Hide password" : "Show password"}
                 >
                   {showPw ? "🙈" : "👁️"}
                 </button>
@@ -110,31 +102,30 @@ export default function LoginPage() {
               <button
                 type="button"
                 className="forgotLink"
-                onClick={() => alert("Please contact itcregistrar@mahidol.ac.th")}
+                onClick={() => alert("Please contact ictregistrar@mahidol.ac.th")}
               >
                 Forgot password?
               </button>
             </div>
 
+            {/* Error */}
             {error && <div className="loginError">{error}</div>}
 
-            <button
-              className="loginButton"
-              onClick={handleLogin}
-              disabled={!canSubmit || loading}
-            >
+            {/* Submit */}
+            <button className="loginButton" type="submit" disabled={!canSubmit || loading}>
               {loading ? "Logging in..." : "Log in"}
             </button>
 
             <div className="loginHint">
               Example: <b>u6588000</b> / <b>ICT000</b>
             </div>
-          </div>
+          </form>
         </div>
       </div>
 
+      {/* Footer */}
       <div className="loginFooter">
-        if you have any questions please contact itcregistrar@mahidol.ac.th
+        if you have any questions please contact ictregistrar@mahidol.ac.th
       </div>
 
       <hr className="hr" style={{ marginTop: 18 }} />

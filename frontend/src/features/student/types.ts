@@ -4,5 +4,7 @@ export type Student = {
   faculty: string;
   major: string;
   classYear: number;
-  avatarUrl?: string | null;
+  avatarUrl: string | null;
+  linkedinUrl: string;
+  githubUrl: string;
 };

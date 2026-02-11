@@ -1,7 +1,13 @@
+/* Sticky glass navbar */
 .navbar {
   height: 64px;
-  border-bottom: 1px solid #e5e7eb;
-  background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .navInner {
@@ -9,6 +15,7 @@
   height: 100%;
   margin: 0 auto;
   padding: 0 16px;
+
   display: flex;
   align-items: center;
   gap: 22px;
@@ -18,17 +25,19 @@
 .brand {
   display: flex;
   align-items: center;
-  gap: 5px;        /* ลดระยะห่าง */
+  gap: 8px;
+  padding-right: 14px;
+  border-right: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .brandLogoMu {
-  height: 44px;   /* ปรับได้ */
+  height: 42px;
   width: auto;
   display: block;
 }
 
 .brandLogoIct {
-  height: 40px;   /* ปรับได้ */
+  height: 38px;
   width: auto;
   display: block;
 }
@@ -37,8 +46,8 @@
 .menu {
   display: flex;
   align-items: center;
-  gap: 28px;
-  margin-left: 18px;
+  gap: 18px;
+  margin-left: 10px;
   flex: 1;
   height: 100%;
 }
@@ -48,94 +57,218 @@
   height: 100%;
   display: inline-flex;
   align-items: center;
-  padding: 0 10px;
+  padding: 0 8px;
+
   text-decoration: none;
-  color: #4b5563;
-  font-size: 16px;
-  font-weight: 500;
+  color: rgba(15, 23, 42, 0.65);
+  font-size: 15px;
+  font-weight: 650;
+
+  transition: color 0.15s ease;
+}
+
+.menuLink:hover {
+  color: rgba(15, 23, 42, 0.90);
 }
 
 .menuLinkActive {
-  color: #111827;
+  color: rgba(15, 23, 42, 0.92);
 }
 
 .menuLinkActive::after {
   content: "";
   position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: 0;
+  left: 8px;
+  right: 8px;
+  bottom: -6px;
   height: 3px;
-  background: #1f6f3b;
-  border-radius: 2px;
+  background: #1f7a3e;
+  border-radius: 999px;
 }
 
 /* Right profile */
 .profile {
-  display: flex;
-  align-items: center;
-  gap: 10px;
   position: relative;
 }
 
+.profileBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 10px 0 6px;
+
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  background: #fff;
+  cursor: pointer;
+
+  box-shadow: 0 8px 16px rgba(2, 6, 23, 0.06);
+}
+
+.profileBtn:hover {
+  background: rgba(15, 23, 42, 0.02);
+}
+
 .avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: #e5e7eb;
-  color: #111827;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.07);
+  color: rgba(15, 23, 42, 0.80);
   display: grid;
   place-items: center;
-  font-weight: 700;
+  font-weight: 800;
+  font-size: 12px;
 }
 
 .caret {
-  font-size: 18px;
-  color: #374151;
+  font-size: 12px;
+  color: rgba(15, 23, 42, 0.55);
   transform: translateY(-1px);
-  cursor: pointer;
 }
 
+/* Dropdown */
 .dropdown {
   position: absolute;
-  top: 100%;
+  top: 48px;
   right: 0;
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  min-width: 150px;
-  margin-top: 8px;
+
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(2, 6, 23, 0.12);
+
+  min-width: 230px;
+  overflow: hidden;
   z-index: 100;
 }
 
 .dropdownItem {
-  display: block;
   width: 100%;
-  padding: 12px 16px;
+  padding: 12px 12px;
   background: none;
   border: none;
   text-align: left;
   cursor: pointer;
-  color: #111827;
+
+  color: rgba(15, 23, 42, 0.82);
   font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.2s;
+  font-weight: 650;
 }
 
 .dropdownItem:hover {
-  background-color: #f3f4f6;
+  background: rgba(15, 23, 42, 0.04);
 }
 
-.dropdownItem:first-child {
-  border-radius: 8px 8px 0 0;
+.dropdownItem.danger {
+  color: #b91c1c;
 }
 
-.dropdownItem:last-child {
-  border-radius: 0 0 8px 8px;
+.dropdownSep {
+  height: 1px;
+  background: rgba(15, 23, 42, 0.08);
 }
 
+/* Modal */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.40);
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  z-index: 999;
+}
+
+.modalCard {
+  width: min(520px, 100%);
+  background: #fff;
+  border-radius: 18px;
+  padding: 18px;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  box-shadow: 0 30px 70px rgba(2, 6, 23, 0.18);
+}
+
+.modalTitle {
+  font-size: 18px;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.92);
+}
+
+.modalSub {
+  margin-top: 6px;
+  font-size: 13px;
+  color: rgba(71, 85, 105, 0.90);
+}
+
+.modalLabel {
+  display: block;
+  margin-top: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(15, 23, 42, 0.75);
+}
+
+.modalInput {
+  margin-top: 8px;
+  width: 100%;
+  height: 44px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(15, 23, 42, 0.14);
+  padding: 0 12px;
+  outline: none;
+}
+
+.modalInput:focus {
+  border-color: rgba(59, 130, 246, 0.55);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.14);
+}
+
+.modalError {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(254, 242, 242, 0.95);
+  border: 1px solid rgba(239, 68, 68, 0.20);
+  color: #b91c1c;
+  font-size: 13px;
+}
+
+.modalActions {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.modalBtn {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #fff;
+  cursor: pointer;
+  font-weight: 750;
+}
+
+.modalBtn.ghost:hover {
+  background: rgba(15, 23, 42, 0.04);
+}
+
+.modalBtn.primary {
+  border: none;
+  color: #fff;
+  background: linear-gradient(180deg, #39b36a, #55b86a);
+  box-shadow: 0 14px 24px rgba(31, 122, 62, 0.22);
+}
+
+.modalBtn.primary:hover {
+  filter: brightness(1.02);
+}
+
+/* Responsive */
 @media (max-width: 860px) {
-  .menu { gap: 14px; }
-  .menuLink { font-size: 16px; }
+  .menu { gap: 12px; }
+  .menuLink { font-size: 13px; padding: 0 6px; }
 }

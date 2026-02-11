@@ -1,131 +1,170 @@
 :root {
-  --green: #1f7a3e;
-  --green-btn: #5bb85c;
+  --bg1: #f6faf7;
+  --bg2: #ffffff;
+
+  --text: #0f172a;
+  --muted: #475569;
+
+  --line: rgba(15, 23, 42, 0.10);
+
+  --brand: #1f7a3e;
+  --brand2: #39b36a;
+  --btn: #55b86a;
+
+  --card: rgba(255, 255, 255, 0.85);
+  --shadow-lg: 0 30px 70px rgba(2, 6, 23, 0.12);
+  --shadow-md: 0 16px 30px rgba(2, 6, 23, 0.10);
+
+  --radius-xl: 22px;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+
+  --ring: 0 0 0 4px rgba(59, 130, 246, 0.14);
 }
 
-/* Page Layout */
+* { box-sizing: border-box; }
+
 .loginPage {
-  min-height: 100vh;
-  padding: 10px 14px;
+  width: 100%;
+  min-height: 100dvh;
+  padding: 22px 16px 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: #ffffff;
+
+  /* nicer background */
+  background:
+    radial-gradient(900px 420px at 50% 0%, rgba(31, 122, 62, 0.12), transparent 60%),
+    radial-gradient(700px 360px at 12% 16%, rgba(57, 179, 106, 0.10), transparent 60%),
+    linear-gradient(180deg, var(--bg1), var(--bg2));
+  color: var(--text);
 }
 
-/* Top Header */
+/* Header */
 .loginHeader {
+  width: 100%;
+  max-width: 980px;
   display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-top: 8px;
-  margin-bottom: 14px;
+  align-items: flex-start;
+  justify-content: center;
+  text-align: center;
+  margin-top: 10px;
 }
 
 .loginHeaderTitle {
-  font-size: 25px;
-  letter-spacing: 1px;
-  color: #111827;
+  font-size: 32px;
+  letter-spacing: 0.16em;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--text);
 }
 
 .loginHeaderSub {
+  margin-top: 8px;
   font-size: 15px;
-  color: #4b5563;
-  line-height: 1.25;
+  color: var(--muted);
+  line-height: 1.35;
 }
 
 /* Divider */
 .hr {
   width: 100%;
-  max-width: 990px;
+  max-width: 980px;
   border: none;
-  border-top: 1px solid #e5e7eb;
-  margin: 12px 0 18px;
+  border-top: 1px solid var(--line);
+  margin: 18px 0 18px;
 }
 
-/* Main Card */
+/* Outer Card */
 .loginCard {
   width: 100%;
   max-width: 980px;
-  border: 1px solid #b9b9b9;
-  border-radius: 12px;
+  border-radius: var(--radius-xl);
   overflow: hidden;
-  background: #fff;
-  box-shadow:
-    0 18px 40px rgba(0, 0, 0, 0.16),
-    0 2px 0 rgba(0, 0, 0, 0.08);
+
+  /* glassy */
+  background: var(--card);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+
+  box-shadow: var(--shadow-lg);
 }
 
-/* Card Body */
 .loginCardBody {
-  padding: 15px 15px 40px;
+  padding: 28px 22px 28px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 15px;
+  gap: 18px;
 }
 
+/* Logo */
 .ictfullLogo {
-  width: 220px;
+  width: 230px;
   height: auto;
   object-fit: contain;
-  margin-top: 2px;
+  margin-top: 6px;
+  filter: drop-shadow(0 6px 12px rgba(2, 6, 23, 0.10));
 }
 
 /* Inner Form Card */
 .loginFormCard {
-  width: min(760px, 88%);
-  border: 1px solid #e5e7eb;
-  background: #fbfbfb;
-  border-radius: 14px;
-  padding: 18px 18px 14px;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
+  width: min(720px, 92%);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(2, 6, 23, 0.08);
+  box-shadow: var(--shadow-md);
+
+  padding: 20px 18px 16px;
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
+/* Inputs */
 .loginField {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.loginLabelRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
 .loginLabelText {
-  font-weight: 600;
-  font-size: 14px;
-  color: #111827;
+  font-weight: 650;
+  font-size: 13px;
+  color: rgba(15, 23, 42, 0.82);
+  letter-spacing: 0.02em;
 }
 
-/* Input wrap */
 .inputWrap {
   position: relative;
   display: flex;
   align-items: center;
 }
 
-/* ✅ ไม่มี icon ซ้ายแล้ว → padding-left ลดลง */
 .loginInput {
   width: 100%;
-  height: 44px;
-  padding: 0 44px 0 14px; /* เดิม 0 44px 0 40px */
-  border: 1.5px solid #cbd5e1;
-  border-radius: 12px;
+  height: 46px;
+  padding: 0 46px 0 14px;
+  border: 1.5px solid rgba(15, 23, 42, 0.14);
+  border-radius: 14px;
   font-size: 14px;
-  background: #ffffff;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  background: #fff;
+  color: var(--text);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.08s ease;
+}
+
+.loginInput::placeholder {
+  color: rgba(71, 85, 105, 0.65);
 }
 
 .loginInput:focus {
   outline: none;
-  border-color: #93c5fd;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.55);
+  box-shadow: var(--ring);
+}
+
+.loginInput:active {
+  transform: translateY(0.5px);
 }
 
 .pwToggle {
@@ -136,11 +175,19 @@
   cursor: pointer;
   width: 34px;
   height: 34px;
-  border-radius: 10px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: rgba(15, 23, 42, 0.65);
+  transition: background 0.15s ease, transform 0.1s ease;
 }
 
 .pwToggle:hover {
-  background: rgba(0, 0, 0, 0.05);
+  background: rgba(2, 6, 23, 0.06);
+}
+
+.pwToggle:active {
+  transform: scale(0.98);
 }
 
 /* Forgot password */
@@ -148,33 +195,33 @@
   width: 100%;
   display: flex;
   justify-content: flex-end;
-  margin-top: -4px;
+  margin-top: -6px;
 }
 
 .forgotLink {
   border: none;
   background: transparent;
   cursor: pointer;
-  padding: 6px 6px;
-  font-size: 11px;
-  color: #374151;
-  text-decoration: none;
-  border-radius: 10px;
+  padding: 6px 8px;
+  font-size: 12px;
+  color: rgba(15, 23, 42, 0.70);
+  border-radius: 12px;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .forgotLink:hover {
-  color: var(--green);
-  background: rgba(34, 197, 94, 0.08);
+  color: var(--brand);
+  background: rgba(31, 122, 62, 0.10);
 }
 
 /* Error */
 .loginError {
-  border: 1px solid #fecaca;
-  background: #fff1f2;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  background: rgba(254, 242, 242, 0.95);
   color: #b91c1c;
   padding: 10px 12px;
-  border-radius: 12px;
-  font-size: 14px;
+  border-radius: 14px;
+  font-size: 13px;
 }
 
 /* Button */
@@ -182,33 +229,44 @@
   width: 100%;
   height: 50px;
   border: none;
-  border-radius: 12px;
-  background: var(--green-btn);
-  color: white;
-  font-size: 17px;
+  border-radius: 14px;
   cursor: pointer;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 6px;
-  box-shadow: 0 10px 18px rgba(34, 197, 94, 0.18);
+
+  color: white;
+  font-size: 16px;
+  font-weight: 750;
+
+  background: linear-gradient(180deg, var(--brand2), var(--btn));
+  box-shadow:
+    0 18px 28px rgba(31, 122, 62, 0.24),
+    0 2px 0 rgba(255, 255, 255, 0.20) inset;
+
+  transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
 }
 
-.loginButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  box-shadow: none;
+.loginButton:hover {
+  filter: brightness(1.02);
+  transform: translateY(-1px);
+  box-shadow:
+    0 22px 34px rgba(31, 122, 62, 0.26),
+    0 2px 0 rgba(255, 255, 255, 0.20) inset;
 }
 
 .loginButton:active {
-  transform: translateY(1px);
+  transform: translateY(0px);
+}
+
+.loginButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .loginHint {
   text-align: center;
-  font-size: 11px;
-  color: #6b7280;
+  font-size: 12px;
+  color: rgba(71, 85, 105, 0.8);
   margin-top: 2px;
 }
 
@@ -217,47 +275,30 @@
   width: 100%;
   max-width: 980px;
   text-align: center;
-  margin-top: 25px;
-  color: var(--green);
+  margin-top: 18px;
+  color: var(--brand);
   font-size: 12px;
 }
 
 .loginFooterSmall {
   margin-top: 10px;
-  color: #6b7280;
+  color: rgba(71, 85, 105, 0.85);
   font-size: 12px;
 }
 
 /* Responsive */
-@media (max-height: 800px) {
-  .loginPage {
-    padding: 16px 12px;
+@media (max-width: 560px) {
+  .loginHeaderTitle {
+    font-size: 28px;
   }
-
-  .loginHeader {
-    margin-top: 6px;
-    margin-bottom: 10px;
-  }
-
-  .hr {
-    margin: 10px 0 14px;
-  }
-
-  .loginCardBody {
-    padding: 20px 16px 18px;
-    gap: 14px;
-  }
-
   .ictfullLogo {
     width: 200px;
   }
-
-  .loginFormCard {
-    padding: 14px 14px 12px;
-    gap: 12px;
+  .loginCardBody {
+    padding: 22px 14px 22px;
   }
-
-  .loginHeaderSub {
-    font-size: 17px;
+  .loginFormCard {
+    width: 100%;
+    padding: 18px 14px 14px;
   }
 }

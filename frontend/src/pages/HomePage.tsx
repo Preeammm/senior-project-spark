@@ -100,7 +100,7 @@ function radarPoints(
   const pts: string[] = [];
   for (let i = 0; i < n; i++) {
     const axis = axes[i];
-    const a = (-Math.PI / 2) + (i * (2 * Math.PI)) / n; // start top
+    const a = -Math.PI / 2 + (i * (2 * Math.PI)) / n; // start top
     const t = clamp01((scores[axis] ?? 0) / 10);
     const x = cx + Math.cos(a) * r * t;
     const y = cy + Math.sin(a) * r * t;
@@ -143,6 +143,14 @@ export default function HomePage() {
 
   const firstName = me.name?.split(" ")?.[0] ?? "Student";
 
+  const initials = (me.name ?? "Student")
+    .split(" ")
+    .filter(Boolean)
+    .map((x: string) => x[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
   return (
     <div className="homePage">
       <div className="homeContainer">
@@ -164,7 +172,7 @@ export default function HomePage() {
                   {me.avatarUrl ? (
                     <img className="avatarImg" src={me.avatarUrl} alt="avatar" />
                   ) : (
-                    <span className="avatarPlaceholder">YS</span>
+                    <span className="avatarPlaceholder">{initials}</span>
                   )}
                 </div>
               </div>
@@ -190,9 +198,43 @@ export default function HomePage() {
                   <div className="infoValue">{me.major}</div>
                 </div>
 
-                <div className="infoRow" style={{ borderBottom: "none" }}>
+                <div className="infoRow">
                   <div className="infoLabel">Year</div>
                   <div className="infoValue">{me.classYear}</div>
+                </div>
+
+                {/* ✅ NEW: LinkedIn / GitHub */}
+                <div className="infoRow" style={{ borderBottom: "none" }}>
+                  <div className="infoLabel">Links</div>
+                  <div className="infoValue">
+                    <div className="socialRow">
+                      {me.linkedinUrl ? (
+                        <a
+                          className="socialBtn socialLinkedin"
+                          href={me.linkedinUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          🔗 LinkedIn
+                        </a>
+                      ) : (
+                        <span className="socialMuted">No LinkedIn</span>
+                      )}
+
+                      {me.githubUrl ? (
+                        <a
+                          className="socialBtn socialGithub"
+                          href={me.githubUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          💻 GitHub
+                        </a>
+                      ) : (
+                        <span className="socialMuted">No GitHub</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -232,7 +274,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ✅ My Performance (NEW) */}
+        {/* My Performance */}
         <section className="sectionCard">
           <div className="sectionHeader">
             <div className="sectionTitle">My Performance</div>
@@ -271,7 +313,6 @@ export default function HomePage() {
                 </div>
 
                 <svg width={W} height={H} className="mpRadar" viewBox={`0 0 ${W} ${H}`}>
-                  {/* grid rings */}
                   {[0.2, 0.4, 0.6, 0.8, 1].map((t) => {
                     const ringScores = Object.fromEntries(
                       RADAR_AXES.map((a) => [a, 10 * t])
@@ -280,14 +321,12 @@ export default function HomePage() {
                     return <polygon key={t} points={ring} className="mpRing" />;
                   })}
 
-                  {/* axis lines + labels */}
                   {RADAR_AXES.map((axis, i) => {
                     const n = RADAR_AXES.length;
-                    const ang = (-Math.PI / 2) + (i * (2 * Math.PI)) / n;
+                    const ang = -Math.PI / 2 + (i * (2 * Math.PI)) / n;
                     const x2 = cx + Math.cos(ang) * r;
                     const y2 = cy + Math.sin(ang) * r;
 
-                    // label position
                     const lx = cx + Math.cos(ang) * (r + 26);
                     const ly = cy + Math.sin(ang) * (r + 26);
 
@@ -307,10 +346,7 @@ export default function HomePage() {
                     );
                   })}
 
-                  {/* requirement polygon */}
                   <polygon points={reqPoly} className="mpPolyReq" />
-
-                  {/* student polygon */}
                   <polygon points={studentPoly} className="mpPolyStudent" />
                 </svg>
               </div>
@@ -347,7 +383,6 @@ export default function HomePage() {
                   </select>
                 </div>
 
-                {/* mock evidence text */}
                 <div className="mpEvidenceBox">
                   <div className="mpEvidenceTitle">{evidence1}</div>
                   <div className="mpEvidenceText">

@@ -1,7 +1,3 @@
-// server.js (FULL CODE) ✅
-// Change: /api/portfolio/documents list now returns a "snippet" preview
-// so your /portfolio page can show something without fetching full content.
-
 import express from "express";
 import cors from "cors";
 
@@ -13,9 +9,33 @@ import careers from "./mock_data/careers.js";
 const app = express();
 app.use(express.json());
 
+// ✅ Make "me" mutable (acts like tiny in-memory database)
+let meStore = JSON.parse(JSON.stringify(me));
+
+/**
+ * ✅ CORS
+ * - If you set env: CORS_ORIGIN=http://localhost:5173,http://localhost:5174
+ *   it will allow only those origins.
+ * - If not set, allow common dev origins.
+ */
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: (origin, callback) => {
+      const raw = process.env.CORS_ORIGIN;
+
+      // default allowlist in dev
+      const defaultAllow = ["http://localhost:5173", "http://localhost:5174"];
+
+      const allowed = raw
+        ? raw.split(",").map((s) => s.trim()).filter(Boolean)
+        : defaultAllow;
+
+      // allow same-origin requests / tools without origin
+      if (!origin) return callback(null, true);
+
+      if (allowed.includes(origin)) return callback(null, true);
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   })
 );
@@ -29,7 +49,7 @@ const USER_AUTH = [
 
 // helper: session object to store in localStorage
 function pickSession(user) {
-  const profile = me[user.id];
+  const profile = meStore[user.id];
   return {
     id: user.id,
     username: user.username,
@@ -68,9 +88,46 @@ app.post("/api/login", (req, res) => {
 
 // ===== ME (protected) =====
 app.get("/api/me", requireUser, (req, res) => {
-  const profile = me[req.user.id];
+  const profile = meStore[req.user.id];
   if (!profile) return res.status(404).json({ message: "Profile not found" });
   res.json(profile);
+});
+
+// ===== ME LINKS (LinkedIn / GitHub) =====
+function sanitizeUrl(url) {
+  if (!url) return "";
+  const trimmed = String(url).trim();
+  if (!trimmed) return "";
+
+  // allow only http/https (avoid javascript: etc)
+  if (!/^https?:\/\//i.test(trimmed)) return "";
+  return trimmed;
+}
+
+app.get("/api/me/links", requireUser, (req, res) => {
+  const profile = meStore[req.user.id];
+  if (!profile) return res.status(404).json({ message: "Profile not found" });
+
+  res.json({
+    linkedinUrl: profile.linkedinUrl ?? "",
+    githubUrl: profile.githubUrl ?? "",
+  });
+});
+
+app.put("/api/me/links", requireUser, (req, res) => {
+  const profile = meStore[req.user.id];
+  if (!profile) return res.status(404).json({ message: "Profile not found" });
+
+  const linkedinUrl = sanitizeUrl(req.body?.linkedinUrl);
+  const githubUrl = sanitizeUrl(req.body?.githubUrl);
+
+  profile.linkedinUrl = linkedinUrl;
+  profile.githubUrl = githubUrl;
+
+  res.json({
+    linkedinUrl: profile.linkedinUrl,
+    githubUrl: profile.githubUrl,
+  });
 });
 
 // ===== PROJECTS (protected) =====
@@ -102,7 +159,6 @@ app.get("/api/courses/:courseId", requireUser, (req, res) => {
   const userId = req.user.id;
   const { courseId } = req.params;
 
-  // ✅ allow lookup by internal id OR courseCode
   const course = courses.find(
     (c) => c.id === courseId || c.courseCode === courseId
   );
@@ -128,14 +184,11 @@ app.get("/api/courses/:courseId", requireUser, (req, res) => {
   });
 });
 
-// ===== CAREERS (protected) ✅ NEW =====
-
-// List all career details
+// ===== CAREERS (protected) =====
 app.get("/api/careers", requireUser, (req, res) => {
   res.json(careers);
 });
 
-// Get a single career detail by id
 app.get("/api/careers/:careerId", requireUser, (req, res) => {
   const { careerId } = req.params;
 
@@ -156,7 +209,7 @@ let portfolioDocs = [
   },
 ];
 
-// ✅ list (WITH snippet preview)
+// list (WITH snippet preview)
 app.get("/api/portfolio/documents", requireUser, (req, res) => {
   res.json(
     portfolioDocs.map(({ content, ...rest }) => {
@@ -186,7 +239,6 @@ app.post("/api/portfolio/documents", requireUser, (req, res) => {
 
   portfolioDocs = [doc, ...portfolioDocs];
 
-  // keep create response light (like before)
   res.status(201).json({
     id: doc.id,
     title: doc.title,
@@ -209,10 +261,7 @@ app.get("/api/portfolio/documents/:docId/download", requireUser, (req, res) => {
   if (!doc) return res.status(404).json({ message: "Document not found" });
 
   res.setHeader("Content-Type", "text/plain; charset=utf-8");
-  res.setHeader(
-    "Content-Disposition",
-    `attachment; filename=portfolio-${docId}.txt`
-  );
+  res.setHeader("Content-Disposition", `attachment; filename=portfolio-${docId}.txt`);
   res.send(`${doc.title}\n\n${doc.content}`);
 });
 
