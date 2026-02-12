@@ -6,6 +6,7 @@ import ProjectsTable from "../features/projects/components/ProjectsTable";
 import { useProjects } from "../features/projects/hooks/useProjects";
 import { useProtectedRoute } from "../hooks/useProtectedRoute";
 import "../styles/page.css";
+import "./ProjectsPage.css";
 
 const CAREER_FOCUS = ["Data Analyst", "Data Engineer", "Software Engineer"] as const;
 
@@ -57,14 +58,15 @@ export default function ProjectsPage() {
 
       <div className="dividerLine" />
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-        <div style={{ color: "#6b7280" }}>
+      <div className="assessTopBar">
+        <div className="assessCount">
           {isLoading ? "Loading..." : data ? `${data.length} assessments` : ""}
         </div>
+        <div className="assessHint">Sorted by relevance for {careerFocus}</div>
       </div>
 
-      {isLoading && <div>Loading assessments...</div>}
-      {error && <div>Failed to load assessments</div>}
+      {isLoading && <div className="assessState">Loading assessments...</div>}
+      {error && <div className="assessState error">Failed to load assessments</div>}
       {data && <ProjectsTable projects={data} />}
     </div>
   );

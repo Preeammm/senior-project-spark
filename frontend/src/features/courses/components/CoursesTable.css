@@ -1,11 +1,11 @@
 /* src/features/courses/components/CoursesTable.css */
 
 .coursesTableWrap {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  border: 1px solid #dbe4ef;
+  border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
 }
 
 .coursesTable {
@@ -17,29 +17,31 @@
 }
 
 .coursesTable thead tr {
-  background: #f8fafc;
+  background: linear-gradient(180deg, #f7fbff 0%, #edf4fb 100%);
 }
 
 .coursesTable th {
   padding: 16px 18px;
   font-weight: 800;
-  color: #374151;
-  border-bottom: 1px solid #e5e7eb;
+  color: #0f172a;
+  border-bottom: 1px solid #dbe4ef;
   text-align: left;
   white-space: nowrap;
-  font-size: 14px;
+  font-size: 13px;
+  letter-spacing: 0.2px;
 }
 
 /* body */
 .coursesTable td {
   padding: 18px 18px;
   color: #111827;
-  border-bottom: 1px solid #eef2f7;
+  border-bottom: 1px solid #e6edf5;
   vertical-align: top;
+  font-size: 13px;
 }
 
 .coursesTable tbody tr:hover {
-  background: #fbfdff;
+  background: #f8fbff;
 }
 
 .coursesTable tbody tr:last-child td {
@@ -74,6 +76,11 @@
   font-weight: 650;
   line-height: 1.35;
   display: inline-block;
+  text-underline-offset: 2px;
+}
+
+.courseLink:hover {
+  color: #1e40af;
 }
 
 /* tags block */
@@ -91,7 +98,7 @@
 }
 
 .moreText {
-  color: #6b7280;
+  color: #64748b;
   font-size: 13px;
   text-decoration: underline;
   cursor: pointer;
@@ -121,6 +128,16 @@
 
 .emptyRow {
   padding: 24px !important;
-  color: #6b7280;
+  color: #64748b;
   text-align: center;
+}
+
+@media (max-width: 900px) {
+  .coursesTableWrap {
+    overflow-x: auto;
+  }
+
+  .coursesTable {
+    min-width: 900px;
+  }
 }

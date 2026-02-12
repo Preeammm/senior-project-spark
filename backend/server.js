@@ -150,6 +150,53 @@ function sanitizeGender(g) {
   return allowed.includes(v) ? v : "";
 }
 
+const CAREER_FOCUS = ["Data Analyst", "Data Engineer", "Software Engineer"];
+
+function normalizeCareerFocus(raw) {
+  const value = String(raw ?? "").trim().toLowerCase();
+  if (!value) return "";
+  const found = CAREER_FOCUS.find((label) => label.toLowerCase() === value);
+  return found ?? "";
+}
+
+const COURSE_RELEVANCE_BY_FOCUS = {
+  c1: { // ITCS495 - Special Topics in Databases and Intelligent Systems
+    "Data Analyst": 90,
+    "Data Engineer": 88,
+    "Software Engineer": 66,
+  },
+  c2: { // ITCS212 - Web Programming
+    "Data Analyst": 75,
+    "Data Engineer": 72,
+    "Software Engineer": 92,
+  },
+  c3: { // ITCS241 - Database Management Systems
+    "Data Analyst": 85,
+    "Data Engineer": 90,
+    "Software Engineer": 72,
+  },
+};
+
+const PROJECT_RELEVANCE_BY_FOCUS = {
+  p1: {
+    "Data Analyst": 90,
+    "Data Engineer": 87,
+    "Software Engineer": 70,
+  },
+  p2: {
+    "Data Analyst": 85,
+    "Data Engineer": 89,
+    "Software Engineer": 68,
+  },
+};
+
+function getFocusedRelevance(baseValue, profile, careerFocus) {
+  if (!careerFocus || !profile || !(careerFocus in profile)) {
+    return baseValue;
+  }
+  return profile[careerFocus];
+}
+
 // ===== ME LINKS (legacy endpoints, optional keep) =====
 app.get("/api/me/links", requireUser, (req, res) => {
   const profile = meStore[req.user.id];
@@ -240,31 +287,54 @@ app.put("/api/me/profile", requireUser, (req, res) => {
 // ===== PROJECTS (protected) =====
 app.get("/api/projects", requireUser, (req, res) => {
   const userId = req.user.id;
+  const careerFocus = normalizeCareerFocus(req.query?.careerFocus);
 
   const filtered = projects.filter((p) => {
     if (!p.visibleTo) return true;
     return p.visibleTo.includes(userId);
   });
 
-  res.json(filtered);
+  const scored = filtered.map((project) => ({
+    ...project,
+    relevancePercent: getFocusedRelevance(
+      project.relevancePercent,
+      PROJECT_RELEVANCE_BY_FOCUS[project.id],
+      careerFocus
+    ),
+  }));
+
+  scored.sort((a, b) => b.relevancePercent - a.relevancePercent);
+  res.json(scored);
 });
 
 // ===== COURSES (protected) =====
 app.get("/api/courses", requireUser, (req, res) => {
   const userId = req.user.id;
+  const careerFocus = normalizeCareerFocus(req.query?.careerFocus);
 
   const filtered = courses.filter((c) => {
     if (!c.visibleTo) return true;
     return c.visibleTo.includes(userId);
   });
 
-  res.json(filtered);
+  const scored = filtered.map((course) => ({
+    ...course,
+    relevancePercent: getFocusedRelevance(
+      course.relevancePercent,
+      COURSE_RELEVANCE_BY_FOCUS[course.id],
+      careerFocus
+    ),
+  }));
+
+  scored.sort((a, b) => b.relevancePercent - a.relevancePercent);
+  res.json(scored);
 });
 
 // ===== COURSE DETAIL (protected) =====
 app.get("/api/courses/:courseId", requireUser, (req, res) => {
   const userId = req.user.id;
   const { courseId } = req.params;
+  const careerFocus = normalizeCareerFocus(req.query?.careerFocus);
 
   const course = courses.find(
     (c) => c.id === courseId || c.courseCode === courseId
@@ -278,6 +348,11 @@ app.get("/api/courses/:courseId", requireUser, (req, res) => {
 
   res.json({
     ...course,
+    relevancePercent: getFocusedRelevance(
+      course.relevancePercent,
+      COURSE_RELEVANCE_BY_FOCUS[course.id],
+      careerFocus
+    ),
     description: "Mock course detail data (replace later).",
     learningOutcomes: ["Outcome 1 (mock)", "Outcome 2 (mock)", "Outcome 3 (mock)"],
     credits: "3 (3–0–6)",

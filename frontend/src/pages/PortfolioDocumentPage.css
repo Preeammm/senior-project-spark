@@ -2,46 +2,313 @@
   margin-top: 10px;
 }
 
-.docTitle {
-  font-size: 20px;
-  font-weight: 650;
-  color: #111827;
-  margin-bottom: 12px;
+.docBackLink {
+  font-size: 13px;
+  color: #2563eb;
+  text-decoration: underline;
+  font-weight: 600;
 }
 
 .docActions {
   display: flex;
-  gap: 10px;
-  margin-bottom: 18px;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
 .docBtn {
-  height: 36px;
-  padding: 0 14px;
+  height: 34px;
+  padding: 0 12px;
   border-radius: 10px;
-  border: 1px solid #d1d5db;
-  background: #fff;
+  border: 1px solid #2563eb;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+  box-shadow: 0 8px 16px rgba(37, 99, 235, 0.26);
+  transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease;
+}
+
+.docBtn:hover {
+  transform: translateY(-1px);
+  border-color: #1d4ed8;
+  box-shadow: 0 12px 20px rgba(37, 99, 235, 0.34);
+}
+
+.docBtn.primary {
+  border-color: #2563eb;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #fff;
+  box-shadow: 0 8px 16px rgba(37, 99, 235, 0.26);
+}
+
+.docBtn.primary:hover {
+  box-shadow: 0 12px 20px rgba(37, 99, 235, 0.34);
+}
+
+.docPaper {
+  background: linear-gradient(180deg, #ffffff 0%, #fcfdff 100%);
+  border: 1px solid #d1d5db;
+  border-radius: 14px;
+  box-shadow: 0 16px 32px rgba(17, 24, 39, 0.08);
+  padding: 15mm;
+  width: 210mm;
+  min-height: 297mm;
+  max-width: 100%;
+  margin: 0 auto 30px;
+  box-sizing: border-box;
+}
+
+.docPaperHeader {
+  position: relative;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0 0 12px 14px;
+  margin-bottom: 14px;
+}
+
+.docPaperHeader::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 14px;
+  width: 4px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #2563eb 0%, #ec4899 55%, #f59e0b 100%);
+}
+
+.docPaperTitle {
+  font-size: 28px;
+  font-weight: 800;
   color: #111827;
+  line-height: 1.2;
+}
+
+.docMetaRow {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 13px;
+  color: #374151;
+}
+
+.docSummaryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.docSummaryCard {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #f8fbff 0%, #f9fafb 100%);
+  padding: 10px;
 }
 
 .docLabel {
-  font-size: 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.docValue {
+  margin-top: 4px;
+  font-size: 15px;
   font-weight: 700;
   color: #111827;
+}
+
+.docSection {
+  margin-top: 14px;
+  border: 1px solid #e8edf4;
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: #ffffff;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.docSection h2 {
+  margin: 0 0 10px;
+  font-size: 17px;
+  color: #0f172a;
+  line-height: 1.25;
+}
+
+.docSection p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #1f2937;
+}
+
+.docInlineList {
+  margin-top: 8px;
+  display: grid;
+  gap: 4px;
+  font-size: 14px;
+  color: #1f2937;
+}
+
+.docInlineList a {
+  color: #1d4ed8;
+}
+
+.docSection ul {
+  margin: 0 0 0 2px;
+  padding-left: 20px;
+}
+
+.docSection li {
+  margin-bottom: 7px;
+  font-size: 14px;
+  color: #1f2937;
+}
+
+.docContactSlip {
+  margin-top: 24px;
+  border: 2px dashed #94a3b8;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 10px 12px;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.docContactSlipTitle {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
   margin-bottom: 8px;
 }
 
-.docBox {
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  background: #fff;
-  padding: 14px;
-  font-size: 14px;
-  color: #111827;
-  min-height: 180px;
-  white-space: pre-wrap;
-  line-height: 1.55;
+.docSlipRow {
+  font-size: 13px;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+@media (max-width: 900px) {
+  .docPaper {
+    width: 100%;
+    min-height: auto;
+    padding: 18px;
+  }
+
+  .docSummaryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .docPaperTitle {
+    font-size: 22px;
+  }
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  html,
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .hideOnPrint {
+    display: none !important;
+  }
+
+  .pageContainer {
+    padding: 0;
+    margin: 0;
+    max-width: none;
+  }
+
+  .docPaper {
+    background: #fff;
+    box-shadow: none;
+    border: 1px solid #d1d5db;
+    border-radius: 0;
+    width: 100%;
+    min-height: auto;
+    margin: 0;
+    padding: 10mm;
+  }
+
+  .docPaperHeader {
+    border-bottom: 1px solid #cbd5e1;
+    margin-bottom: 10px;
+    padding-left: 0;
+  }
+
+  .docPaperHeader::before {
+    display: none;
+  }
+
+  .docPaperTitle {
+    font-size: 24px;
+  }
+
+  .docMetaRow {
+    gap: 10px;
+    font-size: 11px;
+  }
+
+  .docSummaryCard {
+    background: #fff;
+    border-color: #cbd5e1;
+  }
+
+  .docLabel {
+    font-size: 10.5px;
+  }
+
+  .docValue {
+    font-size: 13px;
+  }
+
+  .docSection {
+    border-color: #dbe4ef;
+    border-radius: 8px;
+    margin-top: 9px;
+    padding: 8px 10px;
+  }
+
+  .docSection h2 {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+
+  .docSection p,
+  .docSection li,
+  .docInlineList,
+  .docSlipRow {
+    font-size: 11.5px;
+    line-height: 1.45;
+  }
+
+  .docContactSlip {
+    margin-top: 12px;
+    background: #fff;
+    border-color: #94a3b8;
+    border-radius: 8px;
+    padding: 8px 10px;
+  }
+
+  .docContactSlipTitle {
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+
+  .docInlineList a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 10px;
+    color: #64748b;
+  }
 }

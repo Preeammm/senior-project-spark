@@ -1,5 +1,7 @@
 import { http } from "../../../services/http";
 
+export const PORTFOLIO_DOCS_QUERY_KEY = ["portfolioDocs"] as const;
+
 export type PortfolioDocLite = {
   id: string;
   title: string;

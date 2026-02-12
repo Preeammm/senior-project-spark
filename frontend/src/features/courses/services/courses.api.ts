@@ -6,7 +6,12 @@ export async function listCourses(careerFocus: string): Promise<Course[]> {
   return data;
 }
 
-export async function getCourseDetail(courseId: string): Promise<CourseDetail> {
-  const { data } = await http.get(`/api/courses/${courseId}`);
+export async function getCourseDetail(
+  courseId: string,
+  careerFocus?: string
+): Promise<CourseDetail> {
+  const { data } = await http.get(`/api/courses/${courseId}`, {
+    params: { careerFocus },
+  });
   return data;
 }

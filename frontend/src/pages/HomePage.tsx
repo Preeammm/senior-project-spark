@@ -1,6 +1,10 @@
 import { Link } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { useMe } from "../features/student/hooks/useMe";
+import { useCourses } from "../features/courses/hooks/useCourses";
+import { useProjects } from "../features/projects/hooks/useProjects";
+import type { Course } from "../features/courses/types";
+import type { Project } from "../features/projects/types";
 import { useProtectedRoute } from "../hooks/useProtectedRoute";
 import "./HomePage.css";
 
@@ -80,6 +84,95 @@ const MOCK_REQUIREMENT: Record<CareerFocus, Record<RadarAxis, number>> = {
   },
 };
 
+const EVIDENCE_COPY: Record<CareerFocus, Record<RadarAxis, string>> = {
+  "Data Analyst": {
+    "Data Analysis":
+      "For Data Analyst focus, high-relevance database and analytics work is weighted more heavily.",
+    "Data Visualization":
+      "Visualization evidence prioritizes work that communicates trends and insights clearly.",
+    "Problem Solving":
+      "Problem-solving evidence emphasizes analytical breakdown and decision support outcomes.",
+    Programming:
+      "Programming evidence focuses on scripting, data querying, and practical automation.",
+    "Communication Skills":
+      "Communication evidence prioritizes report clarity and stakeholder-ready outputs.",
+    "Team Collaboration":
+      "Collaboration evidence emphasizes cross-functional projects and shared deliverables.",
+  },
+  "Data Engineer": {
+    "Data Analysis":
+      "For Data Engineer focus, analysis matters most when it supports data pipeline quality.",
+    "Data Visualization":
+      "Visualization evidence is weighted lower than data-platform and integration work.",
+    "Problem Solving":
+      "Problem-solving evidence emphasizes reliability, scale, and troubleshooting in data systems.",
+    Programming:
+      "Programming evidence prioritizes backend, ETL, and infrastructure-heavy implementation.",
+    "Communication Skills":
+      "Communication evidence values clear handoffs and technical documentation quality.",
+    "Team Collaboration":
+      "Collaboration evidence highlights work across analytics, engineering, and platform teams.",
+  },
+  "Software Engineer": {
+    "Data Analysis":
+      "For Software Engineer focus, data analysis is supportive but not the primary weighting.",
+    "Data Visualization":
+      "Visualization relevance is lower unless tied directly to product or feature implementation.",
+    "Problem Solving":
+      "Problem-solving evidence prioritizes system design, debugging, and implementation tradeoffs.",
+    Programming:
+      "Programming evidence strongly weights software architecture and coding depth.",
+    "Communication Skills":
+      "Communication evidence favors technical clarity in requirements, reviews, and handoffs.",
+    "Team Collaboration":
+      "Collaboration evidence emphasizes team-based delivery, reviews, and integration work.",
+  },
+};
+
+type EvidenceItem = {
+  id: string;
+  label: string;
+  source: "Course" | "Assessment";
+  relevancePercent: number;
+};
+
+function toCourseEvidence(c: Course): EvidenceItem {
+  return {
+    id: `course-${c.id}`,
+    label: `${c.courseCode} - ${c.courseName}`,
+    source: "Course",
+    relevancePercent: c.relevancePercent,
+  };
+}
+
+function toProjectEvidence(p: Project): EvidenceItem {
+  return {
+    id: `project-${p.id}`,
+    label: p.projectName,
+    source: "Assessment",
+    relevancePercent: p.relevancePercent,
+  };
+}
+
+function pickEvidence(axis: RadarAxis, courses: Course[], projects: Project[]) {
+  const courseItems = courses.map(toCourseEvidence);
+  const projectItems = projects.map(toProjectEvidence);
+
+  const projectWeightedAxes: RadarAxis[] = [
+    "Problem Solving",
+    "Programming",
+    "Team Collaboration",
+  ];
+
+  const merged = projectWeightedAxes.includes(axis)
+    ? [...projectItems, ...courseItems]
+    : [...courseItems, ...projectItems];
+
+  return merged
+    .sort((a, b) => b.relevancePercent - a.relevancePercent)
+    .slice(0, 2);
+}
+
 function clamp01(n: number) {
   return Math.max(0, Math.min(1, n));
 }
@@ -121,6 +214,17 @@ export default function HomePage() {
 
   const studentScores = useMemo(() => MOCK_STUDENT[careerFocus], [careerFocus]);
   const reqScores = useMemo(() => MOCK_REQUIREMENT[careerFocus], [careerFocus]);
+  const { data: courses = [], isLoading: coursesLoading } = useCourses(careerFocus);
+  const { data: projects = [], isLoading: projectsLoading } = useProjects(careerFocus);
+
+  const evidenceItems1 = useMemo(
+    () => pickEvidence(evidence1, courses, projects),
+    [evidence1, courses, projects]
+  );
+  const evidenceItems2 = useMemo(
+    () => pickEvidence(evidence2, courses, projects),
+    [evidence2, courses, projects]
+  );
 
   // Radar SVG settings
   const W = 360;
@@ -258,7 +362,7 @@ export default function HomePage() {
             <Link className="quickCard" to="/projects">
               <div className="quickTop quickTop1" />
               <div className="quickBody">
-                <div className="quickTitle">My Projects</div>
+                <div className="quickTitle">My Assessments</div>
                 <div className="quickDesc">View your projects & materials</div>
               </div>
             </Link>
@@ -393,15 +497,41 @@ export default function HomePage() {
                 <div className="mpEvidenceBox">
                   <div className="mpEvidenceTitle">{evidence1}</div>
                   <div className="mpEvidenceText">
-                    (Mock) Evidence will be shown here later from Projects/Courses/Portfolio mapping.
+                    {EVIDENCE_COPY[careerFocus][evidence1]}
                   </div>
+                  {coursesLoading || projectsLoading ? (
+                    <div className="mpEvidenceText">Loading evidence...</div>
+                  ) : evidenceItems1.length > 0 ? (
+                    <div className="mpEvidenceList">
+                      {evidenceItems1.map((item) => (
+                        <div key={item.id} className="mpEvidenceLine">
+                          {item.source}: {item.label} ({item.relevancePercent}% match)
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="mpEvidenceText">No evidence available for this focus.</div>
+                  )}
 
                   <div className="mpEvidenceTitle" style={{ marginTop: 12 }}>
                     {evidence2}
                   </div>
                   <div className="mpEvidenceText">
-                    (Mock) Evidence will be shown here later from Projects/Courses/Portfolio mapping.
+                    {EVIDENCE_COPY[careerFocus][evidence2]}
                   </div>
+                  {coursesLoading || projectsLoading ? (
+                    <div className="mpEvidenceText">Loading evidence...</div>
+                  ) : evidenceItems2.length > 0 ? (
+                    <div className="mpEvidenceList">
+                      {evidenceItems2.map((item) => (
+                        <div key={item.id} className="mpEvidenceLine">
+                          {item.source}: {item.label} ({item.relevancePercent}% match)
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="mpEvidenceText">No evidence available for this focus.</div>
+                  )}
                 </div>
               </div>
             </div>

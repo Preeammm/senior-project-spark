@@ -1,18 +1,31 @@
+/* Visual system */
+:root {
+  --pcg-surface: #ffffff;
+  --pcg-surface-soft: #f8fafc;
+  --pcg-border: #dbe2ea;
+  --pcg-text: #0f172a;
+  --pcg-muted: #64748b;
+  --pcg-accent: #2563eb;
+  --pcg-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+}
+
 /* link on header right (View all career details) */
 .pcgCareerLink {
-  color: #2563eb;
+  color: var(--pcg-accent);
   text-decoration: underline;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
+  text-underline-offset: 3px;
 }
 
 /* Section titles */
 .pcgSectionTitle {
   margin-top: 26px;
-  font-size: 18px;
-  font-weight: 500;
-  color: #374151;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--pcg-text);
+  letter-spacing: 0.2px;
 }
 
 .pcgItemsRow {
@@ -23,19 +36,22 @@
 
 .pcgItemCard {
   width: 290px;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  background: #fff;
+  border: 1px solid var(--pcg-border);
+  border-radius: 14px;
+  background: var(--pcg-surface);
   cursor: pointer;
   overflow: hidden;
   padding: 0;
   text-align: left;
-  box-shadow: 0 10px 22px rgba(17, 24, 39, 0.06);
+  box-shadow: var(--pcg-shadow);
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
 }
 
 .pcgItemCardTop {
   height: 120px;
-  background: #d6d2bf;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.45), transparent 45%),
+    linear-gradient(140deg, #d2c6dc 0%, #d3bddd 55%, #d6b8d8 100%);
 }
 
 .pcgItemCardBottom {
@@ -43,19 +59,27 @@
   display: flex;
   align-items: center;
   padding: 0 14px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid #e5edf5;
+  background: linear-gradient(180deg, #fff 0%, #f9fbff 100%);
 }
 
 .pcgItemLink {
   font-size: 14px;
-  font-weight: 500;
-  color: #111827;
+  font-weight: 700;
+  color: var(--pcg-text);
   text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.pcgItemCard:hover {
+  transform: translateY(-3px);
+  border-color: #bfccdb;
+  box-shadow: 0 18px 34px rgba(15, 23, 42, 0.12);
 }
 
 .pcgDivider {
   height: 1px;
-  background: #e5e7eb;
+  background: linear-gradient(90deg, transparent 0%, #d5deea 10%, #d5deea 90%, transparent 100%);
   margin: 28px 0;
 }
 
@@ -83,61 +107,77 @@
   padding: 0;
   cursor: pointer;
   text-align: left;
+  transition: transform 0.16s ease;
 }
 
 .pcgPaper {
   width: 150px;
   height: 220px;
-  border: 1px solid #111827;
-  background: #fff;
+  border: 1px solid #93c5fd;
+  background: linear-gradient(165deg, #ffffff 0%, #eff6ff 100%);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.12);
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
 }
 
 .pcgPlus {
   font-size: 54px;
-  font-weight: 300;
+  font-weight: 400;
   line-height: 1;
-  color: #111827;
+  color: #1d4ed8;
 }
 
 .pcgCreateCaption {
   margin-top: 10px;
   font-size: 12px;
-  color: #374151;
+  color: #1e3a8a;
+  font-weight: 700;
+}
+
+.pcgCreateTile:hover {
+  transform: translateY(-2px);
+}
+
+.pcgCreateTile:hover .pcgPaper {
+  transform: translateY(-2px);
+  border-color: #60a5fa;
+  box-shadow: 0 16px 30px rgba(37, 99, 235, 0.16);
 }
 
 /* Thumbnail card (rectangle) */
 .pcgThumbCard {
-  position: relative;   /* ⭐ สำคัญ */
+  position: relative;
   width: 150px;
   height: 220px;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  background: #fff;
+  border: 1px solid var(--pcg-border);
+  border-radius: 12px;
+  background: var(--pcg-surface);
   cursor: pointer;
   text-align: left;
   overflow: hidden;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06);
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
 }
 
-
 .pcgThumbCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 28px rgba(17, 24, 39, 0.10);
+  transform: translateY(-3px);
+  border-color: #c5d1df;
+  box-shadow: 0 20px 34px rgba(15, 23, 42, 0.12);
 }
 
 .pcgThumbPreview {
   height: 160px; /* 160 + footer 60 = 220 */
-  background: #fff;
-  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border-bottom: 1px solid #e5edf5;
   padding: 10px;
 }
 
 .pcgPreviewLine {
   height: 6px;
-  background: #e5e7eb;
+  background: #d9e3ee;
   border-radius: 3px;
   margin-bottom: 8px;
 }
@@ -172,7 +212,7 @@
 .pcgThumbMeta {
   margin-top: 4px;
   font-size: 10px;
-  color: #6b7280;
+  color: #64748b;
 }
 
 /* 3 dots always visible (bottom-right) */
@@ -187,27 +227,25 @@
   border-radius: 999px;
 
   background: #ffffff;
-  border: 1px solid #e5e7eb;
-  color: #6b7280;
+  border: 1px solid #dbe4ef;
+  color: #64748b;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
   cursor: pointer;
-  font-size: 18px;
+  font-size: 17px;
   line-height: 1;
 
   z-index: 20;
+  transition: background 0.14s ease, color 0.14s ease, border-color 0.14s ease;
 }
 
 .pcgMenuBtn:hover {
-  background: #f3f4f6;
-}
-
-
-.pcgMenuBtn:hover {
-  background: #f3f4f6;
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
 }
 
 
@@ -219,9 +257,9 @@
 
   width: 140px;
   background: #fff;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #dbe4ef;
   border-radius: 10px;
-  box-shadow: 0 12px 24px rgba(17, 24, 39, 0.14);
+  box-shadow: 0 14px 26px rgba(17, 24, 39, 0.16);
   overflow: hidden;
   z-index: 30;
 }
@@ -238,7 +276,7 @@
 }
 
 .pcgMenuItem:hover {
-  background: #f9fafb;
+  background: #f8fafc;
 }
 
 .pcgMenuItem.danger {
@@ -248,7 +286,7 @@
 /* Hint */
 .pcgHint {
   font-size: 13px;
-  color: #6b7280;
+  color: #64748b;
   padding-top: 10px;
 }
 
@@ -268,9 +306,9 @@
 .pcgModal {
   width: 420px;
   max-width: calc(100vw - 32px);
-  background: #fff;
+  background: linear-gradient(180deg, #fff 0%, #fcfdff 100%);
   border-radius: 14px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #dbe4ef;
   box-shadow: 0 18px 40px rgba(17, 24, 39, 0.24);
   padding: 18px;
 }
@@ -284,7 +322,7 @@
 .pcgModalSub {
   margin-top: 8px;
   font-size: 13px;
-  color: #374151;
+  color: #475569;
   line-height: 1.45;
 }
 
@@ -294,7 +332,7 @@
   height: 40px;
   padding: 0 12px;
   border-radius: 10px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #cbd5e1;
   font-size: 14px;
   outline: none;
 }
@@ -315,16 +353,18 @@
   height: 38px;
   padding: 0 14px;
   border-radius: 10px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #cbd5e1;
   background: #fff;
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
-  color: #111827;
+  color: var(--pcg-text);
+  transition: background 0.14s ease, border-color 0.14s ease, transform 0.14s ease;
 }
 
 .pcgBtn:hover {
-  background: #f9fafb;
+  background: #f8fafc;
+  transform: translateY(-1px);
 }
 
 .pcgBtn.primary {
@@ -350,4 +390,30 @@
 .pcgBtn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+@media (max-width: 760px) {
+  .pcgItemCard {
+    width: 100%;
+    max-width: 360px;
+  }
+
+  .pcgDocRow {
+    gap: 16px;
+  }
+
+  .pcgPaper,
+  .pcgThumbCard {
+    width: 138px;
+    height: 204px;
+  }
+
+  .pcgThumbPreview {
+    height: 148px;
+  }
+
+  .pcgThumbFooter {
+    height: 56px;
+    padding: 8px 10px;
+  }
 }

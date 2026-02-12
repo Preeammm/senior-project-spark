@@ -1,0 +1,48 @@
+.coursesTopBar {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border: 1px solid #dce5f2;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #f8fbff 0%, #f2f8ff 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+}
+
+.coursesCount {
+  color: #0f172a;
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.coursesHint {
+  color: #475569;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.coursesState {
+  margin: 0 0 14px;
+  padding: 11px 12px;
+  border: 1px solid #dbe4ef;
+  border-radius: 10px;
+  background: #f8fbff;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.coursesState.error {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+@media (max-width: 760px) {
+  .coursesTopBar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

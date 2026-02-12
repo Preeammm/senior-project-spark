@@ -6,7 +6,11 @@ import PageHeader from "../components/PageHeader";
 import { useProtectedRoute } from "../hooks/useProtectedRoute";
 
 import { http } from "../services/http";
-import { createDocument } from "../features/portfolio/services/portfolio.api";
+import {
+  createDocument,
+  PORTFOLIO_DOCS_QUERY_KEY,
+  type PortfolioDocLite,
+} from "../features/portfolio/services/portfolio.api";
 
 import "../styles/page.css";
 import "./NewDocumentPage.css";
@@ -146,13 +150,21 @@ async function onGenerate() {
 
   const content = contentLines.join("\n");
 
-  await createDocument({
-    title: title.trim(),
-    content,
-  });
+  try {
+    const created = await createDocument({
+      title: title.trim(),
+      content,
+    });
 
-  await qc.invalidateQueries({ queryKey: ["portfolioDocs"] });
-  navigate(PORTFOLIO_CONTENT_ROUTE);
+    qc.setQueryData<PortfolioDocLite[]>(
+      PORTFOLIO_DOCS_QUERY_KEY,
+      (prev) => [created, ...(prev ?? [])]
+    );
+    await qc.invalidateQueries({ queryKey: PORTFOLIO_DOCS_QUERY_KEY });
+    navigate(PORTFOLIO_CONTENT_ROUTE);
+  } catch {
+    alert("Generate failed. Please try again.");
+  }
 }
 
   return (

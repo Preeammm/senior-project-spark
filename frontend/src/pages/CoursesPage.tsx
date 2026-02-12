@@ -6,6 +6,7 @@ import CoursesTable from "../features/courses/components/CoursesTable";
 import { useCourses } from "../features/courses/hooks/useCourses";
 import "../styles/page.css";
 import { useProtectedRoute } from "../hooks/useProtectedRoute";
+import "./CoursesPage.css";
 
 const CAREER_FOCUS = ["Data Analyst", "Data Engineer", "Software Engineer"] as const;
 
@@ -58,8 +59,15 @@ export default function CoursesPage() {
 
       <div className="dividerLine" />
 
-      {isLoading && <div>Loading...</div>}
-      {error && <div>Failed to load courses</div>}
+      <div className="coursesTopBar">
+        <div className="coursesCount">
+          {isLoading ? "Loading..." : data ? `${data.length} courses` : ""}
+        </div>
+        <div className="coursesHint">Sorted by relevance for {careerFocus}</div>
+      </div>
+
+      {isLoading && <div className="coursesState">Loading courses...</div>}
+      {error && <div className="coursesState error">Failed to load courses</div>}
 
       {data && <CoursesTable courses={data} />}
     </div>

@@ -190,43 +190,74 @@
 .quickCard {
   display: block;
   text-decoration: none;
-  border: 1px solid var(--border);
+  border: 1px solid #d9e3ee;
   border-radius: 14px;
   overflow: hidden;
-  background: white;
-  box-shadow: 0 10px 20px rgba(17, 24, 39, 0.05);
-  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.07);
+  transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease;
   min-height: 134px;
 }
 
-.quickCard:hover{
-  transform: translateY(-2px);
-  border-color: #d1d5db;
-  box-shadow: 0 14px 28px rgba(17, 24, 39, 0.08);
+.quickCard:nth-child(1) {
+  border-color: #c2cccb;
+  background: linear-gradient(180deg, #ffffff 0%, #fff7fb 100%);
 }
+
+.quickCard:nth-child(2) {
+  border-color:  #c2cccb;
+  background: linear-gradient(180deg, #ffffff 0%, #f4fffb 100%);
+}
+
+.quickCard:nth-child(3) {
+  border-color:  #c2cccb;
+  background: linear-gradient(180deg, #ffffff 0%, #fffdf5 100%);
+}
+
+.quickCard:hover{
+  transform: translateY(-3px);
+  border-color: #bfccdb;
+  box-shadow: 0 20px 34px rgba(15, 23, 42, 0.12);
+}
+
+.quickCard:nth-child(1):hover { border-color: #9ab8c1; }
+.quickCard:nth-child(2):hover { border-color: #9ab8c1; }
+.quickCard:nth-child(3):hover { border-color: #9ab8c1; }
 
 .quickTop{
   height: 100px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #dbe4ef;
 }
 
-.quickTop1{ background: #d5d1b8; }
-.quickTop2{ background: #b9a99f; }
-.quickTop3{ background: #a7b3a2; }
+.quickTop1{
+  background:
+    radial-gradient(circle at 22% 20%, rgba(255, 255, 255, 0.55), transparent 42%),
+    linear-gradient(140deg, #d2c6dc 0%, #d3bddd 55%, #d6b8d8 100%);
+}
+.quickTop2{
+  background:
+    radial-gradient(circle at 20% 22%, rgba(255, 255, 255, 0.48), transparent 44%),
+    linear-gradient(140deg, #cddcc6 0%, #beddbd 55%, #c1d8b8 100%);
+}
+.quickTop3{
+  background:
+    radial-gradient(circle at 20% 22%, rgba(255, 255, 255, 0.48), transparent 44%),
+    linear-gradient(140deg, #cfd8cc 0%, #bdc9dd 55%, #b8c6d8 100%);
+}
 
 .quickBody{
   padding: 12px 14px 14px;
 }
 
 .quickTitle{
-  color: #111827;
+  color: #0f172a;
   font-weight: 800;
   font-size: 14px;
   margin-bottom: 4px;
 }
 
 .quickDesc{
-  color: #6b7280;
+  color: #475569;
   font-size: 12px;
   line-height: 1.35;
 }
@@ -429,6 +460,17 @@
   font-size: 13px;
   color: #334155;
   line-height: 1.6;
+}
+
+.mpEvidenceList {
+  margin-top: 8px;
+}
+
+.mpEvidenceLine {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #1e3a8a;
+  font-weight: 600;
 }
 
 /* Responsive */

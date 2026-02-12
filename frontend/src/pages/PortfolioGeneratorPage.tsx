@@ -11,6 +11,7 @@ import "./PortfolioGeneratorPage.css";
 import {
   deleteDocument,
   getDocuments,
+  PORTFOLIO_DOCS_QUERY_KEY,
   renameDocument,
   type PortfolioDocLite,
 } from "../features/portfolio/services/portfolio.api";
@@ -45,7 +46,7 @@ export default function PortfolioGeneratorPage() {
   const menuRootRef = useRef<HTMLDivElement | null>(null);
 
   const { data: docs, isLoading, error } = useQuery({
-    queryKey: ["portfolioDocs"],
+    queryKey: PORTFOLIO_DOCS_QUERY_KEY,
     queryFn: getDocuments,
   });
 
@@ -64,7 +65,7 @@ export default function PortfolioGeneratorPage() {
   }, [openMenuId]);
 
   function onOpenDoc(id: string) {
-    alert("TODO: Open document page (later)");
+    navigate(`/portfolio/${id}`);
   }
 
   function onAskRename(doc: PortfolioDocLite) {
@@ -82,7 +83,7 @@ export default function PortfolioGeneratorPage() {
     if (!deleteTarget) return;
     try {
       await deleteDocument(deleteTarget.id);
-      await qc.invalidateQueries({ queryKey: ["portfolioDocs"] });
+      await qc.invalidateQueries({ queryKey: PORTFOLIO_DOCS_QUERY_KEY });
       setDeleteTarget(null);
     } catch {
       alert("Delete failed. Please try again.");
@@ -96,7 +97,7 @@ export default function PortfolioGeneratorPage() {
 
     try {
       await renameDocument(renameTarget.id, newTitle);
-      await qc.invalidateQueries({ queryKey: ["portfolioDocs"] });
+      await qc.invalidateQueries({ queryKey: PORTFOLIO_DOCS_QUERY_KEY });
       setRenameTarget(null);
       setRenameValue("");
     } catch {
@@ -134,7 +135,7 @@ export default function PortfolioGeneratorPage() {
         >
           <div className="pcgItemCardTop" />
           <div className="pcgItemCardBottom">
-            <span className="pcgItemLink">My Projects</span>
+            <span className="pcgItemLink">My Assessments</span>
           </div>
         </div>
       </div>

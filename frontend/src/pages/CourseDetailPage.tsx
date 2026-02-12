@@ -129,9 +129,9 @@ export default function CourseDetailPage() {
   );
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["course-detail", courseId],
+    queryKey: ["course-detail", courseId, careerFocus],
     enabled: !!courseId,
-    queryFn: async () => normalize(await getCourseDetail(String(courseId))),
+    queryFn: async () => normalize(await getCourseDetail(String(courseId), careerFocus)),
   });
 
   const breakdownRows = useMemo(() => data?.breakdown ?? [], [data]);
