@@ -1,15 +1,11 @@
 // src/features/courses/components/CoursesTable.tsx
 import { Link } from "react-router-dom";
 import type { Course } from "../types";
-import TagPill from "./TagPill";
 import ProgressBadge from "../../../components/ProgressBadge";
+import ExpandableCompetencyTags from "./ExpandableCompetencyTags";
 import "./CoursesTable.css";
 
 type Props = { courses: Course[] };
-
-function toneByIndex(i: number) {
-  return (["pink", "green", "blue", "sand"] as const)[i % 4];
-}
 
 export default function CoursesTable({ courses }: Props) {
   return (
@@ -26,12 +22,6 @@ export default function CoursesTable({ courses }: Props) {
 
         <tbody>
           {courses.map((c) => {
-            const show = c.competencyTags.slice(0, 3);
-            const more = c.competencyTags.length - show.length;
-
-            const topRow = show.slice(0, 2);
-            const bottomRow = show.slice(2, 3);
-
             return (
               <tr key={c.id}>
                 <td>
@@ -42,28 +32,11 @@ export default function CoursesTable({ courses }: Props) {
                 </td>
 
                 <td>
-                  <div className="tagsBlock">
-                    <div className="tagsRow">
-                      {topRow.map((t, i) => (
-                        <TagPill
-                          key={`${c.id}-${t}-${i}`}
-                          label={t}
-                          tone={toneByIndex(i)}
-                        />
-                      ))}
-                    </div>
-
-                    <div className="tagsRow">
-                      {bottomRow.map((t, i) => (
-                        <TagPill
-                          key={`${c.id}-${t}-${i + 2}`}
-                          label={t}
-                          tone={toneByIndex(i + 2)}
-                        />
-                      ))}
-                      {more > 0 && <span className="moreText">+ {more} more</span>}
-                    </div>
-                  </div>
+                  <ExpandableCompetencyTags
+                    tags={c.competencyTags}
+                    maxVisible={2}
+                    contextText={`${c.courseCode} ${c.courseName}`}
+                  />
                 </td>
 
                 <td className="relevanceCol">

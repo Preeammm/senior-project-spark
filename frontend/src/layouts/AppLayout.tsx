@@ -5,7 +5,7 @@ export default function AppLayout() {
   return (
     <div>
       <Navbar />
-      <main style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 16px" }}>
+      <main style={{ width: "100%" }}>
         <Outlet />
       </main>
     </div>

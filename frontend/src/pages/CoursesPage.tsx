@@ -1,14 +1,12 @@
-import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 import PageHeader from "../components/PageHeader";
 import CoursesTable from "../features/courses/components/CoursesTable";
 import { useCourses } from "../features/courses/hooks/useCourses";
+import { useCareerFocus } from "../features/careerFocus/useCareerFocus";
 import "../styles/page.css";
 import { useProtectedRoute } from "../hooks/useProtectedRoute";
 import "./CoursesPage.css";
-
-const CAREER_FOCUS = ["Data Analyst", "Data Engineer", "Software Engineer"] as const;
 
 // ✅ helper: "Data Engineer" -> "data-engineer"
 function toCareerId(label: string) {
@@ -20,8 +18,7 @@ export default function CoursesPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [careerFocus, setCareerFocus] =
-    useState<(typeof CAREER_FOCUS)[number]>("Data Analyst");
+  const { careerFocus, setCareerFocus, careerFocusOptions } = useCareerFocus();
 
   const { data, isLoading, error } = useCourses(careerFocus);
 
@@ -30,7 +27,7 @@ export default function CoursesPage() {
       <PageHeader
         title="My Courses"
         careerFocus={careerFocus}
-        careerFocusOptions={CAREER_FOCUS}
+        careerFocusOptions={careerFocusOptions}
         onCareerFocusChange={setCareerFocus}
         careerExtra={
           <a

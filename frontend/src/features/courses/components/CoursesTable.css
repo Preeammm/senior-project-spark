@@ -1,7 +1,7 @@
 /* src/features/courses/components/CoursesTable.css */
 
 .coursesTableWrap {
-  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  background: #ffffff;
   border: 1px solid #dbe4ef;
   border-radius: 14px;
   overflow: hidden;
@@ -17,14 +17,14 @@
 }
 
 .coursesTable thead tr {
-  background: linear-gradient(180deg, #f7fbff 0%, #edf4fb 100%);
+  background: #fafafa;
 }
 
 .coursesTable th {
   padding: 16px 18px;
   font-weight: 800;
   color: #0f172a;
-  border-bottom: 1px solid #dbe4ef;
+  border-bottom: 1px solid #c4cedb;
   text-align: left;
   white-space: nowrap;
   font-size: 13px;

@@ -1,14 +1,12 @@
-import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 import PageHeader from "../components/PageHeader";
 import ProjectsTable from "../features/projects/components/ProjectsTable";
 import { useProjects } from "../features/projects/hooks/useProjects";
+import { useCareerFocus } from "../features/careerFocus/useCareerFocus";
 import { useProtectedRoute } from "../hooks/useProtectedRoute";
 import "../styles/page.css";
 import "./ProjectsPage.css";
-
-const CAREER_FOCUS = ["Data Analyst", "Data Engineer", "Software Engineer"] as const;
 
 function toCareerId(label: string) {
   return label.trim().toLowerCase().replace(/\./g, "").replace(/\s+/g, "-");
@@ -19,8 +17,7 @@ export default function ProjectsPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [careerFocus, setCareerFocus] =
-    useState<(typeof CAREER_FOCUS)[number]>("Data Analyst");
+  const { careerFocus, setCareerFocus, careerFocusOptions } = useCareerFocus();
 
   const { data, isLoading, error } = useProjects(careerFocus);
 
@@ -29,7 +26,7 @@ export default function ProjectsPage() {
       <PageHeader
         title="My Assessments"
         careerFocus={careerFocus}
-        careerFocusOptions={CAREER_FOCUS}
+        careerFocusOptions={careerFocusOptions}
         onCareerFocusChange={setCareerFocus}
         careerExtra={
           <a

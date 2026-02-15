@@ -24,3 +24,17 @@
 .dataCardInner {
   padding: 18px;
 }
+
+@media (max-width: 760px) {
+  .pageContainer {
+    padding: 16px 12px 44px;
+  }
+
+  .dividerLine {
+    margin: 12px 0 18px;
+  }
+
+  .dataCardInner {
+    padding: 14px;
+  }
+}

@@ -31,8 +31,13 @@ http.interceptors.request.use((config) => {
 http.interceptors.response.use(
   (res) => res,
   (err) => {
-    // ถ้า backend ส่ง 401 ให้เด้งไปหน้า login
-    if (err?.response?.status === 401) {
+    const status = err?.response?.status;
+    const requestUrl = String(err?.config?.url ?? "");
+    const isLoginRequest = requestUrl.includes("/api/login");
+
+    // Redirect to login on unauthorized requests,
+    // but keep failed login attempts on the same page.
+    if (status === 401 && !isLoginRequest) {
       localStorage.removeItem("user"); // optional but recommended
       window.location.href = "/login";
     }

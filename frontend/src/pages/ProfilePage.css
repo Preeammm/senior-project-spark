@@ -1,296 +1,275 @@
-:root{
-  --border: #e5e7eb;
-  --text: #111827;
-  --muted: #6b7280;
-  --card: #ffffff;
-  --bg: #ffffff;
-
-  --primary: #2563eb;       /* blue like other pages */
-  --primaryHover: #1d4ed8;
-  --ring: rgba(37, 99, 235, 0.18);
-
-  --shadow-sm: 0 2px 10px rgba(17, 24, 39, 0.06);
-  --shadow-md: 0 10px 30px rgba(17, 24, 39, 0.08);
-
-  --radius: 16px;
+:root {
+  --pf-text: #0f172a;
+  --pf-muted: #475569;
+  --pf-card: #ffffff;
+  --pf-line: #dbe7fb;
+  --pf-line-soft: #eaf0fb;
+  --pf-primary: #1d4ed8;
+  --pf-primary-strong: #1e40af;
+  --pf-soft: #f5f9ff;
+  --pf-soft-2: #eef4ff;
+  --pf-ring: rgba(37, 99, 235, 0.16);
 }
 
-.pfPage{
-  background: var(--bg);
+.pfPage {
+  background:
+    radial-gradient(900px 220px at 100% 0, rgba(37, 99, 235, 0.08), transparent 70%),
+    #f8fbff;
+  min-height: 100%;
 }
 
-.pfWrap{
-  max-width: 1020px;
+.pfWrap {
+  max-width: 1040px;
   margin: 0 auto;
-  padding: 22px 16px 64px;
+  padding: 24px 16px 68px;
 }
 
-/* Title */
-.pfTitle{
-  font-size: 26px;
-  font-weight: 900;
-  margin: 8px 0 16px;
-  color: var(--text);
-  letter-spacing: -0.3px;
+.pfTitle {
+  margin: 4px 0 18px;
+  color: var(--pf-text);
+  font-size: 30px;
+  font-weight: 950;
+  letter-spacing: -0.02em;
 }
 
-/* Card: more beautiful (shadow + hover) */
-.pfCard{
-  background: var(--card);
-  border: 1px solid rgba(229, 231, 235, 0.85);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-sm);
-  padding: 18px;
+.pfCard {
+  background: var(--pf-card);
+  border: 1px solid var(--pf-line);
+  border-radius: 18px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+  padding: 20px;
   margin-bottom: 16px;
-  transition: transform 0.12s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
 
-.pfCard:hover{
-  box-shadow: var(--shadow-md);
-  border-color: rgba(229, 231, 235, 1);
-  transform: translateY(-1px);
+.pfTopCard {
+  padding: 20px;
+  background:
+    radial-gradient(180px 120px at 12% 0, rgba(37, 99, 235, 0.09), transparent 72%),
+    linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
 }
 
-/* Top card */
-.pfTopCard{
-  padding: 18px;
-}
-
-.pfTopLeft{
+.pfTopLeft {
   display: flex;
   align-items: center;
   gap: 16px;
 }
 
-.pfAvatar{
+.pfAvatar {
   position: relative;
-  width: 78px;
-  height: 78px;
+  width: 86px;
+  height: 86px;
   border-radius: 999px;
-  background:
-    radial-gradient(circle at 30% 30%, #ffffff 0%, #f3f4f6 60%, #eef2ff 100%);
-  border: 2px solid rgba(17, 24, 39, 0.10);
-  box-shadow: 0 6px 20px rgba(17, 24, 39, 0.08);
+  border: 2px solid #dbe7fb;
+  background: linear-gradient(135deg, #eff6ff 0%, #e2e8f0 100%);
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.1);
   display: grid;
   place-items: center;
 }
 
-.pfAvatarText{
-  font-weight: 900;
-  font-size: 18px;
-  color: #6b7280;
-  letter-spacing: 0.6px;
+.pfAvatarText {
+  color: #334155;
+  font-size: 21px;
+  font-weight: 950;
+  letter-spacing: 0.02em;
 }
 
-.pfAvatarCam{
+.pfAvatarCam {
   position: absolute;
-  right: 1px;
-  bottom: 1px;
-  width: 26px;
-  height: 26px;
+  right: 0;
+  bottom: 0;
+  width: 28px;
+  height: 28px;
   border-radius: 999px;
+  border: 2px solid #fff;
   background: #0f766e;
   color: #fff;
+  font-size: 13px;
   display: grid;
   place-items: center;
-  font-size: 13px;
-  border: 2px solid #fff;
-  box-shadow: 0 6px 14px rgba(15, 118, 110, 0.22);
+  box-shadow: 0 8px 16px rgba(15, 118, 110, 0.28);
 }
 
-.pfTopInfo{
+.pfTopInfo {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.pfTopName{
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: -0.2px;
+.pfTopName {
+  color: var(--pf-text);
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
 }
 
-.pfTopRole{
+.pfTopRole {
+  color: #334155;
   font-size: 12px;
-  font-weight: 650;
-  color: #374151;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
-.pfTopSub{
-  font-size: 13px;
-  color: var(--muted);
+.pfTopSub {
+  color: var(--pf-muted);
+  font-size: 14px;
 }
 
-/* Badges */
-.pfBadges{
-  margin-top: 14px;
+.pfBadges {
+  margin-top: 16px;
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
 }
 
-.pfBadge{
+.pfBadge {
   min-width: 180px;
-  border: 1px solid rgba(229, 231, 235, 0.95);
+  border: 1px solid var(--pf-line);
   border-radius: 14px;
-  background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
-  box-shadow: 0 8px 18px rgba(17, 24, 39, 0.06);
+  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
   padding: 10px 12px;
 }
 
-.pfBadgeK{
+.pfBadgeK {
+  color: var(--pf-muted);
   font-size: 12px;
-  color: var(--muted);
-  font-weight: 650;
+  font-weight: 700;
 }
 
-.pfBadgeV{
+.pfBadgeV {
   margin-top: 4px;
-  font-size: 14px;
-  font-weight: 650;
-  color: var(--text);
+  color: var(--pf-text);
+  font-size: 16px;
+  font-weight: 900;
 }
 
-/* Card header */
-.pfCardHead{
+.pfCardHead {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #eef2f7;
+  gap: 10px;
+  padding-bottom: 12px;
   margin-bottom: 14px;
+  border-bottom: 1px solid var(--pf-line-soft);
 }
 
-.pfCardHeadTitle{
+.pfCardHeadTitle {
+  color: var(--pf-text);
   font-size: 18px;
-  font-weight: 800;
-  color: var(--text);
-  letter-spacing: -0.2px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
 }
 
-/* Buttons: match other pages (primary blue) */
-.pfBtn{
-  border: 1px solid rgba(229, 231, 235, 1);
+.pfHeadActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pfBtn {
+  border: 1px solid #cbd5e1;
   background: #fff;
+  color: var(--pf-text);
   border-radius: 12px;
   padding: 8px 12px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 900;
   cursor: pointer;
-  color: var(--text);
-  transition: transform 0.08s ease, box-shadow 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+  transition: transform 80ms ease, border-color 120ms ease, box-shadow 120ms ease;
 }
 
-.pfBtn:hover{
-  background: #f9fafb;
-  box-shadow: 0 8px 18px rgba(17, 24, 39, 0.06);
+.pfBtn:hover {
+  border-color: #94a3b8;
 }
 
-.pfBtn:active{
+.pfBtn:active {
   transform: translateY(1px);
 }
 
-.pfBtn.primary{
-  border-color: var(--primary);
-  background: var(--primary);
+.pfBtn.primary,
+.pfBtn.editOrange,
+.pfBtn.editGray {
+  border-color: var(--pf-primary);
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
   color: #fff;
-  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.18);
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.2);
 }
 
-.pfBtn.primary:hover{
-  background: var(--primaryHover);
-  border-color: var(--primaryHover);
-  box-shadow: 0 12px 26px rgba(37, 99, 235, 0.22);
+.pfBtn.primary:hover,
+.pfBtn.editOrange:hover,
+.pfBtn.editGray:hover {
+  border-color: var(--pf-primary-strong);
+  background: var(--pf-primary-strong);
 }
 
-.pfBtn.ghost{
-  background: #f3f4f6;
-  border-color: #f3f4f6;
+.pfBtn.ghost {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
 }
 
-/* Edit buttons become blue too (not orange) to match pages */
-.pfBtn.editOrange{
-  border-color: var(--primary);
-  background: var(--primary);
-  color: #fff;
-  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.18);
-}
-
-.pfBtn.editOrange:hover{
-  background: var(--primaryHover);
-  border-color: var(--primaryHover);
-}
-
-.pfBtn.editGray{
-  background: #fff;
-}
-
-.pfBtn:disabled{
-  opacity: 0.7;
+.pfBtn:disabled {
+  opacity: 0.62;
   cursor: not-allowed;
-  transform: none;
   box-shadow: none;
 }
 
-/* Grid */
-.pfGrid{
+.pfGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 22px 26px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px 18px;
 }
 
-.pfCellFull{
+.pfCellFull {
   grid-column: 1 / -1;
 }
 
-.pfCellLabel{
+.pfCellLabel {
+  margin-bottom: 7px;
+  color: var(--pf-muted);
   font-size: 12px;
-  font-weight: 650;
-  color: #64748b;
-  margin-bottom: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.pfCellValue{
-  font-size: 14px;
-  font-weight: 650;
-  color: var(--text);
-  line-height: 1.25;
+.pfCellValue {
+  color: var(--pf-text);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.45;
   word-break: break-word;
 }
 
-/* Inputs */
 .pfInput,
-.pfTextarea{
+.pfTextarea {
   width: 100%;
-  border-radius: 14px;
-  border: 1px solid rgba(229, 231, 235, 1);
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
   background: #fff;
-  padding: 10px 12px;
+  color: var(--pf-text);
   font-size: 14px;
-  font-weight: 650;
-  color: var(--text);
+  font-weight: 600;
+  padding: 10px 12px;
   outline: none;
-  transition: box-shadow 0.16s ease, border-color 0.16s ease, background 0.16s ease;
-  box-shadow: 0 1px 0 rgba(17, 24, 39, 0.02);
-}
-
-.pfTextarea{
-  resize: vertical;
-  min-height: 92px;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
 }
 
 .pfInput:focus,
-.pfTextarea:focus{
-  border-color: rgba(37, 99, 235, 0.55);
-  box-shadow: 0 0 0 4px var(--ring);
+.pfTextarea:focus {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 4px var(--pf-ring);
 }
 
-select.pfInput{
+.pfTextarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+select.pfInput {
   appearance: none;
   background-image:
-    linear-gradient(45deg, transparent 50%, #9ca3af 50%),
-    linear-gradient(135deg, #9ca3af 50%, transparent 50%);
+    linear-gradient(45deg, transparent 50%, #94a3b8 50%),
+    linear-gradient(135deg, #94a3b8 50%, transparent 50%);
   background-position:
     calc(100% - 18px) calc(50% - 3px),
     calc(100% - 13px) calc(50% - 3px);
@@ -299,73 +278,96 @@ select.pfInput{
   padding-right: 36px;
 }
 
-/* Mini grid */
-.pfDivider{
+.pfDivider {
   height: 1px;
-  background: #eef2f7;
-  margin: 18px 0 12px;
+  margin: 18px 0 14px;
+  background: linear-gradient(to right, transparent, #dbe7fb 10%, #dbe7fb 90%, transparent);
 }
 
-.pfMiniGrid{
+.pfMiniGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
 }
 
-.pfField{
-  border: 1px solid rgba(229, 231, 235, 0.95);
-  border-radius: 14px;
-  background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
-  box-shadow: 0 8px 18px rgba(17, 24, 39, 0.05);
+.pfField {
+  border: 1px solid var(--pf-line);
+  border-radius: 12px;
+  background: var(--pf-soft);
   padding: 10px 12px;
 }
 
-.pfLabel{
+.pfLabel {
+  color: var(--pf-muted);
   font-size: 12px;
-  font-weight: 650;
-  color: var(--muted);
+  font-weight: 700;
 }
 
-.pfValue{
+.pfValue {
   margin-top: 4px;
+  color: var(--pf-text);
   font-size: 14px;
-  font-weight: 650;
-  color: var(--text);
+  font-weight: 800;
 }
 
-/* Links */
-.pfLink{
-  color: var(--primary);
-  text-decoration: none;
+.pfLink {
+  color: var(--pf-primary);
   font-size: 14px;
-  font-weight: 650;
-}
-
-.pfLink:hover{
+  font-weight: 700;
   text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
-/* Toast */
-.pfToast{
-  margin: 8px 0 0;
-  padding: 10px 12px;
-  border: 1px solid rgba(229, 231, 235, 1);
-  border-radius: 14px;
-  background: #f9fafb;
-  color: var(--text);
-  font-weight: 450;
+.pfLink:hover {
+  color: var(--pf-primary-strong);
+}
+
+.pfToast {
+  margin-top: 8px;
   width: fit-content;
-  box-shadow: 0 10px 24px rgba(17, 24, 39, 0.08);
+  border: 1px solid #c7f0d3;
+  border-radius: 12px;
+  background: #f0fdf4;
+  color: #166534;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 9px 12px;
 }
 
-/* Responsive */
-@media (max-width: 980px){
-  .pfGrid{ grid-template-columns: 1fr 1fr; }
-  .pfMiniGrid{ grid-template-columns: 1fr 1fr; }
+@media (max-width: 980px) {
+  .pfGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pfMiniGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
-@media (max-width: 620px){
-  .pfGrid{ grid-template-columns: 1fr; }
-  .pfBadges{ flex-direction: column; }
-  .pfBadge{ width: 100%; min-width: unset; }
+@media (max-width: 680px) {
+  .pfTitle {
+    font-size: 26px;
+  }
+
+  .pfTopName {
+    font-size: 21px;
+  }
+
+  .pfGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .pfBadges {
+    flex-direction: column;
+  }
+
+  .pfBadge {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .pfCardHead {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }

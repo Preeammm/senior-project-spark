@@ -284,16 +284,55 @@
 
 /* Responsive */
 @media (max-width: 860px) {
+  .navbar {
+    height: auto;
+  }
+
+  .navInner {
+    flex-wrap: wrap;
+    row-gap: 10px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
   .brand {
     display: none;
   }
 
   .menu {
+    order: 3;
+    flex: 1 1 100%;
     margin-left: 0;
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: thin;
   }
 
   .menuLink {
     font-size: 12px;
     padding: 0 8px;
+    height: 40px;
+  }
+
+  .profile {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 520px) {
+  .navInner {
+    gap: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .menuLink {
+    font-size: 11px;
+    padding: 0 7px;
+  }
+
+  .dropdown {
+    right: -4px;
+    min-width: 180px;
   }
 }

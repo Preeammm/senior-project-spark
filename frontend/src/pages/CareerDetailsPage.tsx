@@ -270,6 +270,18 @@ export default function CareerDetailsPage() {
                   </section>
                 ))}
               </div>
+
+              <div className="cdReference">
+                <span className="cdReferenceLabel">Reference:</span>
+                <a
+                  className="cdReferenceLink"
+                  href="https://roadmap.thaiprogrammer.org/"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  roadmap.thaiprogrammer.org
+                </a>
+              </div>
             </div>
           </main>
         </div>

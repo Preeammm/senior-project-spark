@@ -11,11 +11,13 @@ import {
   PORTFOLIO_DOCS_QUERY_KEY,
   type PortfolioDocLite,
 } from "../features/portfolio/services/portfolio.api";
+import {
+  useCareerFocus,
+  type CareerFocus,
+} from "../features/careerFocus/useCareerFocus";
 
 import "../styles/page.css";
 import "./NewDocumentPage.css";
-
-type CareerFocus = "Data Analyst" | "Data Engineer" | "Software Engineer";
 
 type Project = {
   id: string;
@@ -23,10 +25,13 @@ type Project = {
   courseName?: string;
   yearSemester?: string;
   type?: string;
+  relevancePercent?: number;
 };
 
-async function fetchProjects(): Promise<Project[]> {
-  const { data } = await http.get("/api/projects");
+async function fetchProjects(careerFocus: CareerFocus): Promise<Project[]> {
+  const { data } = await http.get("/api/projects", {
+    params: { careerFocus },
+  });
   return data;
 }
 
@@ -38,11 +43,7 @@ export default function NewDocumentPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
 
-  const careerFocusOptions = useMemo(
-    () => ["Data Analyst", "Data Engineer", "Software Engineer"] as const,
-    []
-  );
-  const [careerFocus, setCareerFocus] = useState<CareerFocus>("Data Analyst");
+  const { careerFocus, setCareerFocus, careerFocusOptions } = useCareerFocus();
 
   const [usePersonalInfo, setUsePersonalInfo] = useState<boolean>(true);
   const [title, setTitle] = useState<string>("");
@@ -56,17 +57,22 @@ export default function NewDocumentPage() {
   });
 
   const { data: projects, isLoading } = useQuery({
-    queryKey: ["projects"],
-    queryFn: fetchProjects,
+    queryKey: ["projects", careerFocus],
+    queryFn: () => fetchProjects(careerFocus),
   });
+
+  const rankedProjects = useMemo(() => {
+    const list = projects ?? [];
+    return [...list].sort((a, b) => (b.relevancePercent ?? 0) - (a.relevancePercent ?? 0));
+  }, [projects]);
 
   const selectedCount = selectedProjectIds.length;
 
   const selectedProjects = useMemo(() => {
-    const list = projects ?? [];
+    const list = rankedProjects;
     const set = new Set(selectedProjectIds);
     return list.filter((p) => set.has(p.id));
-  }, [projects, selectedProjectIds]);
+  }, [rankedProjects, selectedProjectIds]);
 
   const titleError =
     touched.title && title.trim().length === 0 ? "Title is required" : "";
@@ -303,11 +309,14 @@ async function onGenerate() {
             <div className="ndModalBody">
               {isLoading ? (
                 <div className="ndModalHint">Loading projects...</div>
-              ) : (projects ?? []).length === 0 ? (
+              ) : rankedProjects.length === 0 ? (
                 <div className="ndModalHint">No projects found.</div>
               ) : (
                 <div className="ndProjectList">
-                  {(projects ?? []).map((p) => {
+                  <div className="ndModalHint">
+                    Ranked by relevance for <b>{careerFocus}</b> (highest first)
+                  </div>
+                  {rankedProjects.map((p) => {
                     const checked = selectedProjectIds.includes(p.id);
                     return (
                       <label key={p.id} className="ndProjectItem">
@@ -322,6 +331,9 @@ async function onGenerate() {
                             {p.courseName ? p.courseName : ""}
                             {p.yearSemester ? ` • ${p.yearSemester}` : ""}
                             {p.type ? ` • ${p.type}` : ""}
+                            {typeof p.relevancePercent === "number"
+                              ? ` • ${p.relevancePercent}% relevance`
+                              : ""}
                           </div>
                         </div>
                       </label>

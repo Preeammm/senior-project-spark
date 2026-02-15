@@ -8,13 +8,13 @@ import { useQuery } from "@tanstack/react-query";
 import PageHeader from "../components/PageHeader";
 import { useProtectedRoute } from "../hooks/useProtectedRoute";
 import { getCourseDetail } from "../features/courses/services/courses.api";
+import { useCareerFocus } from "../features/careerFocus/useCareerFocus";
+import { normalizeCompetencyTags } from "../features/courses/utils/competencyTags";
 
-import TagPill from "../features/courses/components/TagPill";
+import ExpandableCompetencyTags from "../features/courses/components/ExpandableCompetencyTags";
 
 import "../styles/page.css";
 import "./CourseDetailPage.css";
-
-type CareerFocus = "Data Analyst" | "Data Engineer" | "Software Engineer";
 
 type Instructor = { name: string; email?: string };
 
@@ -42,10 +42,6 @@ type CourseDetail = {
   breakdown: BreakdownRow[];
 };
 
-function toneByIndex(i: number) {
-  return (["pink", "green", "blue", "sand"] as const)[i % 4];
-}
-
 function pctTone(v: number) {
   if (v < 70) return "orange";
   if (v < 80) return "yellow";
@@ -63,25 +59,25 @@ function normalize(raw: any): CourseDetail {
     {
       assessmentType: "Midterm Exam",
       weightPercent: 25,
-      competencyTags: ["Tag 1", "Tag 2", "Tag 3", "Tag 4"],
+      competencyTags: ["Web Programming", "Database Design", "Problem Solving", "Software Architecture"],
       competencyIndex: 68,
     },
     {
       assessmentType: "Final Exam",
       weightPercent: 25,
-      competencyTags: ["Tag 1", "Tag 2", "Tag 3", "Tag 4"],
+      competencyTags: ["Algorithm Design", "Data Structures", "API Development", "Software Testing"],
       competencyIndex: 68,
     },
     {
       assessmentType: "Lab",
       weightPercent: 20,
-      competencyTags: ["Tag 1", "Tag 2", "Tag 3", "Tag 4"],
+      competencyTags: ["Web Programming", "Debugging", "Version Control (Git)", "Technical Documentation"],
       competencyIndex: 75,
     },
     {
       assessmentType: "Final Project",
       weightPercent: 30,
-      competencyTags: ["Tag 1", "Tag 2", "Tag 3", "Tag 4"],
+      competencyTags: ["UI/UX Design", "API Development", "Database Design", "Team Collaboration"],
       competencyIndex: 92,
     },
   ];
@@ -102,12 +98,27 @@ function normalize(raw: any): CourseDetail {
         },
       ],
     summary: raw?.summary ?? raw?.description ?? "Mock course detail data (replace later).",
-    competencyTags:
-      raw?.competencyTags ?? ["Tag 1", "Tag 2", "Tag 3", "Tag 4", "Tag 5", "Tag 6"],
+    competencyTags: normalizeCompetencyTags(
+      raw?.competencyTags ?? [
+        "Web Programming",
+        "Database Design",
+        "API Development",
+        "Software Testing",
+        "UI/UX Design",
+        "Version Control (Git)",
+      ],
+      `${raw?.courseCode ?? ""} ${raw?.courseTitleEN ?? raw?.courseName ?? ""}`
+    ),
     finalGrade: raw?.finalGrade ?? raw?.grade ?? "A",
     overallCompetencyIndex: 82, // mock
     relevancePercent: raw?.relevancePercent ?? 90,
-    breakdown,
+    breakdown: breakdown.map((row) => ({
+      ...row,
+      competencyTags: normalizeCompetencyTags(
+        row.competencyTags,
+        `${raw?.courseCode ?? ""} ${raw?.courseTitleEN ?? raw?.courseName ?? ""} ${row.assessmentType}`
+      ),
+    })),
   };
 }
 
@@ -121,12 +132,7 @@ export default function CourseDetailPage() {
   const [courseInfoOpen, setCourseInfoOpen] = useState(false);
   const [breakdownOpen, setBreakdownOpen] = useState(true);
 
-  // ✅ make career dropdown changeable
-  const [careerFocus, setCareerFocus] = useState<CareerFocus>("Data Analyst");
-  const careerFocusOptions = useMemo(
-    () => ["Data Analyst", "Data Engineer", "Software Engineer"] as const,
-    []
-  );
+  const { careerFocus, setCareerFocus, careerFocusOptions } = useCareerFocus();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["course-detail", courseId, careerFocus],
@@ -156,7 +162,7 @@ export default function CourseDetailPage() {
       <div className="dividerLine" />
 
       <h1 className="detailTitle">
-        {data.courseCode}_{data.courseTitleEN}
+        {data.courseCode} • {data.courseTitleEN}
       </h1>
 
       {/* ===== Course Information (Collapsible, default hidden) ===== */}
@@ -209,9 +215,11 @@ export default function CourseDetailPage() {
 
             <div className="tagsTitle">Competency Tags:</div>
             <div className="tagWrap">
-              {data.competencyTags.map((t, i) => (
-                <TagPill key={`${t}-${i}`} label={t} tone={toneByIndex(i)} />
-              ))}
+              <ExpandableCompetencyTags
+                tags={data.competencyTags}
+                maxVisible={999}
+                contextText={`${data.courseCode} ${data.courseTitleEN}`}
+              />
             </div>
 
             <div className="thinDivider" />
@@ -279,9 +287,11 @@ export default function CourseDetailPage() {
                       <td className="center">{r.weightPercent}%</td>
                       <td>
                         <div className="tagWrap">
-                          {r.competencyTags.map((t, j) => (
-                            <TagPill key={`${i}-${j}`} label={t} tone={toneByIndex(j)} />
-                          ))}
+                          <ExpandableCompetencyTags
+                            tags={r.competencyTags}
+                            maxVisible={2}
+                            contextText={`${data.courseCode} ${data.courseTitleEN} ${r.assessmentType}`}
+                          />
                         </div>
                       </td>
                       <td>

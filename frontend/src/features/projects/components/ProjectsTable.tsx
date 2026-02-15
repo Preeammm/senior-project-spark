@@ -2,12 +2,8 @@ import { Link } from "react-router-dom";
 import type { Project } from "../types";
 import MaterialsLinks from "./MaterialsLinks";
 import ProgressBadge from "../../../components/ProgressBadge";
-import TagPill from "../../courses/components/TagPill"; // ✅ reuse colored TagPill
+import ExpandableCompetencyTags from "../../courses/components/ExpandableCompetencyTags";
 import "./ProjectsTable.css";
-
-function toneByIndex(i: number) {
-  return (["pink", "green", "blue", "sand"] as const)[i % 4];
-}
 
 function getCourseCodeFromCourseName(courseName: string) {
   if (!courseName) return "";
@@ -67,13 +63,11 @@ export default function ProjectsTable({ projects }: { projects: Project[] }) {
 
                 <td>
                   <div className="tagsWrap">
-                    {p.competencyTags.map((t, i) => (
-                      <TagPill
-                        key={`${p.id}-${t}-${i}`}
-                        label={t}
-                        tone={toneByIndex(i)}
-                      />
-                    ))}
+                    <ExpandableCompetencyTags
+                      tags={p.competencyTags}
+                      maxVisible={2}
+                      contextText={`${p.projectName} ${p.courseName} ${p.type}`}
+                    />
                   </div>
                 </td>
 

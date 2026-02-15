@@ -1,30 +1,36 @@
-/* NewDocumentPage.css (FULL)
-   - Beautiful card UI
-   - Career Focus ONLY inside the card (nice row)
-   - Keeps your existing class names so nothing breaks
-*/
+/* NewDocumentPage.css */
 
-/* =========================
-   Layout
-========================= */
+:root {
+  --nd-text: #0f172a;
+  --nd-muted: #475569;
+  --nd-primary: #1d4ed8;
+  --nd-primary-strong: #1e40af;
+  --nd-surface: #ffffff;
+  --nd-soft: #f6f9ff;
+  --nd-line: #dbe7fb;
+  --nd-line-soft: #e8eefb;
+}
 
 .ndWrap {
   margin: 14px auto 0;
-  max-width: 920px;
+  max-width: 960px;
 }
 
-/* Card wrapper */
 .ndCard {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 18px;
-  padding: 20px;
-  box-shadow: 0 10px 22px rgba(17, 24, 39, 0.05);
+  border: 1px solid var(--nd-line);
+  border-radius: 20px;
+  padding: 22px;
+  background:
+    radial-gradient(320px 110px at 100% 0, rgba(37, 99, 235, 0.1), transparent 75%),
+    linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
 }
 
-/* =========================
-   Rows / Labels
-========================= */
+.ndLine {
+  height: 1px;
+  margin: 18px 0;
+  background: linear-gradient(to right, transparent, #dbe7fb 12%, #dbe7fb 88%, transparent);
+}
 
 .ndRow {
   display: flex;
@@ -35,154 +41,123 @@
 }
 
 .ndLabel {
-  min-width: 140px;
+  min-width: 150px;
+  color: var(--nd-text);
   font-size: 14px;
-  font-weight: 800;
-  color: #111827;
+  font-weight: 900;
 }
 
 .ndLabel.wide {
-  min-width: 380px;
+  min-width: 390px;
 }
 
-/* default hint (used below checkbox row) */
 .ndHint {
-  font-size: 12px;
-  color: #6b7280;
   flex-basis: 100%;
-  margin-left: 152px; /* align hint under label */
-  line-height: 1.45;
+  margin-left: 162px;
+  color: var(--nd-muted);
+  font-size: 12px;
+  line-height: 1.5;
 }
 
-/* checkbox row */
+.ndCareerRow {
+  margin-top: 2px;
+  margin-bottom: 8px;
+  padding: 14px;
+  border: 1px solid var(--nd-line);
+  border-radius: 14px;
+  background: var(--nd-soft);
+}
+
+.ndCareerHint {
+  color: var(--nd-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ndSelect {
+  height: 40px;
+  min-width: 250px;
+  border: 1px solid #bfdbfe;
+  border-radius: 12px;
+  padding: 0 38px 0 12px;
+  background-color: #fff;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 7.5l5 5 5-5' stroke='%231e3a8a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"),
+    linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  background-repeat: no-repeat, no-repeat;
+  background-size: 14px 14px, auto;
+  background-position: right 12px center, 0 0;
+  color: var(--nd-text);
+  font-size: 14px;
+  font-weight: 800;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  outline: none;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.08);
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.ndSelect:hover {
+  border-color: #93c5fd;
+}
+
+.ndSelect:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.14);
+}
+
 .ndCheck {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  font-size: 14px;
-  color: #111827;
-  font-weight: 700;
-}
-
-/* link button (Change) */
-.ndChange {
-  border: none;
-  background: transparent;
-  color: #2563eb;
-  text-decoration: underline;
-  font-size: 13px;
-  font-weight: 800;
-  cursor: pointer;
-}
-.ndChange:hover {
-  color: #1d4ed8;
-}
-
-/* value box (if used somewhere else) */
-.ndValueBox {
-  height: 34px;
-  min-width: 160px;
-  padding: 0 12px;
-  display: inline-flex;
-  align-items: center;
-  border: 1px solid #d1d5db;
-  border-radius: 12px;
-  background: #fff;
+  color: var(--nd-text);
   font-size: 14px;
   font-weight: 700;
-  color: #111827;
 }
-
-/* =========================
-   Career Focus row (inside card)
-========================= */
-
-.ndCareerRow {
-  margin-top: 6px;
-  margin-bottom: 10px;
-  padding: 12px 12px;
-  background: #f8fafc;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-}
-
-.ndCareerHint {
-  font-size: 12px;
-  color: #6b7280;
-  font-weight: 700;
-}
-
-/* divider line inside card */
-.ndLine {
-  height: 1px;
-  background: #eef2f7;
-  margin: 14px 0;
-}
-
-/* select style */
-.ndSelect {
-  height: 36px;
-  min-width: 240px;
-  border: 1px solid #d1d5db;
-  border-radius: 12px;
-  padding: 0 12px;
-  font-size: 14px;
-  font-weight: 700;
-  color: #111827;
-  outline: none;
-  background: #ffffff;
-  transition: border-color 120ms ease, box-shadow 120ms ease;
-}
-
-.ndSelect:focus {
-  border-color: #93c5fd;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.14);
-}
-
-/* =========================
-   Fields
-========================= */
 
 .ndField {
   margin: 18px 0;
 }
 
 .ndFieldLabel {
+  margin-bottom: 8px;
+  color: var(--nd-text);
   font-size: 14px;
   font-weight: 900;
-  color: #111827;
-  margin-bottom: 8px;
 }
 
 .ndReq {
-  color: #dc2626;
   margin-left: 4px;
+  color: #dc2626;
 }
 
 .ndInput,
 .ndTextarea {
-  width: 420px;
-  max-width: 100%;
-  border: 1px solid #d1d5db;
+  width: 100%;
+  max-width: 620px;
+  border: 1px solid #cbd5e1;
   background: #fff;
+  color: var(--nd-text);
   font-size: 14px;
-  color: #111827;
   outline: none;
-  transition: box-shadow 120ms ease, border-color 120ms ease;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
 }
 
 .ndInput {
-  height: 38px;
+  height: 40px;
   border-radius: 12px;
   padding: 0 12px;
 }
 
 .ndTextarea {
-  height: 160px;
+  height: 170px;
   border-radius: 14px;
   padding: 12px;
-  resize: none;
-  line-height: 1.55;
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.6;
 }
 
 .ndInput:focus,
@@ -199,50 +174,61 @@
 
 .ndError {
   margin-top: 6px;
+  color: #dc2626;
   font-size: 12px;
-  color: #ef4444;
   font-weight: 800;
 }
 
-/* =========================
-   Projects Selected
-========================= */
-
 .projectsRow {
-  margin-top: 20px;
+  margin-top: 22px;
 }
 
 .ndSelectedBox {
-  height: 36px;
-  min-width: 240px;
+  min-width: 260px;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--nd-line);
+  border-radius: 12px;
+  background: var(--nd-soft);
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 0 12px;
-  background: #f8fafc;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  color: #1e293b;
   font-size: 13px;
-  color: #374151;
+  font-weight: 700;
 }
 
 .ndClearX {
   border: none;
   background: transparent;
-  cursor: pointer;
+  color: #64748b;
   font-size: 20px;
   line-height: 1;
-  color: #6b7280;
+  cursor: pointer;
   padding: 0 4px;
 }
+
 .ndClearX:hover {
-  color: #111827;
+  color: #0f172a;
 }
 
-/* =========================
-   Actions
-========================= */
+.ndChange {
+  border: 1px solid var(--nd-line);
+  background: #fff;
+  color: var(--nd-primary);
+  font-size: 13px;
+  font-weight: 900;
+  border-radius: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.ndChange:hover {
+  border-color: #bfd3fa;
+  background: var(--nd-soft);
+  color: var(--nd-primary-strong);
+}
 
 .ndActions {
   margin-top: 28px;
@@ -252,11 +238,11 @@
 
 .ndBtn {
   height: 42px;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
   padding: 0 18px;
-  border-radius: 14px;
-  border: 1px solid #d1d5db;
-  background: #9ca3af;
   color: #fff;
+  background: #9ca3af;
   font-size: 14px;
   font-weight: 900;
   cursor: pointer;
@@ -264,9 +250,10 @@
 }
 
 .ndBtn.primary {
-  background: #2563eb;
-  border-color: #2563eb;
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+  border-color: #1d4ed8;
 }
+
 .ndBtn.primary:hover {
   opacity: 0.95;
 }
@@ -282,50 +269,38 @@
 
 .ndBtn.small {
   height: 36px;
-  border-radius: 12px;
-  font-size: 13px;
+  border-radius: 10px;
   padding: 0 14px;
+  font-size: 13px;
 }
-
-/* =========================
-   Back button in header (FIXED)
-========================= */
 
 .ndBackBtn {
   border: none;
   background: transparent;
   padding: 0;
-  margin: 0;
-
+  color: var(--nd-primary);
   font-size: 13px;
   font-weight: 900;
-  color: #2563eb;
   text-decoration: underline;
+  text-underline-offset: 3px;
   cursor: pointer;
 }
 
 .ndBackBtn:hover {
-  color: #1d4ed8;
-}
-
-.ndBackBtn:focus {
-  outline: none;
+  color: var(--nd-primary-strong);
 }
 
 .ndBackBtn:focus-visible {
-  outline: 3px solid rgba(59, 130, 246, 0.3);
+  outline: 3px solid rgba(59, 130, 246, 0.32);
   outline-offset: 4px;
   border-radius: 6px;
 }
 
-/* =========================
-   Modal
-========================= */
-
 .ndModalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(17, 24, 39, 0.45);
+  background: rgba(15, 23, 42, 0.52);
+  backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -333,13 +308,13 @@
 }
 
 .ndModal {
-  width: 720px;
+  width: 760px;
   max-width: calc(100vw - 24px);
-  background: #fff;
+  border: 1px solid var(--nd-line);
   border-radius: 18px;
-  border: 1px solid #e5e7eb;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(17, 24, 39, 0.25);
+  background: #fff;
+  box-shadow: 0 24px 68px rgba(15, 23, 42, 0.36);
 }
 
 .ndModalHeader {
@@ -347,40 +322,42 @@
   justify-content: space-between;
   align-items: center;
   padding: 14px 16px;
-  border-bottom: 1px solid #e5e7eb;
-  background: #fff;
+  border-bottom: 1px solid var(--nd-line-soft);
+  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
 }
 
 .ndModalTitle {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 900;
-  color: #111827;
+  color: var(--nd-text);
 }
 
 .ndModalClose {
   border: none;
   background: transparent;
-  cursor: pointer;
+  color: #64748b;
   font-size: 24px;
   line-height: 1;
-  color: #6b7280;
+  cursor: pointer;
 }
+
 .ndModalClose:hover {
-  color: #111827;
+  color: #0f172a;
 }
 
 .ndModalBody {
   padding: 14px 16px;
-  max-height: 360px;
+  max-height: 420px;
   overflow: auto;
 }
 
 .ndModalHint {
-  font-size: 13px;
-  color: #6b7280;
+  margin-bottom: 10px;
+  color: var(--nd-muted);
+  font-size: 12px;
+  line-height: 1.5;
 }
 
-/* project list */
 .ndProjectList {
   display: flex;
   flex-direction: column;
@@ -391,16 +368,21 @@
   display: flex;
   gap: 12px;
   align-items: flex-start;
-  padding: 12px 12px;
+  padding: 12px;
+  border: 1px solid var(--nd-line);
   border-radius: 14px;
-  border: 1px solid #e5e7eb;
   background: #fff;
   cursor: pointer;
-  transition: background 120ms ease, border-color 120ms ease;
+  transition: border-color 120ms ease, background 120ms ease, transform 80ms ease;
 }
+
 .ndProjectItem:hover {
-  background: #f8fafc;
-  border-color: #dbeafe;
+  border-color: #bfd3fa;
+  background: #f8fbff;
+}
+
+.ndProjectItem:active {
+  transform: translateY(1px);
 }
 
 .ndProjectInfo {
@@ -410,14 +392,14 @@
 .ndProjectName {
   font-size: 14px;
   font-weight: 900;
-  color: #111827;
+  color: var(--nd-text);
 }
 
 .ndProjectMeta {
   margin-top: 4px;
+  color: var(--nd-muted);
   font-size: 12px;
-  color: #6b7280;
-  line-height: 1.4;
+  line-height: 1.45;
 }
 
 .ndModalFooter {
@@ -425,21 +407,17 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  border-top: 1px solid #e5e7eb;
-  background: #fafafa;
+  border-top: 1px solid var(--nd-line-soft);
+  background: #f8fafc;
 }
 
 .ndModalCount {
   font-size: 13px;
-  color: #374151;
   font-weight: 800;
+  color: #334155;
 }
 
-/* =========================
-   Responsive
-========================= */
-
-@media (max-width: 720px) {
+@media (max-width: 760px) {
   .ndLabel,
   .ndLabel.wide {
     min-width: 100%;
@@ -449,16 +427,16 @@
     margin-left: 0;
   }
 
+  .ndSelect {
+    min-width: 100%;
+  }
+
   .ndActions {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
   }
 
   .ndBtn {
     width: 100%;
-  }
-
-  .ndSelect {
-    min-width: 100%;
   }
 }

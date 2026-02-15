@@ -3,14 +3,14 @@ import { useMemo, useState } from "react";
 import { useMe } from "../features/student/hooks/useMe";
 import { useCourses } from "../features/courses/hooks/useCourses";
 import { useProjects } from "../features/projects/hooks/useProjects";
+import {
+  useCareerFocus,
+  type CareerFocus,
+} from "../features/careerFocus/useCareerFocus";
 import type { Course } from "../features/courses/types";
 import type { Project } from "../features/projects/types";
 import { useProtectedRoute } from "../hooks/useProtectedRoute";
 import "./HomePage.css";
-
-type CareerFocus = "Data Analyst" | "Data Engineer" | "Software Engineer";
-
-const CAREER_OPTIONS: CareerFocus[] = ["Data Analyst", "Data Engineer", "Software Engineer"];
 
 type RadarAxis =
   | "Data Analysis"
@@ -29,32 +29,14 @@ const RADAR_AXES: RadarAxis[] = [
   "Team Collaboration",
 ];
 
-// mock scores (0–10)
-const MOCK_STUDENT: Record<CareerFocus, Record<RadarAxis, number>> = {
-  "Data Analyst": {
-    "Data Analysis": 8,
-    "Data Visualization": 7,
-    "Problem Solving": 6,
-    Programming: 5,
-    "Communication Skills": 6,
-    "Team Collaboration": 6,
-  },
-  "Data Engineer": {
-    "Data Analysis": 6,
-    "Data Visualization": 5,
-    "Problem Solving": 7,
-    Programming: 8,
-    "Communication Skills": 5,
-    "Team Collaboration": 6,
-  },
-  "Software Engineer": {
-    "Data Analysis": 5,
-    "Data Visualization": 4,
-    "Problem Solving": 8,
-    Programming: 9,
-    "Communication Skills": 6,
-    "Team Collaboration": 7,
-  },
+const RADAR_MAX_LEVEL = 4;
+const MOCK_STUDENT: Record<RadarAxis, number> = {
+  "Data Analysis": 3.2,
+  "Data Visualization": 2.8,
+  "Problem Solving": 3.4,
+  Programming: 3.1,
+  "Communication Skills": 2.9,
+  "Team Collaboration": 3.0,
 };
 
 const MOCK_REQUIREMENT: Record<CareerFocus, Record<RadarAxis, number>> = {
@@ -177,10 +159,16 @@ function clamp01(n: number) {
   return Math.max(0, Math.min(1, n));
 }
 
+function toRadarLevel(score: number) {
+  // Support both legacy 0..10 and new 0..4 inputs.
+  const normalized = score > RADAR_MAX_LEVEL ? (score / 10) * RADAR_MAX_LEVEL : score;
+  return Math.max(0, Math.min(RADAR_MAX_LEVEL, normalized));
+}
+
 /**
  * Build polygon points for radar chart.
  * cx, cy center; r radius
- * score 0..10 => scale 0..1
+ * score 0..4 => scale 0..1
  */
 function radarPoints(
   scores: Record<RadarAxis, number>,
@@ -194,7 +182,7 @@ function radarPoints(
   for (let i = 0; i < n; i++) {
     const axis = axes[i];
     const a = -Math.PI / 2 + (i * (2 * Math.PI)) / n; // start top
-    const t = clamp01((scores[axis] ?? 0) / 10);
+    const t = clamp01(toRadarLevel(scores[axis] ?? 0) / RADAR_MAX_LEVEL);
     const x = cx + Math.cos(a) * r * t;
     const y = cy + Math.sin(a) * r * t;
     pts.push(`${x.toFixed(2)},${y.toFixed(2)}`);
@@ -206,13 +194,13 @@ export default function HomePage() {
   useProtectedRoute();
   const { data: me, isLoading, error } = useMe();
 
-  const [careerFocus, setCareerFocus] = useState<CareerFocus>("Data Analyst");
+  const { careerFocus, setCareerFocus, careerFocusOptions } = useCareerFocus();
 
   // evidence breakdown dropdowns (mock)
   const [evidence1, setEvidence1] = useState<RadarAxis>("Data Analysis");
   const [evidence2, setEvidence2] = useState<RadarAxis>("Problem Solving");
 
-  const studentScores = useMemo(() => MOCK_STUDENT[careerFocus], [careerFocus]);
+  const studentScores = useMemo(() => MOCK_STUDENT, []);
   const reqScores = useMemo(() => MOCK_REQUIREMENT[careerFocus], [careerFocus]);
   const { data: courses = [], isLoading: coursesLoading } = useCourses(careerFocus);
   const { data: projects = [], isLoading: projectsLoading } = useProjects(careerFocus);
@@ -399,7 +387,7 @@ export default function HomePage() {
                 value={careerFocus}
                 onChange={(e) => setCareerFocus(e.target.value as CareerFocus)}
               >
-                {CAREER_OPTIONS.map((c) => (
+                {careerFocusOptions.map((c) => (
                   <option key={c} value={c}>
                     {c}
                   </option>
@@ -424,12 +412,12 @@ export default function HomePage() {
                 </div>
 
                 <svg width={W} height={H} className="mpRadar" viewBox={`0 0 ${W} ${H}`}>
-                  {[0.2, 0.4, 0.6, 0.8, 1].map((t) => {
+                  {[1, 2, 3, 4].map((level) => {
                     const ringScores = Object.fromEntries(
-                      RADAR_AXES.map((a) => [a, 10 * t])
+                      RADAR_AXES.map((a) => [a, level])
                     ) as Record<RadarAxis, number>;
                     const ring = radarPoints(ringScores, RADAR_AXES, cx, cy, r);
-                    return <polygon key={t} points={ring} className="mpRing" />;
+                    return <polygon key={level} points={ring} className="mpRing" />;
                   })}
 
                   {RADAR_AXES.map((axis, i) => {
