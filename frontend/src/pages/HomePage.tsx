@@ -6,6 +6,7 @@ import { useProjects } from "../features/projects/hooks/useProjects";
 import {
   useCareerFocus,
   type CareerFocus,
+  type CareerFocusOption,
 } from "../features/careerFocus/useCareerFocus";
 import type { Course } from "../features/courses/types";
 import type { Project } from "../features/projects/types";
@@ -39,7 +40,7 @@ const MOCK_STUDENT: Record<RadarAxis, number> = {
   "Team Collaboration": 3.0,
 };
 
-const MOCK_REQUIREMENT: Record<CareerFocus, Record<RadarAxis, number>> = {
+const MOCK_REQUIREMENT: Record<CareerFocusOption, Record<RadarAxis, number>> = {
   "Data Analyst": {
     "Data Analysis": 9,
     "Data Visualization": 8,
@@ -66,7 +67,7 @@ const MOCK_REQUIREMENT: Record<CareerFocus, Record<RadarAxis, number>> = {
   },
 };
 
-const EVIDENCE_COPY: Record<CareerFocus, Record<RadarAxis, string>> = {
+const EVIDENCE_COPY: Record<CareerFocusOption, Record<RadarAxis, string>> = {
   "Data Analyst": {
     "Data Analysis":
       "For Data Analyst focus, high-relevance database and analytics work is weighted more heavily.",
@@ -195,13 +196,18 @@ export default function HomePage() {
   const { data: me, isLoading, error } = useMe();
 
   const { careerFocus, setCareerFocus, careerFocusOptions } = useCareerFocus();
+  const activeCareerFocus: CareerFocusOption =
+    careerFocus || careerFocusOptions[0];
 
   // evidence breakdown dropdowns (mock)
   const [evidence1, setEvidence1] = useState<RadarAxis>("Data Analysis");
   const [evidence2, setEvidence2] = useState<RadarAxis>("Problem Solving");
 
   const studentScores = useMemo(() => MOCK_STUDENT, []);
-  const reqScores = useMemo(() => MOCK_REQUIREMENT[careerFocus], [careerFocus]);
+  const reqScores = useMemo(
+    () => MOCK_REQUIREMENT[activeCareerFocus],
+    [activeCareerFocus]
+  );
   const { data: courses = [], isLoading: coursesLoading } = useCourses(careerFocus);
   const { data: projects = [], isLoading: projectsLoading } = useProjects(careerFocus);
 
@@ -387,6 +393,7 @@ export default function HomePage() {
                 value={careerFocus}
                 onChange={(e) => setCareerFocus(e.target.value as CareerFocus)}
               >
+                <option value="">Select career focus</option>
                 {careerFocusOptions.map((c) => (
                   <option key={c} value={c}>
                     {c}
@@ -397,132 +404,134 @@ export default function HomePage() {
           </div>
 
           <div className="mpCard">
-            <div className="mpInner">
-              {/* Left: Radar */}
-              <div className="mpLeft">
-                <div className="mpLegend">
-                  <div className="mpLegendItem">
-                    <span className="mpDot mpDotStudent" />
-                    <span>Student</span>
-                  </div>
-                  <div className="mpLegendItem">
-                    <span className="mpDot mpDotReq" />
-                    <span>Career Requirement</span>
-                  </div>
-                </div>
-
-                <svg width={W} height={H} className="mpRadar" viewBox={`0 0 ${W} ${H}`}>
-                  {[1, 2, 3, 4].map((level) => {
-                    const ringScores = Object.fromEntries(
-                      RADAR_AXES.map((a) => [a, level])
-                    ) as Record<RadarAxis, number>;
-                    const ring = radarPoints(ringScores, RADAR_AXES, cx, cy, r);
-                    return <polygon key={level} points={ring} className="mpRing" />;
-                  })}
-
-                  {RADAR_AXES.map((axis, i) => {
-                    const n = RADAR_AXES.length;
-                    const ang = -Math.PI / 2 + (i * (2 * Math.PI)) / n;
-                    const x2 = cx + Math.cos(ang) * r;
-                    const y2 = cy + Math.sin(ang) * r;
-
-                    const lx = cx + Math.cos(ang) * (r + 26);
-                    const ly = cy + Math.sin(ang) * (r + 26);
-
-                    return (
-                      <g key={axis}>
-                        <line x1={cx} y1={cy} x2={x2} y2={y2} className="mpAxis" />
-                        <text
-                          x={lx}
-                          y={ly}
-                          className="mpAxisLabel"
-                          textAnchor="middle"
-                          dominantBaseline="middle"
-                        >
-                          {axis}
-                        </text>
-                      </g>
-                    );
-                  })}
-
-                  <polygon points={reqPoly} className="mpPolyReq" />
-                  <polygon points={studentPoly} className="mpPolyStudent" />
-                </svg>
-              </div>
-
-              {/* Right: Evidence Breakdown */}
-              <div className="mpRight">
-                <div className="mpRightTitle">Evidence Breakdown</div>
-
-                <div className="mpField">
-                  <select
-                    className="mpSelectLong"
-                    value={evidence1}
-                    onChange={(e) => setEvidence1(e.target.value as RadarAxis)}
-                  >
-                    {RADAR_AXES.map((a) => (
-                      <option key={a} value={a}>
-                        {a}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="mpField">
-                  <select
-                    className="mpSelectLong"
-                    value={evidence2}
-                    onChange={(e) => setEvidence2(e.target.value as RadarAxis)}
-                  >
-                    {RADAR_AXES.map((a) => (
-                      <option key={a} value={a}>
-                        {a}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="mpEvidenceBox">
-                  <div className="mpEvidenceTitle">{evidence1}</div>
-                  <div className="mpEvidenceText">
-                    {EVIDENCE_COPY[careerFocus][evidence1]}
-                  </div>
-                  {coursesLoading || projectsLoading ? (
-                    <div className="mpEvidenceText">Loading evidence...</div>
-                  ) : evidenceItems1.length > 0 ? (
-                    <div className="mpEvidenceList">
-                      {evidenceItems1.map((item) => (
-                        <div key={item.id} className="mpEvidenceLine">
-                          {item.source}: {item.label} ({item.relevancePercent}% match)
-                        </div>
-                      ))}
+            {careerFocus ? (
+              <div className="mpInner">
+                {/* Left: Radar */}
+                <div className="mpLeft">
+                  <div className="mpLegend">
+                    <div className="mpLegendItem">
+                      <span className="mpDot mpDotStudent" />
+                      <span>Student</span>
                     </div>
-                  ) : (
-                    <div className="mpEvidenceText">No evidence available for this focus.</div>
-                  )}
-
-                  <div className="mpEvidenceTitle" style={{ marginTop: 12 }}>
-                    {evidence2}
-                  </div>
-                  <div className="mpEvidenceText">
-                    {EVIDENCE_COPY[careerFocus][evidence2]}
-                  </div>
-                  {coursesLoading || projectsLoading ? (
-                    <div className="mpEvidenceText">Loading evidence...</div>
-                  ) : evidenceItems2.length > 0 ? (
-                    <div className="mpEvidenceList">
-                      {evidenceItems2.map((item) => (
-                        <div key={item.id} className="mpEvidenceLine">
-                          {item.source}: {item.label} ({item.relevancePercent}% match)
-                        </div>
-                      ))}
+                    <div className="mpLegendItem">
+                      <span className="mpDot mpDotReq" />
+                      <span>Career Requirement</span>
                     </div>
-                  ) : (
-                    <div className="mpEvidenceText">No evidence available for this focus.</div>
-                  )}
+                  </div>
+
+                  <svg width={W} height={H} className="mpRadar" viewBox={`0 0 ${W} ${H}`}>
+                    {[1, 2, 3, 4].map((level) => {
+                      const ringScores = Object.fromEntries(
+                        RADAR_AXES.map((a) => [a, level])
+                      ) as Record<RadarAxis, number>;
+                      const ring = radarPoints(ringScores, RADAR_AXES, cx, cy, r);
+                      return <polygon key={level} points={ring} className="mpRing" />;
+                    })}
+
+                    {RADAR_AXES.map((axis, i) => {
+                      const n = RADAR_AXES.length;
+                      const ang = -Math.PI / 2 + (i * (2 * Math.PI)) / n;
+                      const x2 = cx + Math.cos(ang) * r;
+                      const y2 = cy + Math.sin(ang) * r;
+
+                      const lx = cx + Math.cos(ang) * (r + 26);
+                      const ly = cy + Math.sin(ang) * (r + 26);
+
+                      return (
+                        <g key={axis}>
+                          <line x1={cx} y1={cy} x2={x2} y2={y2} className="mpAxis" />
+                          <text
+                            x={lx}
+                            y={ly}
+                            className="mpAxisLabel"
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                          >
+                            {axis}
+                          </text>
+                        </g>
+                      );
+                    })}
+
+                    <polygon points={reqPoly} className="mpPolyReq" />
+                    <polygon points={studentPoly} className="mpPolyStudent" />
+                  </svg>
+                </div>
+
+                {/* Right: Evidence Breakdown */}
+                <div className="mpRight">
+                  <div className="mpRightTitle">Evidence Breakdown</div>
+
+                  <div className="mpField">
+                    <select
+                      className="mpSelectLong"
+                      value={evidence1}
+                      onChange={(e) => setEvidence1(e.target.value as RadarAxis)}
+                    >
+                      {RADAR_AXES.map((a) => (
+                        <option key={a} value={a}>
+                          {a}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="mpField">
+                    <select
+                      className="mpSelectLong"
+                      value={evidence2}
+                      onChange={(e) => setEvidence2(e.target.value as RadarAxis)}
+                    >
+                      {RADAR_AXES.map((a) => (
+                        <option key={a} value={a}>
+                          {a}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="mpEvidenceBox">
+                    <div className="mpEvidenceTitle">{evidence1}</div>
+                    <div className="mpEvidenceText">
+                      {EVIDENCE_COPY[activeCareerFocus][evidence1]}
+                    </div>
+                    {coursesLoading || projectsLoading ? (
+                      <div className="mpEvidenceText">Loading evidence...</div>
+                    ) : evidenceItems1.length > 0 ? (
+                      <div className="mpEvidenceList">
+                        {evidenceItems1.map((item) => (
+                          <div key={item.id} className="mpEvidenceLine">
+                            {item.source}: {item.label} ({item.relevancePercent}% match)
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="mpEvidenceText">No evidence available for this focus.</div>
+                    )}
+
+                    <div className="mpEvidenceTitle" style={{ marginTop: 12 }}>
+                      {evidence2}
+                    </div>
+                    <div className="mpEvidenceText">
+                      {EVIDENCE_COPY[activeCareerFocus][evidence2]}
+                    </div>
+                    {coursesLoading || projectsLoading ? (
+                      <div className="mpEvidenceText">Loading evidence...</div>
+                    ) : evidenceItems2.length > 0 ? (
+                      <div className="mpEvidenceList">
+                        {evidenceItems2.map((item) => (
+                          <div key={item.id} className="mpEvidenceLine">
+                            {item.source}: {item.label} ({item.relevancePercent}% match)
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="mpEvidenceText">No evidence available for this focus.</div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : null}
           </div>
         </section>
       </div>

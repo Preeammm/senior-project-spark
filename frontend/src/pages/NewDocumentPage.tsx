@@ -13,6 +13,7 @@ import {
 } from "../features/portfolio/services/portfolio.api";
 import {
   useCareerFocus,
+  type CareerFocusOption,
   type CareerFocus,
 } from "../features/careerFocus/useCareerFocus";
 
@@ -28,7 +29,7 @@ type Project = {
   relevancePercent?: number;
 };
 
-async function fetchProjects(careerFocus: CareerFocus): Promise<Project[]> {
+async function fetchProjects(careerFocus: CareerFocusOption): Promise<Project[]> {
   const { data } = await http.get("/api/projects", {
     params: { careerFocus },
   });
@@ -58,7 +59,8 @@ export default function NewDocumentPage() {
 
   const { data: projects, isLoading } = useQuery({
     queryKey: ["projects", careerFocus],
-    queryFn: () => fetchProjects(careerFocus),
+    enabled: !!careerFocus,
+    queryFn: () => fetchProjects(careerFocus as CareerFocusOption),
   });
 
   const rankedProjects = useMemo(() => {
@@ -82,7 +84,10 @@ export default function NewDocumentPage() {
       : "";
 
   const canGenerate =
-    title.trim().length > 0 && shortDesc.trim().length > 0 && !isLoading;
+    title.trim().length > 0 &&
+    shortDesc.trim().length > 0 &&
+    !!careerFocus &&
+    !isLoading;
 
   function toggleProject(id: string) {
     setSelectedProjectIds((prev) =>
@@ -197,6 +202,7 @@ async function onGenerate() {
             value={careerFocus}
             onChange={(e) => setCareerFocus(e.target.value as CareerFocus)}
           >
+            <option value="">Select career focus</option>
             {careerFocusOptions.map((opt) => (
               <option key={opt} value={opt}>
                 {opt}

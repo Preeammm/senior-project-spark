@@ -136,11 +136,31 @@ export default function CourseDetailPage() {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["course-detail", courseId, careerFocus],
-    enabled: !!courseId,
+    enabled: !!courseId && !!careerFocus,
     queryFn: async () => normalize(await getCourseDetail(String(courseId), careerFocus)),
   });
 
   const breakdownRows = useMemo(() => data?.breakdown ?? [], [data]);
+
+  if (!careerFocus) {
+    return (
+      <div className="pageContainer">
+        <PageHeader
+          title="My Courses"
+          careerFocus={careerFocus}
+          careerFocusOptions={careerFocusOptions}
+          onCareerFocusChange={setCareerFocus}
+          careerExtra={
+            <Link className="backLink" to="/courses">
+              ← Back to My Courses
+            </Link>
+          }
+        />
+        <div className="dividerLine" />
+        <div>Please select a career focus to view course details.</div>
+      </div>
+    );
+  }
 
   if (isLoading) return <div className="pageContainer">Loading...</div>;
   if (error || !data) return <div className="pageContainer">Course not found.</div>;

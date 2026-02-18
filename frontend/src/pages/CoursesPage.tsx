@@ -34,12 +34,15 @@ export default function CoursesPage() {
             href="#"
             onClick={(e) => {
               e.preventDefault();
-              const careerId = toCareerId(careerFocus);
               const from = location.pathname + location.search;
-
-              navigate(
-                `/careers?careerId=${encodeURIComponent(careerId)}&from=${encodeURIComponent(from)}`
-              );
+              if (careerFocus) {
+                const careerId = toCareerId(careerFocus);
+                navigate(
+                  `/careers?careerId=${encodeURIComponent(careerId)}&from=${encodeURIComponent(from)}`
+                );
+                return;
+              }
+              navigate(`/careers?from=${encodeURIComponent(from)}`);
             }}
             style={{
               display: "inline-block",
@@ -60,13 +63,17 @@ export default function CoursesPage() {
         <div className="coursesCount">
           {isLoading ? "Loading..." : data ? `${data.length} courses` : ""}
         </div>
-        <div className="coursesHint">Sorted by relevance for {careerFocus}</div>
+        <div className="coursesHint">
+          {careerFocus
+            ? `Sorted by relevance for ${careerFocus}`
+            : "Showing all courses (select career focus to calculate relevance)"}
+        </div>
       </div>
 
       {isLoading && <div className="coursesState">Loading courses...</div>}
       {error && <div className="coursesState error">Failed to load courses</div>}
 
-      {data && <CoursesTable courses={data} />}
+      {data && <CoursesTable courses={data} showRelevance={!!careerFocus} />}
     </div>
   );
 }

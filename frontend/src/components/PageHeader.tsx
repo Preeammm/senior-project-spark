@@ -38,6 +38,7 @@ export default function PageHeader<TCareer extends string = string>({
             value={careerFocus}
             onChange={(e) => onCareerFocusChange(e.target.value as TCareer)}
           >
+            <option value="">Select career focus</option>
             {careerFocusOptions!.map((c) => (
               <option key={c} value={c}>
                 {c}

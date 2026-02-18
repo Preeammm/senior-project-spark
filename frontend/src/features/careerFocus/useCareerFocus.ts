@@ -6,13 +6,14 @@ export const CAREER_FOCUS_OPTIONS = [
   "Software Engineer",
 ] as const;
 
-export type CareerFocus = (typeof CAREER_FOCUS_OPTIONS)[number];
+export type CareerFocusOption = (typeof CAREER_FOCUS_OPTIONS)[number];
+export type CareerFocus = CareerFocusOption | "";
 
-const DEFAULT_CAREER_FOCUS: CareerFocus = "Data Analyst";
+const DEFAULT_CAREER_FOCUS: CareerFocus = "";
 const CAREER_FOCUS_STORAGE_KEY = "spark.careerFocus";
 
-function isCareerFocus(value: string): value is CareerFocus {
-  return CAREER_FOCUS_OPTIONS.includes(value as CareerFocus);
+function isCareerFocus(value: string): value is CareerFocusOption {
+  return CAREER_FOCUS_OPTIONS.includes(value as CareerFocusOption);
 }
 
 function getStoredCareerFocus(): CareerFocus {
@@ -27,7 +28,11 @@ export function useCareerFocus() {
   const setCareerFocus = useCallback((next: CareerFocus) => {
     setCareerFocusState(next);
     if (typeof window !== "undefined") {
-      window.localStorage.setItem(CAREER_FOCUS_STORAGE_KEY, next);
+      if (next) {
+        window.localStorage.setItem(CAREER_FOCUS_STORAGE_KEY, next);
+      } else {
+        window.localStorage.removeItem(CAREER_FOCUS_STORAGE_KEY);
+      }
     }
   }, []);
 

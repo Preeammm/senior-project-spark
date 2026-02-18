@@ -18,7 +18,13 @@ function getCourseCodeFromCourseName(courseName: string) {
   return courseName.trim();
 }
 
-export default function ProjectsTable({ projects }: { projects: Project[] }) {
+export default function ProjectsTable({
+  projects,
+  showRelevance = true,
+}: {
+  projects: Project[];
+  showRelevance?: boolean;
+}) {
   return (
     <div className="projectsTableWrap">
       <table className="projectsTable">
@@ -73,7 +79,7 @@ export default function ProjectsTable({ projects }: { projects: Project[] }) {
 
                 <td className="relevanceCell">
                   <div className="relevanceInner">
-                    <ProgressBadge value={p.relevancePercent} />
+                    {showRelevance ? <ProgressBadge value={p.relevancePercent} /> : "—"}
                   </div>
                 </td>
 

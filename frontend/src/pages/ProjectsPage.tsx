@@ -33,12 +33,15 @@ export default function ProjectsPage() {
             href="#"
             onClick={(e) => {
               e.preventDefault();
-              const careerId = toCareerId(careerFocus);
               const from = location.pathname + location.search;
-
-              navigate(
-                `/careers?careerId=${encodeURIComponent(careerId)}&from=${encodeURIComponent(from)}`
-              );
+              if (careerFocus) {
+                const careerId = toCareerId(careerFocus);
+                navigate(
+                  `/careers?careerId=${encodeURIComponent(careerId)}&from=${encodeURIComponent(from)}`
+                );
+                return;
+              }
+              navigate(`/careers?from=${encodeURIComponent(from)}`);
             }}
             style={{
               display: "inline-block",
@@ -59,12 +62,16 @@ export default function ProjectsPage() {
         <div className="assessCount">
           {isLoading ? "Loading..." : data ? `${data.length} assessments` : ""}
         </div>
-        <div className="assessHint">Sorted by relevance for {careerFocus}</div>
+        <div className="assessHint">
+          {careerFocus
+            ? `Sorted by relevance for ${careerFocus}`
+            : "Showing all assessments (select career focus to calculate relevance)"}
+        </div>
       </div>
 
       {isLoading && <div className="assessState">Loading assessments...</div>}
       {error && <div className="assessState error">Failed to load assessments</div>}
-      {data && <ProjectsTable projects={data} />}
+      {data && <ProjectsTable projects={data} showRelevance={!!careerFocus} />}
     </div>
   );
 }

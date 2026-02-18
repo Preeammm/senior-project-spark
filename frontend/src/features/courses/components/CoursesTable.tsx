@@ -7,7 +7,7 @@ import "./CoursesTable.css";
 
 type Props = { courses: Course[] };
 
-export default function CoursesTable({ courses }: Props) {
+export default function CoursesTable({ courses, showRelevance = true }: Props & { showRelevance?: boolean }) {
   return (
     <div className="coursesTableWrap">
       <table className="coursesTable">
@@ -40,7 +40,7 @@ export default function CoursesTable({ courses }: Props) {
                 </td>
 
                 <td className="relevanceCol">
-                  <ProgressBadge value={c.relevancePercent} />
+                  {showRelevance ? <ProgressBadge value={c.relevancePercent} /> : "—"}
                 </td>
 
                 <td className="gradeCol">{c.grade}</td>
