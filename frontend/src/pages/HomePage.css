@@ -400,6 +400,13 @@
   font-size: 12px;
   fill: #475569;
   font-weight: 700;
+  cursor: pointer;
+  transition: fill 120ms ease;
+}
+
+.mpAxisLabel:hover,
+.mpAxisLabel.active {
+  fill: #1d4ed8;
 }
 
 .mpPolyReq {
@@ -419,6 +426,12 @@
   font-size: 15px;
   font-weight: 900;
   color: #0f172a;
+  margin-bottom: 10px;
+}
+
+.mpEvidenceHint {
+  font-size: 12px;
+  color: #64748b;
   margin-bottom: 10px;
 }
 
@@ -495,14 +508,67 @@
 }
 
 .mpEvidenceList {
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
 .mpEvidenceLine {
-  margin-top: 4px;
+  margin-top: 3px;
   font-size: 12px;
   color: #1e3a8a;
   font-weight: 600;
+}
+
+.mpSectionLabel {
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.mpSuggestedBox {
+  margin-top: 8px;
+  border: 1px solid #c7d2fe;
+  border-radius: 10px;
+  background: #f8faff;
+  padding: 8px;
+}
+
+.mpSuggestedTitle {
+  font-size: 12px;
+  font-weight: 800;
+  color: #1d4ed8;
+}
+
+.mpSuggestedNote {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #64748b;
+}
+
+.mpSuggestedItem {
+  margin-top: 6px;
+}
+
+.mpSuggestedLine {
+  margin-top: 0;
+}
+
+.mpSuggestedLink {
+  color: #1e40af;
+  text-decoration: none;
+}
+
+.mpSuggestedMeta {
+  margin-top: 2px;
+  font-size: 11px;
+  color: #475569;
+  font-weight: 600;
+}
+
+.mpSuggestedLink:hover {
+  text-decoration: underline;
 }
 
 /* Responsive */

@@ -67,57 +67,72 @@ const MOCK_REQUIREMENT: Record<CareerFocusOption, Record<RadarAxis, number>> = {
   },
 };
 
-const EVIDENCE_COPY: Record<CareerFocusOption, Record<RadarAxis, string>> = {
-  "Data Analyst": {
-    "Data Analysis":
-      "For Data Analyst focus, high-relevance database and analytics work is weighted more heavily.",
-    "Data Visualization":
-      "Visualization evidence prioritizes work that communicates trends and insights clearly.",
-    "Problem Solving":
-      "Problem-solving evidence emphasizes analytical breakdown and decision support outcomes.",
-    Programming:
-      "Programming evidence focuses on scripting, data querying, and practical automation.",
-    "Communication Skills":
-      "Communication evidence prioritizes report clarity and stakeholder-ready outputs.",
-    "Team Collaboration":
-      "Collaboration evidence emphasizes cross-functional projects and shared deliverables.",
-  },
-  "Data Engineer": {
-    "Data Analysis":
-      "For Data Engineer focus, analysis matters most when it supports data pipeline quality.",
-    "Data Visualization":
-      "Visualization evidence is weighted lower than data-platform and integration work.",
-    "Problem Solving":
-      "Problem-solving evidence emphasizes reliability, scale, and troubleshooting in data systems.",
-    Programming:
-      "Programming evidence prioritizes backend, ETL, and infrastructure-heavy implementation.",
-    "Communication Skills":
-      "Communication evidence values clear handoffs and technical documentation quality.",
-    "Team Collaboration":
-      "Collaboration evidence highlights work across analytics, engineering, and platform teams.",
-  },
-  "Software Engineer": {
-    "Data Analysis":
-      "For Software Engineer focus, data analysis is supportive but not the primary weighting.",
-    "Data Visualization":
-      "Visualization relevance is lower unless tied directly to product or feature implementation.",
-    "Problem Solving":
-      "Problem-solving evidence prioritizes system design, debugging, and implementation tradeoffs.",
-    Programming:
-      "Programming evidence strongly weights software architecture and coding depth.",
-    "Communication Skills":
-      "Communication evidence favors technical clarity in requirements, reviews, and handoffs.",
-    "Team Collaboration":
-      "Collaboration evidence emphasizes team-based delivery, reviews, and integration work.",
-  },
-};
-
 type EvidenceItem = {
   id: string;
   label: string;
   source: "Course" | "Assessment";
   relevancePercent: number;
 };
+
+type SuggestedCourse = {
+  id: string;
+  courseCode: string;
+  courseName: string;
+  supports: RadarAxis[];
+  enrollmentPlan: string;
+};
+
+const SUGGESTED_COURSE_CATALOG: SuggestedCourse[] = [
+  {
+    id: "ITCS326",
+    courseCode: "ITCS326",
+    courseName: "Data Mining",
+    supports: ["Data Analysis", "Problem Solving"],
+    enrollmentPlan: "Year 3, Semester 2",
+  },
+  {
+    id: "ITCS321",
+    courseCode: "ITCS321",
+    courseName: "Business Intelligence and Visualization",
+    supports: ["Data Analysis", "Data Visualization", "Communication Skills"],
+    enrollmentPlan: "Year 4, Semester 1",
+  },
+  {
+    id: "ITCS314",
+    courseCode: "ITCS314",
+    courseName: "Statistics for Computing",
+    supports: ["Data Analysis", "Problem Solving"],
+    enrollmentPlan: "Year 2, Semester 2",
+  },
+  {
+    id: "ITCS225",
+    courseCode: "ITCS225",
+    courseName: "Human-Computer Interaction",
+    supports: ["Data Visualization", "Communication Skills"],
+    enrollmentPlan: "Year 3, Semester 1",
+  },
+  {
+    id: "ITCS316",
+    courseCode: "ITCS316",
+    courseName: "Software Engineering",
+    supports: ["Programming", "Team Collaboration", "Communication Skills"],
+    enrollmentPlan: "Year 3, Semester 2",
+  },
+  {
+    id: "ITCS339",
+    courseCode: "ITCS339",
+    courseName: "DevOps and Cloud Infrastructure",
+    supports: ["Programming", "Problem Solving", "Team Collaboration"],
+    enrollmentPlan: "Year 4, Semester 1",
+  },
+  {
+    id: "ITCS332",
+    courseCode: "ITCS332",
+    courseName: "Project Management for IT",
+    supports: ["Team Collaboration", "Communication Skills"],
+    enrollmentPlan: "Year 3, Semester 1",
+  },
+];
 
 function toCourseEvidence(c: Course): EvidenceItem {
   return {
@@ -154,6 +169,22 @@ function pickEvidence(axis: RadarAxis, courses: Course[], projects: Project[]) {
   return merged
     .sort((a, b) => b.relevancePercent - a.relevancePercent)
     .slice(0, 2);
+}
+
+function pickSuggestedCourses(
+  axis: RadarAxis,
+  takenCourses: Course[],
+  maxItems = 2
+) {
+  const takenCourseCodes = new Set(
+    takenCourses.map((course) => course.courseCode.trim().toUpperCase())
+  );
+
+  return SUGGESTED_COURSE_CATALOG.filter((course) =>
+    course.supports.includes(axis)
+  )
+    .filter((course) => !takenCourseCodes.has(course.courseCode.toUpperCase()))
+    .slice(0, maxItems);
 }
 
 function clamp01(n: number) {
@@ -199,9 +230,7 @@ export default function HomePage() {
   const activeCareerFocus: CareerFocusOption =
     careerFocus || careerFocusOptions[0];
 
-  // evidence breakdown dropdowns (mock)
-  const [evidence1, setEvidence1] = useState<RadarAxis>("Data Analysis");
-  const [evidence2, setEvidence2] = useState<RadarAxis>("Problem Solving");
+  const [selectedSkill, setSelectedSkill] = useState<RadarAxis>("Problem Solving");
 
   const studentScores = useMemo(() => MOCK_STUDENT, []);
   const reqScores = useMemo(
@@ -211,13 +240,13 @@ export default function HomePage() {
   const { data: courses = [], isLoading: coursesLoading } = useCourses(careerFocus);
   const { data: projects = [], isLoading: projectsLoading } = useProjects(careerFocus);
 
-  const evidenceItems1 = useMemo(
-    () => pickEvidence(evidence1, courses, projects),
-    [evidence1, courses, projects]
+  const evidenceItems = useMemo(
+    () => pickEvidence(selectedSkill, courses, projects),
+    [selectedSkill, courses, projects]
   );
-  const evidenceItems2 = useMemo(
-    () => pickEvidence(evidence2, courses, projects),
-    [evidence2, courses, projects]
+  const suggestedCourses = useMemo(
+    () => pickSuggestedCourses(selectedSkill, courses),
+    [selectedSkill, courses]
   );
 
   // Radar SVG settings
@@ -443,9 +472,18 @@ export default function HomePage() {
                           <text
                             x={lx}
                             y={ly}
-                            className="mpAxisLabel"
+                            className={`mpAxisLabel ${selectedSkill === axis ? "active" : ""}`}
                             textAnchor="middle"
                             dominantBaseline="middle"
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => setSelectedSkill(axis)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                setSelectedSkill(axis);
+                              }
+                            }}
                           >
                             {axis}
                           </text>
@@ -461,70 +499,45 @@ export default function HomePage() {
                 {/* Right: Evidence Breakdown */}
                 <div className="mpRight">
                   <div className="mpRightTitle">Evidence Breakdown</div>
-
-                  <div className="mpField">
-                    <select
-                      className="mpSelectLong"
-                      value={evidence1}
-                      onChange={(e) => setEvidence1(e.target.value as RadarAxis)}
-                    >
-                      {RADAR_AXES.map((a) => (
-                        <option key={a} value={a}>
-                          {a}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="mpField">
-                    <select
-                      className="mpSelectLong"
-                      value={evidence2}
-                      onChange={(e) => setEvidence2(e.target.value as RadarAxis)}
-                    >
-                      {RADAR_AXES.map((a) => (
-                        <option key={a} value={a}>
-                          {a}
-                        </option>
-                      ))}
-                    </select>
+                  <div className="mpEvidenceHint">
+                    Click a skill on the radar chart to view evidence.
                   </div>
 
                   <div className="mpEvidenceBox">
-                    <div className="mpEvidenceTitle">{evidence1}</div>
-                    <div className="mpEvidenceText">
-                      {EVIDENCE_COPY[activeCareerFocus][evidence1]}
-                    </div>
+                    <div className="mpEvidenceTitle">{selectedSkill}</div>
                     {coursesLoading || projectsLoading ? (
                       <div className="mpEvidenceText">Loading evidence...</div>
-                    ) : evidenceItems1.length > 0 ? (
-                      <div className="mpEvidenceList">
-                        {evidenceItems1.map((item) => (
-                          <div key={item.id} className="mpEvidenceLine">
-                            {item.source}: {item.label} ({item.relevancePercent}% match)
+                    ) : evidenceItems.length > 0 ? (
+                      <>
+                        <div className="mpSectionLabel">Top evidence</div>
+                        <div className="mpEvidenceList">
+                          {evidenceItems.map((item) => (
+                            <div key={item.id} className="mpEvidenceLine">
+                              {item.source}: {item.label} ({item.relevancePercent}% match)
+                            </div>
+                          ))}
+                        </div>
+                        {suggestedCourses.length > 0 ? (
+                          <div className="mpSuggestedBox">
+                            <div className="mpSuggestedTitle">Course related to skill</div>
+                            <div className="mpSuggestedNote">
+                              These are courses you have not achieved yet.
+                            </div>
+                            <div className="mpEvidenceList">
+                              {suggestedCourses.map((course) => (
+                                <div key={course.id} className="mpSuggestedItem">
+                                  <div className="mpEvidenceLine mpSuggestedLine">
+                                    Course: {course.courseCode} - {course.courseName}
+                                  </div>
+                                  <div className="mpSuggestedMeta">
+                                    Eligible enrollment period: {course.enrollmentPlan}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="mpEvidenceText">No evidence available for this focus.</div>
-                    )}
-
-                    <div className="mpEvidenceTitle" style={{ marginTop: 12 }}>
-                      {evidence2}
-                    </div>
-                    <div className="mpEvidenceText">
-                      {EVIDENCE_COPY[activeCareerFocus][evidence2]}
-                    </div>
-                    {coursesLoading || projectsLoading ? (
-                      <div className="mpEvidenceText">Loading evidence...</div>
-                    ) : evidenceItems2.length > 0 ? (
-                      <div className="mpEvidenceList">
-                        {evidenceItems2.map((item) => (
-                          <div key={item.id} className="mpEvidenceLine">
-                            {item.source}: {item.label} ({item.relevancePercent}% match)
-                          </div>
-                        ))}
-                      </div>
+                        ) : null}
+                      </>
                     ) : (
                       <div className="mpEvidenceText">No evidence available for this focus.</div>
                     )}
