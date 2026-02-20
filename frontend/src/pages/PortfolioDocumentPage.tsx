@@ -23,6 +23,8 @@ type ProfileDetail = {
   faculty: string;
   minor: string;
   year: number | string;
+  universityEmail?: string;
+  personalEmail?: string;
   email: string;
   contactNumber: string;
   address: string;
@@ -37,6 +39,14 @@ type Project = {
   courseName: string;
   yearSemester: string;
   type: "Group" | "Individual";
+  competencyTags: string[];
+  relevancePercent: number;
+};
+
+type Course = {
+  id: string;
+  courseCode: string;
+  courseName: string;
   competencyTags: string[];
   relevancePercent: number;
 };
@@ -125,12 +135,26 @@ function projectDescriptionForFocus(project: Project, careerFocus: string) {
   return `${project.projectName} supports analyst outcomes by showing data interpretation, evidence-based insights, and communication of project results.`;
 }
 
-function getSoftSkills(projects: Project[]) {
-  const baseline = ["Team Collaboration", "Communication", "Problem Solving"];
-  const fromProjects = projects.some((p) => p.type === "Group")
-    ? ["Cross-functional teamwork"]
-    : ["Independent ownership"];
-  return [...baseline, ...fromProjects];
+function extractCourseCode(text: string) {
+  const match = String(text ?? "").toUpperCase().match(/[A-Z]{2,}\d{2,}/);
+  return match?.[0] ?? "";
+}
+
+function isSoftSkill(skill: string) {
+  const value = skill.trim().toLowerCase();
+  if (!value) return false;
+  const softKeywords = [
+    "collaboration",
+    "communication",
+    "leadership",
+    "teamwork",
+    "problem solving",
+    "adaptability",
+    "critical thinking",
+    "time management",
+    "presentation",
+  ];
+  return softKeywords.some((keyword) => value.includes(keyword));
 }
 
 export default function PortfolioDocumentPage() {
@@ -203,6 +227,16 @@ export default function PortfolioDocumentPage() {
       return res.data;
     },
   });
+  const { data: courses = [] } = useQuery({
+    queryKey: ["portfolio-courses-by-focus", careerFocus],
+    enabled: !!careerFocus && careerFocus !== "—",
+    queryFn: async () => {
+      const res = await http.get<Course[]>("/api/courses", {
+        params: { careerFocus },
+      });
+      return res.data;
+    },
+  });
   const shortDescription =
     shortSection?.lines
       .map(normalizeInlineMarkdown)
@@ -218,15 +252,59 @@ export default function PortfolioDocumentPage() {
     () => projectLines.map((line) => normalizeInlineMarkdown(line)),
     [projectLines]
   );
-
-  const hardSkills = useMemo(() => {
+  const selectedCourseCodes = useMemo(() => {
+    const codes = new Set<string>();
+    selectedProjectDetails.forEach((project) => {
+      const code = extractCourseCode(project.courseName);
+      if (code) codes.add(code);
+    });
+    fallbackProjectItems.forEach((line) => {
+      const code = extractCourseCode(line);
+      if (code) codes.add(code);
+    });
+    return Array.from(codes);
+  }, [selectedProjectDetails, fallbackProjectItems]);
+  const selectedCourses = useMemo(() => {
+    if (!selectedCourseCodes.length) return [];
+    const set = new Set(selectedCourseCodes);
+    return courses.filter((course) => set.has(course.courseCode.toUpperCase()));
+  }, [courses, selectedCourseCodes]);
+  const projectSkills = useMemo(() => {
     const tags = new Set<string>();
     selectedProjectDetails.forEach((project) => {
-      project.competencyTags.forEach((tag) => tags.add(tag));
+      project.competencyTags.forEach((tag) => {
+        const clean = tag.trim();
+        if (clean) tags.add(clean);
+      });
     });
     return Array.from(tags);
   }, [selectedProjectDetails]);
-  const softSkills = useMemo(() => getSoftSkills(selectedProjectDetails), [selectedProjectDetails]);
+  const courseSkills = useMemo(() => {
+    const tags = new Set<string>();
+    selectedCourses.forEach((course) => {
+      course.competencyTags.forEach((tag) => {
+        const clean = tag.trim();
+        if (clean) tags.add(clean);
+      });
+    });
+    return Array.from(tags);
+  }, [selectedCourses]);
+  const allSkills = useMemo(() => {
+    const tags = new Set<string>();
+    projectSkills.forEach((skill) => tags.add(skill));
+    courseSkills.forEach((skill) => tags.add(skill));
+    return Array.from(tags);
+  }, [projectSkills, courseSkills]);
+  const hardSkills = useMemo(
+    () => allSkills.filter((skill) => !isSoftSkill(skill)),
+    [allSkills]
+  );
+  const softSkills = useMemo(
+    () => allSkills.filter((skill) => isSoftSkill(skill)),
+    [allSkills]
+  );
+  const personalEmail = profile?.personalEmail || profile?.email || "—";
+  const universityEmail = profile?.universityEmail || "—";
   const graduationYear = expectedGraduationYear(profile?.year || me?.year);
 
   if (!docId) return <div className="pageContainer">Loading document...</div>;
@@ -400,7 +478,8 @@ export default function PortfolioDocumentPage() {
             <div className="docInlineList">
               <span><b>Birthdate:</b> {formatBirthDate(profile?.dateOfBirth)}</span>
               <span><b>Phone:</b> {profile?.contactNumber || "—"}</span>
-              <span><b>Email:</b> {profile?.email || "—"}</span>
+              <span><b>University Email:</b> {universityEmail}</span>
+              <span><b>Personal Email:</b> {personalEmail}</span>
               <span>
                 <b>LinkedIn:</b>{" "}
                 {profile?.linkedinUrl ? (
@@ -435,7 +514,7 @@ export default function PortfolioDocumentPage() {
 
           <section className="docSection">
             <h2>Skills</h2>
-            <p><b>Technical Skills (Hard Skills)</b></p>
+            <p><b>Hard Skills</b></p>
             {hardSkills.length ? (
               <ul>
                 {hardSkills.map((skill) => (
@@ -445,12 +524,16 @@ export default function PortfolioDocumentPage() {
             ) : (
               <p>—</p>
             )}
-            <p><b>Collaboration Skills (Soft Skills)</b></p>
-            <ul>
-              {softSkills.map((skill) => (
-                <li key={skill}>{skill}</li>
-              ))}
-            </ul>
+            <p><b>Soft Skills</b></p>
+            {softSkills.length ? (
+              <ul>
+                {softSkills.map((skill) => (
+                  <li key={skill}>{skill}</li>
+                ))}
+              </ul>
+            ) : (
+              <p>—</p>
+            )}
           </section>
 
           <section className="docSection">
@@ -487,7 +570,8 @@ export default function PortfolioDocumentPage() {
             <div className="docContactSlipTitle">Contact Information Slip (For HR)</div>
             <div className="docSlipRow"><b>Name:</b> {studentName}</div>
             <div className="docSlipRow"><b>Phone:</b> {profile?.contactNumber || "—"}</div>
-            <div className="docSlipRow"><b>Email:</b> {profile?.email || "—"}</div>
+            <div className="docSlipRow"><b>University Email:</b> {universityEmail}</div>
+            <div className="docSlipRow"><b>Personal Email:</b> {personalEmail}</div>
             <div className="docSlipRow"><b>LinkedIn:</b> {profile?.linkedinUrl || "—"}</div>
             <div className="docSlipRow"><b>GitHub:</b> {profile?.githubUrl || "—"}</div>
           </footer>

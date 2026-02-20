@@ -6,7 +6,7 @@ const projects = [
       "ITCS495 - Special Topics in Databases and Intelligent Systems",
     yearSemester: "Year 4 Semester 1",
     type: "Group",
-    competencyTags: ["Tag 1", "Tag 2", "Tag 3"],
+    competencyTags: ["Data Cleaning", "Exploratory Data Analysis", "Dashboard Design"],
     relevancePercent: 90,
     materials: [],
     visibleTo: ["u1"], // ✅ only user 1
@@ -17,7 +17,7 @@ const projects = [
     courseName: "ITCS241 - Database Management Systems",
     yearSemester: "Year 2 Semester 1",
     type: "Individual",
-    competencyTags: ["Tag 1", "Tag 2"],
+    competencyTags: ["SQL Querying", "Data Modeling"],
     relevancePercent: 85,
     materials: [],
     visibleTo: ["u1","u2", "u3"], // ✅ users 2 & 3

@@ -15,14 +15,15 @@ const me = {
 
     avatarUrl: null,
 
-    // editable
-    email: "yaowapa@gmail.com",
-    contactNumber: "",
-    address: "",
+    // read-only university email + editable personal email
+    universityEmail: "yaowapa.sab@student.mahidol.ac.th",
+    personalEmail: "",
+    contactNumber: "0899999999",
+    address: "Street 999 Moo 8 Chayangkul Rd., Soi Salaya  T.Mahidol, Nakhonpathom 99888",
     githubUrl: "https://github.com/Preeammm",
     linkedinUrl: "https://www.linkedin.com/in/yaowapa-sabkasedkid",
-    dateOfBirth: "",
-    gender: "",
+    dateOfBirth: "08/12/2004",
+    gender: "female",
   },
 
   u2: {
@@ -35,8 +36,9 @@ const me = {
 
     avatarUrl: null,
 
-    // editable
-    email: "panipak@gmail.com",
+    // read-only university email + editable personal email
+    universityEmail: "u6588096@student.mahidol.ac.th",
+    personalEmail: "panipak@gmail.com",
     contactNumber: "",
     address: "",
     githubUrl: "",
@@ -55,8 +57,9 @@ const me = {
 
     avatarUrl: null,
 
-    // editable
-    email: "apivich@gmail.com",
+    // read-only university email + editable personal email
+    universityEmail: "u6588107@student.mahidol.ac.th",
+    personalEmail: "apivich@gmail.com",
     contactNumber: "",
     address: "",
     githubUrl: "",

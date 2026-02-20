@@ -150,6 +150,15 @@ function sanitizeGender(g) {
   return allowed.includes(v) ? v : "";
 }
 
+function deriveUniversityEmail(profile) {
+  const explicit = sanitizeEmail(profile?.universityEmail);
+  if (explicit) return explicit;
+
+  const sid = sanitizeText(profile?.studentId, 40).replace(/[^\w.-]/g, "");
+  if (!sid) return "";
+  return `u${sid}@student.mahidol.ac.th`;
+}
+
 const CAREER_FOCUS = ["Data Analyst", "Data Engineer", "Software Engineer"];
 
 function normalizeCareerFocus(raw) {
@@ -239,8 +248,11 @@ app.get("/api/me/profile", requireUser, (req, res) => {
     minor: profile.minor ?? "",
     year: profile.year ?? "",
 
-    // editable
-    email: profile.email ?? "",
+    // read-only + editable
+    universityEmail: deriveUniversityEmail(profile),
+    personalEmail: profile.personalEmail ?? profile.email ?? "",
+    // keep backward compatibility for existing consumers
+    email: profile.personalEmail ?? profile.email ?? "",
     contactNumber: profile.contactNumber ?? "",
     address: profile.address ?? "",
     githubUrl: profile.githubUrl ?? "",
@@ -253,17 +265,29 @@ app.get("/api/me/profile", requireUser, (req, res) => {
 app.put("/api/me/profile", requireUser, (req, res) => {
   const profile = meStore[req.user.id];
   if (!profile) return res.status(404).json({ message: "Profile not found" });
+  const body = req.body ?? {};
 
   // update only editable fields
-  profile.email = sanitizeEmail(req.body?.email);
-  profile.contactNumber = sanitizePhone(req.body?.contactNumber);
-  profile.address = sanitizeText(req.body?.address, 300);
+  const nextPersonalEmail = sanitizeEmail(body.personalEmail ?? body.email);
+  profile.personalEmail = nextPersonalEmail;
+  // keep backward compatibility for existing consumers
+  profile.email = nextPersonalEmail;
+  if (Object.prototype.hasOwnProperty.call(body, "contactNumber")) {
+    profile.contactNumber = sanitizePhone(body.contactNumber);
+  }
+  if (Object.prototype.hasOwnProperty.call(body, "address")) {
+    profile.address = sanitizeText(body.address, 300);
+  }
 
-  profile.githubUrl = sanitizeUrl(req.body?.githubUrl);
-  profile.linkedinUrl = sanitizeUrl(req.body?.linkedinUrl);
+  profile.githubUrl = sanitizeUrl(body.githubUrl);
+  profile.linkedinUrl = sanitizeUrl(body.linkedinUrl);
 
-  profile.dateOfBirth = sanitizeDob(req.body?.dateOfBirth);
-  profile.gender = sanitizeGender(req.body?.gender);
+  if (Object.prototype.hasOwnProperty.call(body, "dateOfBirth")) {
+    profile.dateOfBirth = sanitizeDob(body.dateOfBirth);
+  }
+  if (Object.prototype.hasOwnProperty.call(body, "gender")) {
+    profile.gender = sanitizeGender(body.gender);
+  }
 
   // return full profile again
   res.json({
@@ -274,7 +298,10 @@ app.put("/api/me/profile", requireUser, (req, res) => {
     minor: profile.minor ?? "",
     year: profile.year ?? "",
 
-    email: profile.email ?? "",
+    universityEmail: deriveUniversityEmail(profile),
+    personalEmail: profile.personalEmail ?? profile.email ?? "",
+    // keep backward compatibility for existing consumers
+    email: profile.personalEmail ?? profile.email ?? "",
     contactNumber: profile.contactNumber ?? "",
     address: profile.address ?? "",
     githubUrl: profile.githubUrl ?? "",
@@ -384,8 +411,26 @@ let portfolioDocs = [
     id: "d1",
     title: "My Portfolio (Mock)",
     createdAt: new Date().toISOString(),
-    content:
-      "This is a mock portfolio document. Use POST /api/portfolio/documents to create new ones.",
+    content: `# My Portfolio (Mock)
+
+## Basic Information
+- Career Focus: **Data Analyst**
+- Use SPARK Personal Info: **Yes**
+
+## Short Description
+I am an ICT student focused on Data Analyst roles, with hands-on experience in data preparation, SQL querying, dashboard thinking, and presenting insights from project outcomes.
+
+## Selected Projects
+1. **Final Project** — ITCS495 - Special Topics in Databases and Intelligent Systems • Year 4 Semester 1 • Group
+2. **Database Mini Project** — ITCS241 - Database Management Systems • Year 2 Semester 1 • Individual
+
+## Skills
+- SQL
+- Data Cleaning
+- Data Visualization
+- Requirement Analysis
+- Team Collaboration
+`,
   },
 ];
 

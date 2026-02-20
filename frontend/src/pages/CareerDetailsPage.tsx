@@ -14,6 +14,15 @@ function normalize(s: string) {
   return s.trim().toLowerCase();
 }
 
+function sectionAnchorId(title: string) {
+  const slug = title
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return `sec-${slug || "section"}`;
+}
+
 function resolveActiveCareer(
   careers: CareerDetail[],
   params: URLSearchParams
@@ -249,26 +258,36 @@ export default function CareerDetailsPage() {
           {/* Main content */}
           <main className="cdMain">
             <div className="cdMainCard">
-              <div className="cdTitleRow">
-                <h1 className="cdTitle">{activeCareer.title}</h1>
-                <span className="cdBadge">{groupKeyForCareer(activeCareer.title)}</span>
-              </div>
+              <div className="cdMainInner">
+                <div className="cdTitleRow">
+                  <h1 className="cdTitle">{activeCareer.title}</h1>
+                  <span className="cdBadge">{groupKeyForCareer(activeCareer.title)}</span>
+                </div>
 
-              <p className="cdIntro">{activeCareer.intro}</p>
+                <nav className="cdQuickLinks" aria-label="On this page">
+                  {activeCareer.sections.map((sec) => (
+                    <a key={sec.title} className="cdQuickLink" href={`#${sectionAnchorId(sec.title)}`}>
+                      {sec.title}
+                    </a>
+                  ))}
+                </nav>
 
-              <div className="cdSections">
-                {activeCareer.sections.map((sec) => (
-                  <section key={sec.title} className="cdSection">
-                    <h2 className="cdSectionTitle">{sec.title}</h2>
-                    <ul className="cdList">
-                      {sec.bullets.map((b, idx) => (
-                        <li key={idx} className="cdListItem">
-                          {b}
-                        </li>
-                      ))}
-                    </ul>
-                  </section>
-                ))}
+                <p className="cdIntro">{activeCareer.intro}</p>
+
+                <div className="cdSections">
+                  {activeCareer.sections.map((sec) => (
+                    <section key={sec.title} className="cdSection" id={sectionAnchorId(sec.title)}>
+                      <h2 className="cdSectionTitle">{sec.title}</h2>
+                      <ul className="cdList">
+                        {sec.bullets.map((b, idx) => (
+                          <li key={idx} className="cdListItem">
+                            {b}
+                          </li>
+                        ))}
+                      </ul>
+                    </section>
+                  ))}
+                </div>
               </div>
 
               <div className="cdReference">

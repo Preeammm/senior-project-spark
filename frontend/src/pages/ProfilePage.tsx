@@ -12,9 +12,10 @@ type Profile = {
   year: string | number;
   minor: string;
   faculty: string;
+  universityEmail: string;
 
   // editable
-  email: string;
+  personalEmail: string;
   contactNumber: string;
   address: string;
   githubUrl: string;
@@ -30,8 +31,9 @@ const EMPTY: Profile = {
   year: "",
   minor: "",
   faculty: "",
+  universityEmail: "",
 
-  email: "",
+  personalEmail: "",
   contactNumber: "",
   address: "",
   githubUrl: "",
@@ -40,7 +42,7 @@ const EMPTY: Profile = {
   gender: "",
 };
 
-type EditSection = null | "personal" | "address" | "links";
+type EditSection = null | "personal" | "links";
 
 function initialsOf(name?: string, surname?: string) {
   const a = (name ?? "").trim()[0] ?? "";
@@ -56,6 +58,12 @@ function formatDob(iso: string) {
   if (!m) return iso;
   const [, y, mm, dd] = m;
   return `${dd}-${mm}-${y}`;
+}
+
+function deriveUniversityEmail(profile: Profile) {
+  if (profile.universityEmail) return profile.universityEmail;
+  if (!profile.studentId) return "";
+  return `u${profile.studentId}@student.mahidol.ac.th`;
 }
 
 function Field({
@@ -96,7 +104,12 @@ export default function ProfilePage() {
       setMsg("");
       try {
         const res = await http.get("/api/me/profile");
-        const p = { ...EMPTY, ...(res.data ?? {}) };
+        const raw = { ...EMPTY, ...(res.data ?? {}) } as Profile & { email?: string };
+        const p = {
+          ...raw,
+          universityEmail: raw.universityEmail || deriveUniversityEmail(raw),
+          personalEmail: raw.personalEmail || raw.email || "",
+        };
         if (!alive) return;
         setProfile(p);
         setDraft(p);
@@ -139,20 +152,17 @@ export default function ProfilePage() {
     try {
       // send only editable fields
       const payload = {
-        email: draft.email,
-        contactNumber: draft.contactNumber,
-        address: draft.address,
+        personalEmail: draft.personalEmail,
         githubUrl: draft.githubUrl,
         linkedinUrl: draft.linkedinUrl,
-        dateOfBirth: draft.dateOfBirth,
-        gender: draft.gender,
       };
 
       const res = await http.put("/api/me/profile", payload);
+      const raw = { ...profile, ...payload, ...(res.data ?? {}) } as Profile & { email?: string };
       const merged: Profile = {
-        ...profile,
-        ...payload,
-        ...(res.data ?? {}),
+        ...raw,
+        universityEmail: raw.universityEmail || deriveUniversityEmail(raw),
+        personalEmail: raw.personalEmail || raw.email || "",
       };
 
       setProfile(merged);
@@ -183,7 +193,6 @@ export default function ProfilePage() {
   const subtitleText = profile.address ? profile.address : `${profile.faculty || ""}`.trim() || "—";
 
   const isPersonal = editing === "personal";
-  const isAddress = editing === "address";
   const isLinks = editing === "links";
 
   return (
@@ -264,62 +273,38 @@ export default function ProfilePage() {
 
             <div className="pfCell">
               <div className="pfCellLabel">Date of Birth</div>
-              {isPersonal ? (
-                <input
-                  className="pfInput"
-                  type="date"
-                  name="dateOfBirth"
-                  value={draft.dateOfBirth}
-                  onChange={onChange}
-                />
-              ) : (
-                <div className="pfCellValue">{formatDob(profile.dateOfBirth)}</div>
-              )}
+              <div className="pfCellValue">{formatDob(profile.dateOfBirth)}</div>
             </div>
 
             {/* Row 2 */}
             <div className="pfCell">
-              <div className="pfCellLabel">Email Address</div>
+              <div className="pfCellLabel">Mahidol Email</div>
+              <div className="pfCellValue">{profile.universityEmail || "—"}</div>
+            </div>
+
+            <div className="pfCell">
+              <div className="pfCellLabel">Personal Email</div>
               {isPersonal ? (
                 <input
                   className="pfInput"
-                  name="email"
-                  value={draft.email}
+                  name="personalEmail"
+                  value={draft.personalEmail}
                   onChange={onChange}
                   placeholder="your@email.com"
                 />
               ) : (
-                <div className="pfCellValue">{profile.email || "—"}</div>
+                <div className="pfCellValue">{profile.personalEmail || "—"}</div>
               )}
             </div>
 
             <div className="pfCell">
               <div className="pfCellLabel">Phone Number</div>
-              {isPersonal ? (
-                <input
-                  className="pfInput"
-                  name="contactNumber"
-                  value={draft.contactNumber}
-                  onChange={onChange}
-                  placeholder="08x-xxx-xxxx"
-                />
-              ) : (
-                <div className="pfCellValue">{profile.contactNumber || "—"}</div>
-              )}
+              <div className="pfCellValue">{profile.contactNumber || "—"}</div>
             </div>
 
             <div className="pfCell">
               <div className="pfCellLabel">Gender</div>
-              {isPersonal ? (
-                <select className="pfInput" name="gender" value={draft.gender} onChange={onChange}>
-                  <option value="">—</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </select>
-              ) : (
-                <div className="pfCellValue">{profile.gender || "—"}</div>
-              )}
+              <div className="pfCellValue">{profile.gender || "—"}</div>
             </div>
           </div>
 
@@ -337,38 +322,12 @@ export default function ProfilePage() {
         <div className="pfCard">
           <div className="pfCardHead">
             <div className="pfCardHeadTitle">Address</div>
-
-            {isAddress ? (
-              <div className="pfHeadActions">
-                <button className="pfBtn ghost" onClick={cancelEdit} disabled={saving}>
-                  Cancel
-                </button>
-                <button className="pfBtn primary" onClick={save} disabled={saving}>
-                  {saving ? "Saving..." : "Save"}
-                </button>
-              </div>
-            ) : (
-              <button className="pfBtn editGray" onClick={() => startEdit("address")}>
-                Edit ✎
-              </button>
-            )}
           </div>
 
           <div className="pfGrid">
             <div className="pfCell pfCellFull">
               <div className="pfCellLabel">Address</div>
-              {isAddress ? (
-                <textarea
-                  className="pfTextarea"
-                  name="address"
-                  value={draft.address}
-                  onChange={onChange}
-                  placeholder="Your address"
-                  rows={3}
-                />
-              ) : (
-                <div className="pfCellValue">{profile.address || "—"}</div>
-              )}
+              <div className="pfCellValue">{profile.address || "—"}</div>
             </div>
           </div>
         </div>

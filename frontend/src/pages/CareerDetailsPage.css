@@ -190,6 +190,32 @@
   max-width: 860px;
 }
 
+.cdQuickLinks {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cdQuickLink {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid #dbeafe;
+  background: #eff6ff;
+  color: #1d4ed8;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.cdQuickLink:hover {
+  background: #dbeafe;
+  border-color: #bfdbfe;
+}
+
 /* title row */
 .cdTitleRow {
   display: flex;
