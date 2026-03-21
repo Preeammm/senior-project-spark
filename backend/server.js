@@ -267,25 +267,43 @@ app.put("/api/me/profile", requireUser, (req, res) => {
   if (!profile) return res.status(404).json({ message: "Profile not found" });
   const body = req.body ?? {};
 
+  const hasOwn = (key) => Object.prototype.hasOwnProperty.call(body, key);
+  const pickBodyValue = (...keys) => {
+    for (const key of keys) {
+      if (hasOwn(key)) return body[key];
+    }
+    return undefined;
+  };
+
   // update only editable fields
-  const nextPersonalEmail = sanitizeEmail(body.personalEmail ?? body.email);
-  profile.personalEmail = nextPersonalEmail;
-  // keep backward compatibility for existing consumers
-  profile.email = nextPersonalEmail;
-  if (Object.prototype.hasOwnProperty.call(body, "contactNumber")) {
+  const personalEmailRaw = pickBodyValue("personalEmail", "email", "personal_email");
+  if (personalEmailRaw !== undefined) {
+    const nextPersonalEmail = sanitizeEmail(personalEmailRaw);
+    profile.personalEmail = nextPersonalEmail;
+    // keep backward compatibility for existing consumers
+    profile.email = nextPersonalEmail;
+  }
+
+  if (hasOwn("contactNumber")) {
     profile.contactNumber = sanitizePhone(body.contactNumber);
   }
-  if (Object.prototype.hasOwnProperty.call(body, "address")) {
+  if (hasOwn("address")) {
     profile.address = sanitizeText(body.address, 300);
   }
 
-  profile.githubUrl = sanitizeUrl(body.githubUrl);
-  profile.linkedinUrl = sanitizeUrl(body.linkedinUrl);
+  const githubRaw = pickBodyValue("githubUrl", "githubURL", "github");
+  if (githubRaw !== undefined) {
+    profile.githubUrl = sanitizeUrl(githubRaw);
+  }
+  const linkedinRaw = pickBodyValue("linkedinUrl", "linkedInUrl", "linkedin");
+  if (linkedinRaw !== undefined) {
+    profile.linkedinUrl = sanitizeUrl(linkedinRaw);
+  }
 
-  if (Object.prototype.hasOwnProperty.call(body, "dateOfBirth")) {
+  if (hasOwn("dateOfBirth")) {
     profile.dateOfBirth = sanitizeDob(body.dateOfBirth);
   }
-  if (Object.prototype.hasOwnProperty.call(body, "gender")) {
+  if (hasOwn("gender")) {
     profile.gender = sanitizeGender(body.gender);
   }
 

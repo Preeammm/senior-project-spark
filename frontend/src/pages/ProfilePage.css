@@ -260,6 +260,13 @@
   box-shadow: 0 0 0 4px var(--pf-ring);
 }
 
+.pfInlineError {
+  margin-top: 6px;
+  color: #b91c1c;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .pfTextarea {
   min-height: 96px;
   resize: vertical;

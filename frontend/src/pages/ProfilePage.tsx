@@ -43,6 +43,15 @@ const EMPTY: Profile = {
 };
 
 type EditSection = null | "personal" | "links";
+type RawProfile = Partial<Profile> & {
+  email?: string;
+  personal_email?: string;
+  university_email?: string;
+  github?: string;
+  githubURL?: string;
+  linkedin?: string;
+  linkedInUrl?: string;
+};
 
 function initialsOf(name?: string, surname?: string) {
   const a = (name ?? "").trim()[0] ?? "";
@@ -64,6 +73,17 @@ function deriveUniversityEmail(profile: Profile) {
   if (profile.universityEmail) return profile.universityEmail;
   if (!profile.studentId) return "";
   return `u${profile.studentId}@student.mahidol.ac.th`;
+}
+
+function normalizeProfile(raw: RawProfile): Profile {
+  const base = { ...EMPTY, ...(raw ?? {}) } as Profile;
+  return {
+    ...base,
+    universityEmail: raw.universityEmail || raw.university_email || deriveUniversityEmail(base),
+    personalEmail: raw.personalEmail || raw.personal_email || raw.email || "",
+    githubUrl: raw.githubUrl || raw.githubURL || raw.github || "",
+    linkedinUrl: raw.linkedinUrl || raw.linkedInUrl || raw.linkedin || "",
+  };
 }
 
 function Field({
@@ -90,6 +110,7 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState<EditSection>(null);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
+  const [personalEmailError, setPersonalEmailError] = useState("");
 
   const avatarText = useMemo(
     () => initialsOf(profile.name, profile.surname),
@@ -104,12 +125,7 @@ export default function ProfilePage() {
       setMsg("");
       try {
         const res = await http.get("/api/me/profile");
-        const raw = { ...EMPTY, ...(res.data ?? {}) } as Profile & { email?: string };
-        const p = {
-          ...raw,
-          universityEmail: raw.universityEmail || deriveUniversityEmail(raw),
-          personalEmail: raw.personalEmail || raw.email || "",
-        };
+        const p = normalizeProfile((res.data ?? {}) as RawProfile);
         if (!alive) return;
         setProfile(p);
         setDraft(p);
@@ -130,6 +146,9 @@ export default function ProfilePage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) {
     const { name, value } = e.target;
+    if (name === "personalEmail") {
+      setPersonalEmailError("");
+    }
     setDraft((prev) => ({ ...prev, [name]: value }));
   }
 
@@ -137,41 +156,57 @@ export default function ProfilePage() {
     setDraft(profile);
     setEditing(section);
     setMsg("");
+    setPersonalEmailError("");
   }
 
   function cancelEdit() {
     setDraft(profile);
     setEditing(null);
     setMsg("");
+    setPersonalEmailError("");
   }
 
   async function save() {
     setSaving(true);
     setMsg("");
+    setPersonalEmailError("");
+
+    const email = String(draft.personalEmail ?? "").trim();
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setPersonalEmailError("Invalid personal email format");
+      setSaving(false);
+      return;
+    }
 
     try {
       // send only editable fields
       const payload = {
         personalEmail: draft.personalEmail,
+        // compatibility for older backend consumers expecting `email`
+        email: draft.personalEmail,
         githubUrl: draft.githubUrl,
         linkedinUrl: draft.linkedinUrl,
       };
 
       const res = await http.put("/api/me/profile", payload);
-      const raw = { ...profile, ...payload, ...(res.data ?? {}) } as Profile & { email?: string };
-      const merged: Profile = {
-        ...raw,
-        universityEmail: raw.universityEmail || deriveUniversityEmail(raw),
-        personalEmail: raw.personalEmail || raw.email || "",
-      };
+      const merged = normalizeProfile({
+        ...profile,
+        ...payload,
+        ...((res.data ?? {}) as RawProfile),
+      });
 
       setProfile(merged);
       setDraft(merged);
       setEditing(null);
       setMsg("Saved!");
       setTimeout(() => setMsg(""), 1200);
-    } catch {
-      setMsg("Save failed. Please try again.");
+    } catch (error: any) {
+      const apiMessage = error?.response?.data?.message;
+      if (typeof apiMessage === "string" && apiMessage.toLowerCase().includes("email")) {
+        setPersonalEmailError(apiMessage);
+      } else {
+        setMsg("Save failed. Please try again.");
+      }
     } finally {
       setSaving(false);
     }
@@ -285,13 +320,16 @@ export default function ProfilePage() {
             <div className="pfCell">
               <div className="pfCellLabel">Personal Email</div>
               {isPersonal ? (
-                <input
-                  className="pfInput"
-                  name="personalEmail"
-                  value={draft.personalEmail}
-                  onChange={onChange}
-                  placeholder="your@email.com"
-                />
+                <>
+                  <input
+                    className="pfInput"
+                    name="personalEmail"
+                    value={draft.personalEmail}
+                    onChange={onChange}
+                    placeholder="your@email.com"
+                  />
+                  {personalEmailError ? <div className="pfInlineError">{personalEmailError}</div> : null}
+                </>
               ) : (
                 <div className="pfCellValue">{profile.personalEmail || "—"}</div>
               )}
