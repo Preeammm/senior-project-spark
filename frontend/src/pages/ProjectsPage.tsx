@@ -1,4 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
+import { useMemo } from "react";
 
 import PageHeader from "../components/PageHeader";
 import ProjectsTable from "../features/projects/components/ProjectsTable";
@@ -20,6 +21,20 @@ export default function ProjectsPage() {
   const { careerFocus, setCareerFocus, careerFocusOptions } = useCareerFocus();
 
   const { data, isLoading, error } = useProjects(careerFocus);
+  const sortedProjects = useMemo(() => {
+    if (!data) return [];
+
+    return [...data].sort((a, b) => {
+      if (careerFocus) {
+        return (
+          (b.courseImportancePercent ?? 0) - (a.courseImportancePercent ?? 0) ||
+          b.performancePercent - a.performancePercent
+        );
+      }
+
+      return b.performancePercent - a.performancePercent;
+    });
+  }, [careerFocus, data]);
 
   return (
     <div className="pageContainer">
@@ -65,13 +80,13 @@ export default function ProjectsPage() {
         <div className="assessHint">
           {careerFocus
             ? `Sorted by relevance for ${careerFocus}`
-            : "Showing all assessments (select career focus to calculate relevance)"}
+            : "Showing student performance across all assessments"}
         </div>
       </div>
 
       {isLoading && <div className="assessState">Loading assessments...</div>}
       {error && <div className="assessState error">Failed to load assessments</div>}
-      {data && <ProjectsTable projects={data} showRelevance={!!careerFocus} />}
+      {data && <ProjectsTable projects={sortedProjects} />}
     </div>
   );
 }

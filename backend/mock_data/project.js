@@ -7,6 +7,7 @@ const projects = [
     yearSemester: "Year 4 Semester 1",
     type: "Group",
     competencyTags: ["Data Cleaning", "Exploratory Data Analysis", "Dashboard Design"],
+    performancePercent: 90,
     relevancePercent: 90,
     materials: [],
     visibleTo: ["u1"], // ✅ only user 1
@@ -18,6 +19,7 @@ const projects = [
     yearSemester: "Year 2 Semester 1",
     type: "Individual",
     competencyTags: ["SQL Querying", "Data Modeling"],
+    performancePercent: 85,
     relevancePercent: 85,
     materials: [],
     visibleTo: ["u1","u2", "u3"], // ✅ users 2 & 3

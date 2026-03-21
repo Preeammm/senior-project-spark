@@ -175,7 +175,7 @@ const COURSE_RELEVANCE_BY_FOCUS = {
     "Software Engineer": 66,
   },
   c2: { // ITCS212 - Web Programming
-    "Data Analyst": 75,
+    "Data Analyst": 60,
     "Data Engineer": 72,
     "Software Engineer": 92,
   },
@@ -198,6 +198,28 @@ const PROJECT_RELEVANCE_BY_FOCUS = {
     "Software Engineer": 68,
   },
 };
+
+function findCourseForProject(project) {
+  const codeMatch = String(project?.courseName ?? "").match(/^([A-Za-z]{2,10}\d{2,6})\b/);
+  const courseCode = codeMatch?.[1]?.toUpperCase();
+
+  if (courseCode) {
+    const matchedByCode = courses.find((course) => course.courseCode?.toUpperCase() === courseCode);
+    if (matchedByCode) return matchedByCode;
+  }
+
+  const normalizedProjectCourse = String(project?.courseName ?? "")
+    .split(" - ")
+    .pop()
+    ?.trim()
+    .toLowerCase();
+
+  if (!normalizedProjectCourse) return null;
+
+  return (
+    courses.find((course) => course.courseName?.trim().toLowerCase() === normalizedProjectCourse) ?? null
+  );
+}
 
 function getFocusedRelevance(baseValue, profile, careerFocus) {
   if (!careerFocus || !profile || !(careerFocus in profile)) {
@@ -341,14 +363,33 @@ app.get("/api/projects", requireUser, (req, res) => {
 
   const scored = filtered.map((project) => ({
     ...project,
+    performancePercent: project.performancePercent ?? project.relevancePercent ?? 0,
     relevancePercent: getFocusedRelevance(
       project.relevancePercent,
       PROJECT_RELEVANCE_BY_FOCUS[project.id],
       careerFocus
     ),
+    courseImportancePercent: (() => {
+      const course = findCourseForProject(project);
+      if (!course) return 0;
+      return getFocusedRelevance(
+        course.relevancePercent,
+        COURSE_RELEVANCE_BY_FOCUS[course.id],
+        careerFocus
+      );
+    })(),
   }));
 
-  scored.sort((a, b) => b.relevancePercent - a.relevancePercent);
+  scored.sort((a, b) => {
+    if (careerFocus) {
+      return (
+        b.courseImportancePercent - a.courseImportancePercent ||
+        b.performancePercent - a.performancePercent
+      );
+    }
+
+    return b.performancePercent - a.performancePercent;
+  });
   res.json(scored);
 });
 

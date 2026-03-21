@@ -1,8 +1,8 @@
 // src/features/courses/components/CoursesTable.tsx
 import { Link } from "react-router-dom";
 import type { Course } from "../types";
-import ProgressBadge from "../../../components/ProgressBadge";
 import ExpandableCompetencyTags from "./ExpandableCompetencyTags";
+import RelevanceIndicator from "./RelevanceIndicator";
 import "./CoursesTable.css";
 
 type Props = { courses: Course[] };
@@ -15,7 +15,7 @@ export default function CoursesTable({ courses, showRelevance = true }: Props & 
           <tr>
             <th>Course Name</th>
             <th>Competency Tags</th>
-            <th className="relevanceCol">Relevance %</th>
+            <th className="relevanceCol">Relevance</th>
             <th className="gradeCol">Grade</th>
           </tr>
         </thead>
@@ -40,7 +40,7 @@ export default function CoursesTable({ courses, showRelevance = true }: Props & 
                 </td>
 
                 <td className="relevanceCol">
-                  {showRelevance ? <ProgressBadge value={c.relevancePercent} /> : "—"}
+                  {showRelevance ? <RelevanceIndicator value={c.relevancePercent} /> : "—"}
                 </td>
 
                 <td className="gradeCol">{c.grade}</td>

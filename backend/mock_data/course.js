@@ -20,7 +20,7 @@ const courses = [
     courseCode: "ITCS212",
     courseName: "Web Programming",
     competencyTags: ["JavaScript", "REST API Integration", "Frontend Development"],
-    relevancePercent: 75,
+    relevancePercent: 60,
     grade: "B+",
     visibleTo: ["u1", "u2", "u3"],
   },
