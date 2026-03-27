@@ -7,7 +7,7 @@ const pool = new Pool({
   user: process.env.DB_USER || "prem",
   host: process.env.DB_HOST || "localhost",
   database: process.env.DB_NAME || "spark_portfolio",
-  password: process.env.DB_PASSWORD || undefined,
+  password: process.env.DB_PASSWORD || "simonpreamearn",
   port: Number(process.env.DB_PORT || 5432),
 });
 
