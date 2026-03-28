@@ -236,6 +236,32 @@
   gap: 12px;
 }
 
+.ndSelectedProjects {
+  margin-top: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.ndSelectedProjectCard {
+  border: 1px solid var(--nd-line);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  padding: 12px 14px;
+}
+
+.ndSelectedProjectName {
+  color: var(--nd-text);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.ndSelectedProjectMeta {
+  margin-top: 4px;
+  color: var(--nd-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .ndBtn {
   height: 42px;
   border-radius: 12px;

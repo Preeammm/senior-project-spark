@@ -470,26 +470,31 @@ let portfolioDocs = [
     id: "d1",
     title: "My Portfolio (Mock)",
     createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     content: `# My Portfolio (Mock)
 
 ## Basic Information
 - Career Focus: **Data Analyst**
 - Use SPARK Personal Info: **Yes**
 
-## Short Description
+## Occupation / Position
+Data Analyst
+
+## About Me
 I am an ICT student focused on Data Analyst roles, with hands-on experience in data preparation, SQL querying, dashboard thinking, and presenting insights from project outcomes.
 
-## Selected Projects
+## Academic Projects
 1. **Final Project** — ITCS495 - Special Topics in Databases and Intelligent Systems • Year 4 Semester 1 • Group
 2. **Database Mini Project** — ITCS241 - Database Management Systems • Year 2 Semester 1 • Individual
-
-## Skills
-- SQL
-- Data Cleaning
-- Data Visualization
-- Requirement Analysis
-- Team Collaboration
 `,
+    data: {
+      careerFocus: "Data Analyst",
+      usePersonalInfo: true,
+      occupation: "Data Analyst",
+      aboutMe:
+        "I am an ICT student focused on Data Analyst roles, with hands-on experience in data preparation, SQL querying, dashboard thinking, and presenting insights from project outcomes.",
+      selectedProjectIds: [],
+    },
   },
 ];
 
@@ -509,16 +514,19 @@ app.get("/api/portfolio/documents", requireUser, (req, res) => {
 
 // create
 app.post("/api/portfolio/documents", requireUser, (req, res) => {
-  const { title, content } = req.body ?? {};
+  const { title, content, data } = req.body ?? {};
   if (!title || typeof title !== "string") {
     return res.status(400).json({ message: "title is required" });
   }
 
+  const now = new Date().toISOString();
   const doc = {
     id: `d${Date.now()}`,
     title,
-    createdAt: new Date().toISOString(),
+    createdAt: now,
+    updatedAt: now,
     content: typeof content === "string" ? content : "",
+    data: data && typeof data === "object" ? data : null,
   };
 
   portfolioDocs = [doc, ...portfolioDocs];
@@ -527,6 +535,7 @@ app.post("/api/portfolio/documents", requireUser, (req, res) => {
     id: doc.id,
     title: doc.title,
     createdAt: doc.createdAt,
+    updatedAt: doc.updatedAt,
   });
 });
 
@@ -549,20 +558,47 @@ app.get("/api/portfolio/documents/:docId/download", requireUser, (req, res) => {
   res.send(`${doc.title}\n\n${doc.content}`);
 });
 
-// PATCH rename doc
+// PATCH update doc
 app.patch("/api/portfolio/documents/:docId", requireUser, (req, res) => {
   const { docId } = req.params;
-  const { title } = req.body ?? {};
-
-  if (!title || typeof title !== "string") {
-    return res.status(400).json({ message: "title is required" });
-  }
+  const { title, content, data } = req.body ?? {};
 
   const doc = portfolioDocs.find((d) => d.id === docId);
   if (!doc) return res.status(404).json({ message: "Document not found" });
 
-  doc.title = title;
-  res.json({ id: doc.id, title: doc.title });
+  const hasTitle = typeof title === "string";
+  const hasContent = typeof content === "string";
+  const hasData = data && typeof data === "object";
+
+  if (!hasTitle && !hasContent && !hasData) {
+    return res.status(400).json({ message: "title, content, or data is required" });
+  }
+
+  if (hasTitle) {
+    if (!title.trim()) {
+      return res.status(400).json({ message: "title must not be empty" });
+    }
+    doc.title = title;
+  }
+
+  if (hasContent) {
+    doc.content = content;
+  }
+
+  if (hasData) {
+    doc.data = data;
+  }
+
+  doc.updatedAt = new Date().toISOString();
+
+  res.json({
+    id: doc.id,
+    title: doc.title,
+    createdAt: doc.createdAt,
+    updatedAt: doc.updatedAt,
+    content: doc.content,
+    data: doc.data ?? null,
+  });
 });
 
 // DELETE document

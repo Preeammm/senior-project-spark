@@ -116,14 +116,6 @@ function formatBirthDate(value?: string) {
   return d.toLocaleDateString();
 }
 
-function expectedGraduationYear(studyYear?: number | string) {
-  const y = Number(studyYear);
-  if (!Number.isFinite(y) || y <= 0) return "—";
-  const programLength = 4;
-  const yearsLeft = Math.max(0, programLength - y);
-  return String(new Date().getFullYear() + yearsLeft);
-}
-
 function projectDescriptionForFocus(project: Project, careerFocus: string) {
   const focus = careerFocus.toLowerCase();
   if (focus.includes("software")) {
@@ -192,11 +184,26 @@ export default function PortfolioDocumentPage() {
     [sections]
   );
   const shortSection = useMemo(
-    () => sections.find((s) => s.heading.toLowerCase() === "short description"),
+    () =>
+      sections.find((s) =>
+        ["about me", "profile / about me", "short description"].includes(
+          s.heading.toLowerCase()
+        )
+      ),
+    [sections]
+  );
+  const occupationSection = useMemo(
+    () =>
+      sections.find((s) =>
+        ["occupation / position", "chosen occupation"].includes(s.heading.toLowerCase())
+      ),
     [sections]
   );
   const selectedProjects = useMemo(
-    () => sections.find((s) => s.heading.toLowerCase() === "selected projects"),
+    () =>
+      sections.find((s) =>
+        ["academic projects", "selected projects"].includes(s.heading.toLowerCase())
+      ),
     [sections]
   );
 
@@ -237,11 +244,15 @@ export default function PortfolioDocumentPage() {
       return res.data;
     },
   });
-  const shortDescription =
+  const aboutMe =
     shortSection?.lines
       .map(normalizeInlineMarkdown)
       .join(" ")
       .trim() || "—";
+  const occupation =
+    occupationSection?.lines.map(normalizeInlineMarkdown).join(" ").trim() ||
+    careerFocus ||
+    "—";
   const projectLines = selectedProjects?.lines.filter((line) => /^\d+\./.test(line.trim())) ?? [];
   const selectedProjectDetails = useMemo(() => {
     if (!selectedProjectNames.length) return [];
@@ -303,9 +314,8 @@ export default function PortfolioDocumentPage() {
     () => allSkills.filter((skill) => isSoftSkill(skill)),
     [allSkills]
   );
-  const personalEmail = profile?.personalEmail || profile?.email || "—";
+  const personalEmail = profile?.personalEmail || "—";
   const universityEmail = profile?.universityEmail || "—";
-  const graduationYear = expectedGraduationYear(profile?.year || me?.year);
 
   if (!docId) return <div className="pageContainer">Loading document...</div>;
   if (isLoading || (isFetching && !data)) {
@@ -333,9 +343,10 @@ export default function PortfolioDocumentPage() {
       .docSection { border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; margin-top: 10px; }
       .docSection h2 { margin: 0 0 8px; font-size: 16px; }
       .docSection p, .docSection li, .docInlineList, .docSlipRow { font-size: 12px; line-height: 1.5; }
-      .docContactSlip { margin-top: 12px; border: 1px dashed #94a3b8; padding: 10px; border-radius: 8px; }
-      .docContactSlipTitle { font-weight: 700; margin-bottom: 6px; font-size: 13px; }
       .docInlineList { display: grid; gap: 4px; }
+      .docSocialGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      .docSocialCard { border: 1px solid #dbe7fb; border-radius: 8px; padding: 10px; background: #f8fbff; }
+      .docSocialLabel { font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 4px; }
       a { color: #1d4ed8; text-decoration: underline; }
     </style>
   </head>
@@ -385,8 +396,9 @@ export default function PortfolioDocumentPage() {
       .docSection h2 { margin: 0 0 6px; font-size: 14px; }
       .docSection p, .docSection li, .docInlineList, .docSlipRow { font-size: 11.5px; line-height: 1.45; }
       .docInlineList { display: grid; gap: 4px; }
-      .docContactSlip { margin-top: 12px; border: 1px dashed #94a3b8; border-radius: 8px; padding: 8px 10px; break-inside: avoid; page-break-inside: avoid; }
-      .docContactSlipTitle { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+      .docSocialGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      .docSocialCard { border: 1px solid #dbe7fb; border-radius: 8px; padding: 8px 10px; background: #f8fbff; break-inside: avoid; page-break-inside: avoid; }
+      .docSocialLabel { font-size: 10px; font-weight: 700; color: #475569; margin-bottom: 4px; }
       a { color: #1d4ed8; text-decoration: underline; }
       .hideOnPrint, .docActions { display: none !important; }
     </style>
@@ -427,6 +439,9 @@ export default function PortfolioDocumentPage() {
 
       <div className="docWrap">
         <div className="docActions hideOnPrint">
+          <Link to={`/portfolio/${docId}/edit`} className="docBtn secondary">
+            Edit Portfolio
+          </Link>
           <button type="button" className="docBtn" onClick={onExportPdf}>
             Export PDF
           </button>
@@ -452,71 +467,61 @@ export default function PortfolioDocumentPage() {
           </header>
 
           <section className="docSection">
+            <h2>Occupation / Position</h2>
+            <p>{occupation}</p>
+          </section>
+
+          <section className="docSection">
             <h2>Name and Surname</h2>
             <p>{studentName}</p>
           </section>
 
           <section className="docSection">
-            <h2>University, Faculty, Minor</h2>
-            <p>
-              Mahidol University, {profile?.faculty || me?.faculty || "—"}, {profile?.minor || me?.minor || "—"}
-            </p>
+            <h2>About Me</h2>
+            <p>{aboutMe}</p>
           </section>
 
           <section className="docSection">
-            <h2>Chosen Occupation</h2>
-            <p>{careerFocus}</p>
-          </section>
-
-          <section className="docSection">
-            <h2>Profile / About Me</h2>
-            <p>
-              {studentName} is a {careerFocus} candidate with expertise in ICT coursework and project-based delivery.
-              Career goal: contribute to impactful {careerFocus.toLowerCase()} work and continue growing through
-              real-world systems and team collaboration.
-            </p>
+            <h2>Contact Information</h2>
             <div className="docInlineList">
               <span><b>Birthdate:</b> {formatBirthDate(profile?.dateOfBirth)}</span>
               <span><b>Phone:</b> {profile?.contactNumber || "—"}</span>
               <span><b>University Email:</b> {universityEmail}</span>
               <span><b>Personal Email:</b> {personalEmail}</span>
-              <span>
-                <b>LinkedIn:</b>{" "}
+            </div>
+          </section>
+
+          <section className="docSection">
+            <h2>LinkedIn / GitHub</h2>
+            <div className="docSocialGrid">
+              <div className="docSocialCard">
+                <div className="docSocialLabel">LinkedIn</div>
                 {profile?.linkedinUrl ? (
                   <a href={normalizeUrl(profile.linkedinUrl)} target="_blank" rel="noreferrer">
                     {profile.linkedinUrl}
                   </a>
                 ) : (
-                  "—"
+                  <span>—</span>
                 )}
-              </span>
-              <span>
-                <b>GitHub:</b>{" "}
+              </div>
+              <div className="docSocialCard">
+                <div className="docSocialLabel">GitHub</div>
                 {profile?.githubUrl ? (
                   <a href={normalizeUrl(profile.githubUrl)} target="_blank" rel="noreferrer">
                     {profile.githubUrl}
                   </a>
                 ) : (
-                  "—"
+                  <span>—</span>
                 )}
-              </span>
+              </div>
             </div>
-          </section>
-
-          <section className="docSection">
-            <h2>Education</h2>
-            <ul>
-              <li><b>Level:</b> Bachelor&apos;s Degree</li>
-              <li><b>Faculty / University:</b> {(profile?.faculty || me?.faculty || "—")} / Mahidol University</li>
-              <li><b>Year of Graduation:</b> {graduationYear}</li>
-            </ul>
           </section>
 
           <section className="docSection">
             <h2>Skills</h2>
             <p><b>Hard Skills</b></p>
             {hardSkills.length ? (
-              <ul>
+              <ul className="docSkillsGrid">
                 {hardSkills.map((skill) => (
                   <li key={skill}>{skill}</li>
                 ))}
@@ -524,7 +529,7 @@ export default function PortfolioDocumentPage() {
             ) : (
               <p>—</p>
             )}
-            <p><b>Soft Skills</b></p>
+            <p className="docSoftSkillsHeading"><b>Soft Skills</b></p>
             {softSkills.length ? (
               <ul>
                 {softSkills.map((skill) => (
@@ -537,7 +542,7 @@ export default function PortfolioDocumentPage() {
           </section>
 
           <section className="docSection">
-            <h2>Chosen Projects</h2>
+            <h2>Academic Projects</h2>
             {selectedProjectDetails.length > 0 ? (
               <ul>
                 {selectedProjectDetails.map((project) => (
@@ -560,21 +565,6 @@ export default function PortfolioDocumentPage() {
               <p>No project selected.</p>
             )}
           </section>
-
-          <section className="docSection">
-            <h2>Short Description</h2>
-            <p>{shortDescription}</p>
-          </section>
-
-          <footer className="docContactSlip">
-            <div className="docContactSlipTitle">Contact Information Slip (For HR)</div>
-            <div className="docSlipRow"><b>Name:</b> {studentName}</div>
-            <div className="docSlipRow"><b>Phone:</b> {profile?.contactNumber || "—"}</div>
-            <div className="docSlipRow"><b>University Email:</b> {universityEmail}</div>
-            <div className="docSlipRow"><b>Personal Email:</b> {personalEmail}</div>
-            <div className="docSlipRow"><b>LinkedIn:</b> {profile?.linkedinUrl || "—"}</div>
-            <div className="docSlipRow"><b>GitHub:</b> {profile?.githubUrl || "—"}</div>
-          </footer>
         </article>
       </div>
     </div>

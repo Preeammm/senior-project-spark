@@ -1,4 +1,5 @@
 import { http } from "../../../services/http";
+import type { PortfolioDraftData } from "../types";
 
 export const PORTFOLIO_DOCS_QUERY_KEY = ["portfolioDocs"] as const;
 
@@ -6,10 +7,12 @@ export type PortfolioDocLite = {
   id: string;
   title: string;
   createdAt: string;
+  updatedAt?: string;
 };
 
 export type PortfolioDoc = PortfolioDocLite & {
   content: string;
+  data?: PortfolioDraftData | null;
 };
 
 // LIST
@@ -22,6 +25,7 @@ export async function getDocuments(): Promise<PortfolioDocLite[]> {
 export async function createDocument(input: {
   title: string;
   content?: string;
+  data?: PortfolioDraftData;
 }): Promise<PortfolioDocLite> {
   const res = await http.post("/api/portfolio/documents", input);
   return res.data;
@@ -41,5 +45,17 @@ export async function deleteDocument(docId: string): Promise<void> {
 // RENAME (PATCH)
 export async function renameDocument(docId: string, title: string): Promise<{ id: string; title: string }> {
   const res = await http.patch(`/api/portfolio/documents/${docId}`, { title });
+  return res.data;
+}
+
+export async function updateDocument(
+  docId: string,
+  input: {
+    title: string;
+    content: string;
+    data: PortfolioDraftData;
+  }
+): Promise<PortfolioDoc> {
+  const res = await http.patch(`/api/portfolio/documents/${docId}`, input);
   return res.data;
 }

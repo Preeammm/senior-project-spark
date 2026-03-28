@@ -68,6 +68,10 @@ export default function PortfolioGeneratorPage() {
     navigate(`/portfolio/${id}`);
   }
 
+  function onEditDoc(id: string) {
+    navigate(`/portfolio/${id}/edit`);
+  }
+
   function onAskRename(doc: PortfolioDocLite) {
     setOpenMenuId(null);
     setRenameTarget(doc);
@@ -195,6 +199,13 @@ export default function PortfolioGeneratorPage() {
                     <button
                       type="button"
                       className="pcgMenuItem"
+                      onClick={() => onEditDoc(doc.id)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className="pcgMenuItem"
                       onClick={() => onAskRename(doc)}
                     >
                       Rename
@@ -221,7 +232,7 @@ export default function PortfolioGeneratorPage() {
                 <div className="pcgThumbFooter">
                   <div className="pcgThumbTitle">{doc.title}</div>
                   <div className="pcgThumbMeta">
-                    Last modified: {formatDate(doc.createdAt)}
+                    Last modified: {formatDate(doc.updatedAt || doc.createdAt)}
                   </div>
                 </div>
               </div>

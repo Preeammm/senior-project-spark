@@ -4,17 +4,18 @@ export type PortfolioDocument = {
   createdAt?: string;
   updatedAt?: string;
   content?: string;
+  data?: PortfolioDraftData | null;
 };
 
 export type CreateDocumentPayload = {
   title: string;
   content?: string;
+  data?: PortfolioDraftData;
+};
 
-  // optional for future use
-  careerFocus?: string;
-  usePersonalInfo?: boolean;
-  shortDescription?: string;
-  projectIds?: string[];
-  experienceIds?: string[];
-  activityIds?: string[];
+export type PortfolioDraftData = {
+  careerFocus: string;
+  occupation: string;
+  aboutMe: string;
+  selectedProjectIds: string[];
 };

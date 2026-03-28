@@ -29,6 +29,7 @@ const router = createBrowserRouter([
       { path: "/courses/:courseId", element: <CourseDetailPage /> },
       { path: "/portfolio", element: <PortfolioGeneratorPage /> },
       { path: "/portfolio/new", element: <NewDocumentPage /> },
+      { path: "/portfolio/:docId/edit", element: <NewDocumentPage /> },
       { path: "/portfolio/:docId", element: <PortfolioDocumentPage /> },
       { path: "/careers", element: <CareerDetailsPage /> }, 
       { path: "/profile", element: <ProfilePage /> }

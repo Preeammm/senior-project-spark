@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import PageHeader from "../components/PageHeader";
@@ -8,7 +8,9 @@ import { useProtectedRoute } from "../hooks/useProtectedRoute";
 import { http } from "../services/http";
 import {
   createDocument,
+  getDocument,
   PORTFOLIO_DOCS_QUERY_KEY,
+  updateDocument,
   type PortfolioDocLite,
 } from "../features/portfolio/services/portfolio.api";
 import {
@@ -16,6 +18,7 @@ import {
   type CareerFocusOption,
   type CareerFocus,
 } from "../features/careerFocus/useCareerFocus";
+import type { PortfolioDraftData } from "../features/portfolio/types";
 
 import "../styles/page.css";
 import "./NewDocumentPage.css";
@@ -29,6 +32,11 @@ type Project = {
   relevancePercent?: number;
 };
 
+type ParsedSection = {
+  heading: string;
+  lines: string[];
+};
+
 async function fetchProjects(careerFocus: CareerFocusOption): Promise<Project[]> {
   const { data } = await http.get("/api/projects", {
     params: { careerFocus },
@@ -36,28 +44,134 @@ async function fetchProjects(careerFocus: CareerFocusOption): Promise<Project[]>
   return data;
 }
 
-// ✅ change if your portfolio content route is different
 const PORTFOLIO_CONTENT_ROUTE = "/portfolio";
+
+function parseMarkdownSections(text: string): ParsedSection[] {
+  const lines = String(text ?? "").split("\n");
+  const sections: ParsedSection[] = [];
+  let current: ParsedSection | null = null;
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (line.startsWith("## ")) {
+      current = { heading: line.replace(/^##\s+/, ""), lines: [] };
+      sections.push(current);
+      continue;
+    }
+
+    if (!current || !line) continue;
+
+    if (line.startsWith("- ")) {
+      current.lines.push(line.replace(/^\-\s+/, ""));
+      continue;
+    }
+
+    current.lines.push(line);
+  }
+
+  return sections;
+}
+
+function normalizeInlineMarkdown(line: string) {
+  return line.replace(/\*\*/g, "").replace(/_/g, "");
+}
+
+function extractLineValue(lines: string[], startsWith: string) {
+  const found = lines.find((line) => line.startsWith(startsWith));
+  if (!found) return "";
+  return normalizeInlineMarkdown(found.slice(startsWith.length).trim());
+}
+
+function buildContent(input: {
+  title: string;
+  careerFocus: string;
+  aboutMe: string;
+  selectedProjects: Project[];
+}) {
+  const contentLines: string[] = [];
+
+  contentLines.push(`# ${input.title.trim()}`);
+  contentLines.push("");
+
+  contentLines.push("## Basic Information");
+  contentLines.push(`- Career Focus: **${input.careerFocus}**`);
+  contentLines.push("");
+
+  contentLines.push("## Occupation / Position");
+  contentLines.push(input.careerFocus.trim());
+  contentLines.push("");
+
+  contentLines.push("## About Me");
+  contentLines.push(input.aboutMe.trim());
+  contentLines.push("");
+
+  contentLines.push("## Academic Projects");
+  if (input.selectedProjects.length === 0) {
+    contentLines.push("- (none)");
+  } else {
+    input.selectedProjects.forEach((project, idx) => {
+      const metaParts: string[] = [];
+      if (project.courseName) metaParts.push(project.courseName);
+      if (project.yearSemester) metaParts.push(project.yearSemester);
+      if (project.type) metaParts.push(project.type);
+
+      const meta = metaParts.length ? ` — ${metaParts.join(" • ")}` : "";
+      contentLines.push(`${idx + 1}. **${project.projectName}**${meta}`);
+    });
+  }
+
+  return contentLines.join("\n");
+}
 
 export default function NewDocumentPage() {
   useProtectedRoute();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { docId } = useParams();
+  const isEditing = Boolean(docId);
 
   const { careerFocus, setCareerFocus, careerFocusOptions } = useCareerFocus();
 
-  const [usePersonalInfo, setUsePersonalInfo] = useState<boolean>(true);
   const [title, setTitle] = useState<string>("");
-  const [shortDesc, setShortDesc] = useState<string>("");
+  const [aboutMe, setAboutMe] = useState<string>("");
   const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([]);
   const [showProjectModal, setShowProjectModal] = useState<boolean>(false);
+  const [hasHydratedDraft, setHasHydratedDraft] = useState(false);
 
-  const [touched, setTouched] = useState<{ title: boolean; shortDesc: boolean }>({
+  const [touched, setTouched] = useState<{
+    title: boolean;
+    aboutMe: boolean;
+  }>({
     title: false,
-    shortDesc: false,
+    aboutMe: false,
   });
 
-  const { data: projects, isLoading } = useQuery({
+  const { data: existingDoc, isLoading: isDocLoading } = useQuery({
+    queryKey: ["portfolioDoc", docId],
+    enabled: isEditing && !!docId,
+    queryFn: () => getDocument(String(docId)),
+  });
+
+  useEffect(() => {
+    if (!existingDoc || hasHydratedDraft) return;
+
+    const draft = existingDoc.data;
+    const sections = parseMarkdownSections(existingDoc.content ?? "");
+    const basicSection = sections.find((section) => section.heading.toLowerCase() === "basic information");
+    const aboutSection = sections.find((section) =>
+      ["about me", "profile / about me", "short description"].includes(section.heading.toLowerCase())
+    );
+
+    const draftCareerFocus =
+      draft?.careerFocus || extractLineValue(basicSection?.lines ?? [], "Career Focus:");
+    setTitle(existingDoc.title ?? "");
+    setCareerFocus((draftCareerFocus || "") as CareerFocus);
+    setAboutMe(draft?.aboutMe || aboutSection?.lines?.join(" ").trim() || "");
+    setSelectedProjectIds(draft?.selectedProjectIds ?? []);
+    setHasHydratedDraft(true);
+  }, [existingDoc, hasHydratedDraft, setCareerFocus]);
+
+  const { data: projects, isLoading: isProjectsLoading } = useQuery({
     queryKey: ["projects", careerFocus],
     enabled: !!careerFocus,
     queryFn: () => fetchProjects(careerFocus as CareerFocusOption),
@@ -71,23 +185,22 @@ export default function NewDocumentPage() {
   const selectedCount = selectedProjectIds.length;
 
   const selectedProjects = useMemo(() => {
-    const list = rankedProjects;
-    const set = new Set(selectedProjectIds);
-    return list.filter((p) => set.has(p.id));
+    const projectMap = new Map(rankedProjects.map((project) => [project.id, project]));
+    return selectedProjectIds
+      .map((projectId) => projectMap.get(projectId))
+      .filter((project): project is Project => Boolean(project));
   }, [rankedProjects, selectedProjectIds]);
 
-  const titleError =
-    touched.title && title.trim().length === 0 ? "Title is required" : "";
-  const descError =
-    touched.shortDesc && shortDesc.trim().length === 0
-      ? "Short description is required"
-      : "";
+  const titleError = touched.title && title.trim().length === 0 ? "Title is required" : "";
+  const aboutMeError =
+    touched.aboutMe && aboutMe.trim().length === 0 ? "About Me is required" : "";
 
   const canGenerate =
     title.trim().length > 0 &&
-    shortDesc.trim().length > 0 &&
+    aboutMe.trim().length > 0 &&
     !!careerFocus &&
-    !isLoading;
+    !isProjectsLoading &&
+    !isDocLoading;
 
   function toggleProject(id: string) {
     setSelectedProjectIds((prev) =>
@@ -100,89 +213,61 @@ export default function NewDocumentPage() {
   }
 
   function goBack() {
-    navigate(PORTFOLIO_CONTENT_ROUTE);
+    navigate(isEditing && docId ? `/portfolio/${docId}` : PORTFOLIO_CONTENT_ROUTE);
   }
 
-async function onGenerate() {
-  setTouched({ title: true, shortDesc: true });
-  if (!canGenerate) return;
+  async function onGenerate() {
+    setTouched({ title: true, aboutMe: true });
+    if (!canGenerate) return;
 
-  const contentLines: string[] = [];
+    const draftData: PortfolioDraftData = {
+      careerFocus,
+      occupation: careerFocus.trim(),
+      aboutMe: aboutMe.trim(),
+      selectedProjectIds,
+    };
 
-  // ===== Title =====
-  contentLines.push(`# ${title.trim()}`);
-  contentLines.push("");
-
-  // ===== Basic Information =====
-  contentLines.push("## Basic Information");
-  contentLines.push(`- Career Focus: **${careerFocus}**`);
-  contentLines.push(`- Use SPARK Personal Info: **${usePersonalInfo ? "Yes" : "No"}**`);
-  contentLines.push("");
-
-  // ===== Short Description =====
-  contentLines.push("## Short Description");
-  contentLines.push(shortDesc.trim());
-  contentLines.push("");
-
-  // ===== Selected Projects =====
-  contentLines.push("## Selected Projects");
-  if (selectedProjects.length === 0) {
-    contentLines.push("- (none)");
-  } else {
-    selectedProjects.forEach((p, idx) => {
-      const metaParts: string[] = [];
-      if (p.courseName) metaParts.push(p.courseName);
-      if (p.yearSemester) metaParts.push(p.yearSemester);
-      if (p.type) metaParts.push(p.type);
-
-      const meta = metaParts.length ? ` — ${metaParts.join(" • ")}` : "";
-      contentLines.push(`${idx + 1}. **${p.projectName}**${meta}`);
-    });
-  }
-  contentLines.push("");
-
-  // ===== Project Summary Blocks (blank) =====
-  contentLines.push("## Project Summaries");
-  if (selectedProjects.length === 0) {
-    contentLines.push("_No projects selected._");
-  } else {
-    selectedProjects.forEach((p, idx) => {
-      contentLines.push(`### ${idx + 1}) ${p.projectName}`);
-      contentLines.push("- Summary:");
-      contentLines.push("");
-      contentLines.push("- Key responsibilities:");
-      contentLines.push("");
-      contentLines.push("- Tools / Technologies:");
-      contentLines.push("");
-      contentLines.push("- Outcome / Impact:");
-      contentLines.push("");
-    });
-  }
-
-  const content = contentLines.join("\n");
-
-  try {
-    const created = await createDocument({
-      title: title.trim(),
-      content,
+    const content = buildContent({
+      title,
+      careerFocus,
+      aboutMe,
+      selectedProjects,
     });
 
-    qc.setQueryData<PortfolioDocLite[]>(
-      PORTFOLIO_DOCS_QUERY_KEY,
-      (prev) => [created, ...(prev ?? [])]
-    );
-    await qc.invalidateQueries({ queryKey: PORTFOLIO_DOCS_QUERY_KEY });
-    navigate(PORTFOLIO_CONTENT_ROUTE);
-  } catch {
-    alert("Generate failed. Please try again.");
+    try {
+      if (isEditing && docId) {
+        await updateDocument(docId, {
+          title: title.trim(),
+          content,
+          data: draftData,
+        });
+        await qc.invalidateQueries({ queryKey: PORTFOLIO_DOCS_QUERY_KEY });
+        await qc.invalidateQueries({ queryKey: ["portfolioDoc", docId] });
+        navigate(`/portfolio/${docId}`);
+        return;
+      }
+
+      const created = await createDocument({
+        title: title.trim(),
+        content,
+        data: draftData,
+      });
+
+      qc.setQueryData<PortfolioDocLite[]>(
+        PORTFOLIO_DOCS_QUERY_KEY,
+        (prev) => [created, ...(prev ?? [])]
+      );
+      await qc.invalidateQueries({ queryKey: PORTFOLIO_DOCS_QUERY_KEY });
+      navigate(`/portfolio/${created.id}`);
+    } catch {
+      alert(isEditing ? "Save failed. Please try again." : "Generate failed. Please try again.");
+    }
   }
-}
 
   return (
     <div className="pageContainer">
-      {/* ✅ Header: only title + Back (NO career focus at top) */}
       <PageHeader
-        title="New Document"
+        title={isEditing ? "Edit Document" : "New Document"}
         careerExtra={
           <button type="button" className="ndBackBtn" onClick={goBack}>
             ← Back
@@ -193,7 +278,6 @@ async function onGenerate() {
       <div className="dividerLine" />
 
       <div className="ndWrap ndCard">
-        {/* ✅ Career Focus ONLY inside card (beautiful row) */}
         <div className="ndRow ndCareerRow">
           <div className="ndLabel">Career Focus:</div>
 
@@ -210,28 +294,11 @@ async function onGenerate() {
             ))}
           </select>
 
-          <div className="ndCareerHint">Included in the generated document</div>
+          <div className="ndCareerHint">Used to recommend projects and skills in the portfolio</div>
         </div>
 
         <div className="ndLine" />
 
-        {/* Use personal info */}
-        <div className="ndRow">
-          <div className="ndLabel wide">Use Personal Information from SPARK Database?</div>
-
-          <label className="ndCheck">
-            <input
-              type="checkbox"
-              checked={usePersonalInfo}
-              onChange={(e) => setUsePersonalInfo(e.target.checked)}
-            />
-            <span>Yes</span>
-          </label>
-
-          <div className="ndHint">(Mock) If enabled, the system will use your SPARK profile later.</div>
-        </div>
-
-        {/* Title */}
         <div className="ndField">
           <div className="ndFieldLabel">
             Title:<span className="ndReq">*</span>
@@ -240,30 +307,28 @@ async function onGenerate() {
             className={`ndInput ${titleError ? "error" : ""}`}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            onBlur={() => setTouched((t) => ({ ...t, title: true }))}
+            onBlur={() => setTouched((prev) => ({ ...prev, title: true }))}
             placeholder="Enter document title"
           />
           {titleError ? <div className="ndError">{titleError}</div> : null}
         </div>
 
-        {/* Short Description */}
         <div className="ndField">
           <div className="ndFieldLabel">
-            Short Description:<span className="ndReq">*</span>
+            About Me:<span className="ndReq">*</span>
           </div>
           <textarea
-            className={`ndTextarea ${descError ? "error" : ""}`}
-            value={shortDesc}
-            onChange={(e) => setShortDesc(e.target.value)}
-            onBlur={() => setTouched((t) => ({ ...t, shortDesc: true }))}
-            placeholder="Write a short description (e.g., used for internship resume)"
+            className={`ndTextarea ${aboutMeError ? "error" : ""}`}
+            value={aboutMe}
+            onChange={(e) => setAboutMe(e.target.value)}
+            onBlur={() => setTouched((prev) => ({ ...prev, aboutMe: true }))}
+            placeholder="Write your own introduction for the portfolio"
           />
-          {descError ? <div className="ndError">{descError}</div> : null}
+          {aboutMeError ? <div className="ndError">{aboutMeError}</div> : null}
         </div>
 
-        {/* Projects Selected */}
         <div className="ndRow projectsRow">
-          <div className="ndLabel">Projects Selected:</div>
+          <div className="ndLabel">Academic Projects:</div>
 
           <div className="ndSelectedBox">
             <span>{selectedCount} Projects Selected</span>
@@ -284,7 +349,21 @@ async function onGenerate() {
           </button>
         </div>
 
-        {/* Actions */}
+        {selectedProjects.length > 0 ? (
+          <div className="ndSelectedProjects">
+            {selectedProjects.map((project) => (
+              <div key={project.id} className="ndSelectedProjectCard">
+                <div className="ndSelectedProjectName">{project.projectName}</div>
+                <div className="ndSelectedProjectMeta">
+                  {project.courseName ? project.courseName : "No course name"}
+                  {project.yearSemester ? ` • ${project.yearSemester}` : ""}
+                  {project.type ? ` • ${project.type}` : ""}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
         <div className="ndActions">
           <button
             type="button"
@@ -292,17 +371,16 @@ async function onGenerate() {
             onClick={onGenerate}
             disabled={!canGenerate}
           >
-            Generate Document
+            {isEditing ? "Save Portfolio" : "Generate Document"}
           </button>
         </div>
       </div>
 
-      {/* ===== Modal: select projects ===== */}
       {showProjectModal ? (
         <div className="ndModalOverlay" onMouseDown={() => setShowProjectModal(false)}>
           <div className="ndModal" onMouseDown={(e) => e.stopPropagation()}>
             <div className="ndModalHeader">
-              <div className="ndModalTitle">Select Projects</div>
+              <div className="ndModalTitle">Select Academic Projects</div>
               <button
                 type="button"
                 className="ndModalClose"
@@ -313,7 +391,9 @@ async function onGenerate() {
             </div>
 
             <div className="ndModalBody">
-              {isLoading ? (
+              {!careerFocus ? (
+                <div className="ndModalHint">Select a career focus first to load recommended projects.</div>
+              ) : isProjectsLoading ? (
                 <div className="ndModalHint">Loading projects...</div>
               ) : rankedProjects.length === 0 ? (
                 <div className="ndModalHint">No projects found.</div>
@@ -322,23 +402,23 @@ async function onGenerate() {
                   <div className="ndModalHint">
                     Ranked by relevance for <b>{careerFocus}</b> (highest first)
                   </div>
-                  {rankedProjects.map((p) => {
-                    const checked = selectedProjectIds.includes(p.id);
+                  {rankedProjects.map((project) => {
+                    const checked = selectedProjectIds.includes(project.id);
                     return (
-                      <label key={p.id} className="ndProjectItem">
+                      <label key={project.id} className="ndProjectItem">
                         <input
                           type="checkbox"
                           checked={checked}
-                          onChange={() => toggleProject(p.id)}
+                          onChange={() => toggleProject(project.id)}
                         />
                         <div className="ndProjectInfo">
-                          <div className="ndProjectName">{p.projectName}</div>
+                          <div className="ndProjectName">{project.projectName}</div>
                           <div className="ndProjectMeta">
-                            {p.courseName ? p.courseName : ""}
-                            {p.yearSemester ? ` • ${p.yearSemester}` : ""}
-                            {p.type ? ` • ${p.type}` : ""}
-                            {typeof p.relevancePercent === "number"
-                              ? ` • ${p.relevancePercent}% relevance`
+                            {project.courseName ? project.courseName : ""}
+                            {project.yearSemester ? ` • ${project.yearSemester}` : ""}
+                            {project.type ? ` • ${project.type}` : ""}
+                            {typeof project.relevancePercent === "number"
+                              ? ` • ${project.relevancePercent}% relevance`
                               : ""}
                           </div>
                         </div>
