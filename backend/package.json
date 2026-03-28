@@ -6,6 +6,7 @@
   "main": "server.js",
   "scripts": {
     "db:check": "node scripts/check-db.js",
+    "db:create-students": "node scripts/create-students-table.js",
     "dev": "nodemon server.js",
     "start": "node server.js"
   },
