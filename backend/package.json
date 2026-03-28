@@ -7,6 +7,7 @@
   "scripts": {
     "db:check": "node scripts/check-db.js",
     "db:create-students": "node scripts/create-students-table.js",
+    "db:create-courses": "node scripts/create-courses-table.js",
     "dev": "nodemon server.js",
     "start": "node server.js"
   },
