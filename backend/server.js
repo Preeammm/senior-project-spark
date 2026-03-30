@@ -5,6 +5,7 @@ import me from "./mock_data/me.js";
 import projects from "./mock_data/project.js";
 import courses from "./mock_data/course.js";
 import careers from "./mock_data/careers.js";
+import pool from "./db.js";
 
 const app = express();
 app.use(express.json());
@@ -46,6 +47,18 @@ const USER_AUTH = [
   { id: "u2", username: "u6588096", password: "ICT096", defaultPath: "/home" },
   { id: "u3", username: "u6588107", password: "ICT107", defaultPath: "/home" },
 ];
+
+// ===== TEST DB CONNECTION =====
+app.get("/api/test", async (req, res) => {
+  const results = await pool.query("SELECT * FROM courses");
+  res.status(200).json({
+    data: results.rows
+  });
+});
+
+
+// ==============================
+
 
 // helper: session object to store in localStorage
 function pickSession(user) {
@@ -157,6 +170,26 @@ function deriveUniversityEmail(profile) {
   const sid = sanitizeText(profile?.studentId, 40).replace(/[^\w.-]/g, "");
   if (!sid) return "";
   return `u${sid}@student.mahidol.ac.th`;
+}
+async function persistStudentProfile(profile) {
+  if (!profile?.studentId) return;
+
+const studentId = sanitizeText(profile.studentId, 40).replace(/[^\w.-]/g, "");
+  if (!studentId) return;
+
+  const personalEmail = sanitizeEmail(profile.personalEmail ?? profile.email ?? "");
+  const githubUrl = sanitizeUrl(profile.githubUrl);
+  const linkedinUrl = sanitizeUrl(profile.linkedinUrl);
+
+  await pool.query(
+    `INSERT INTO students (student_id, personal_email, github_url, linkedin_url)
+     VALUES ($1, $2, $3, $4)
+     ON CONFLICT (student_id) DO UPDATE SET
+       personal_email = EXCLUDED.personal_email,
+       github_url = EXCLUDED.github_url,
+       linkedin_url = EXCLUDED.linkedin_url`,
+    [studentId, personalEmail, githubUrl, linkedinUrl]
+  );
 }
 
 const CAREER_FOCUS = ["Data Analyst", "Data Engineer", "Software Engineer"];
@@ -284,7 +317,7 @@ app.get("/api/me/profile", requireUser, (req, res) => {
   });
 });
 
-app.put("/api/me/profile", requireUser, (req, res) => {
+app.put("/api/me/profile", requireUser, async (req, res) => {
   const profile = meStore[req.user.id];
   if (!profile) return res.status(404).json({ message: "Profile not found" });
   const body = req.body ?? {};
@@ -327,6 +360,12 @@ app.put("/api/me/profile", requireUser, (req, res) => {
   }
   if (hasOwn("gender")) {
     profile.gender = sanitizeGender(body.gender);
+  }
+
+  try {
+    await persistStudentProfile(profile);
+  } catch (error) {
+    console.error("persistStudentProfile failed", error);
   }
 
   // return full profile again
