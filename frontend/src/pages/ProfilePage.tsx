@@ -86,6 +86,18 @@ function normalizeProfile(raw: RawProfile): Profile {
   };
 }
 
+function normalizeStudentRow(raw: Partial<Record<string, any>>): Partial<Profile> {
+  if (!raw) return {};
+  return {
+    personalEmail:
+      raw.personalEmail || raw.personal_email || raw.email || "",
+    githubUrl:
+      raw.githubUrl || raw.githubURL || raw.github || raw.github_url || "",
+    linkedinUrl:
+      raw.linkedinUrl || raw.linkedInUrl || raw.linkedin || raw.linkedin_url || "",
+  };
+}
+
 function Field({
   label,
   value,
@@ -125,7 +137,18 @@ export default function ProfilePage() {
       setMsg("");
       try {
         const res = await http.get("/api/me/profile");
-        const p = normalizeProfile((res.data ?? {}) as RawProfile);
+        const profileData = (res.data ?? {}) as RawProfile;
+
+        let studentData: Partial<Profile> = {};
+        try {
+          const studentRes = await http.get("/api/student");
+          const row = studentRes.data?.data?.[0] ?? {};
+          studentData = normalizeStudentRow(row);
+        } catch (studentError) {
+          console.warn("Failed to load /api/student", studentError);
+        }
+
+        const p = normalizeProfile({ ...profileData, ...studentData });
         if (!alive) return;
         setProfile(p);
         setDraft(p);

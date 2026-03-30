@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { http } from "../services/http";
 import { useMe } from "../features/student/hooks/useMe";
 import { useCourses } from "../features/courses/hooks/useCourses";
 import { useProjects } from "../features/projects/hooks/useProjects";
@@ -72,6 +74,15 @@ type EvidenceItem = {
   label: string;
   source: "Course" | "Assessment";
   relevancePercent: number;
+};
+
+type StudentRow = {
+  student_id?: string;
+  personal_email?: string;
+  github_url?: string;
+  linkedin_url?: string;
+  githubUrl?: string;
+  linkedinUrl?: string;
 };
 
 type SuggestedCourse = {
@@ -226,6 +237,15 @@ export default function HomePage() {
   useProtectedRoute();
   const { data: me, isLoading, error } = useMe();
 
+  const { data: studentRow } = useQuery<StudentRow | null>({
+    queryKey: ["student"],
+    queryFn: async () => {
+      const res = await http.get("/api/student");
+      return (res.data?.data?.[0] ?? null) as StudentRow | null;
+    },
+    retry: false,
+  });
+
   const { careerFocus, setCareerFocus, careerFocusOptions } = useCareerFocus();
   const activeCareerFocus: CareerFocusOption =
     careerFocus || careerFocusOptions[0];
@@ -267,6 +287,11 @@ export default function HomePage() {
 
   if (isLoading) return <div className="homeLoading">Loading...</div>;
   if (error || !me) return <div className="homeLoading">Failed to load user</div>;
+
+  const studentLinkedIn =
+    studentRow?.linkedin_url || studentRow?.linkedinUrl || me.linkedinUrl || "";
+  const studentGitHub =
+    studentRow?.github_url || studentRow?.githubUrl || me.githubUrl || "";
 
   // ✅ FIX: now name is first name, surname is last name
   const firstName = me.name ?? "Student";
@@ -342,27 +367,27 @@ export default function HomePage() {
                   <div className="infoLabel">Links</div>
                   <div className="infoValue">
                     <div className="socialRow">
-                      {me.linkedinUrl ? (
+                      {studentLinkedIn ? (
                         <a
                           className="socialBtn socialLinkedin"
-                          href={me.linkedinUrl}
+                          href={studentLinkedIn}
                           target="_blank"
                           rel="noreferrer"
                         >
-                          🔗 LinkedIn
+                          LinkedIn
                         </a>
                       ) : (
                         <span className="socialMuted">No LinkedIn</span>
                       )}
 
-                      {me.githubUrl ? (
+                      {studentGitHub ? (
                         <a
                           className="socialBtn socialGithub"
-                          href={me.githubUrl}
+                          href={studentGitHub}
                           target="_blank"
                           rel="noreferrer"
                         >
-                          💻 GitHub
+                          GitHub
                         </a>
                       ) : (
                         <span className="socialMuted">No GitHub</span>
