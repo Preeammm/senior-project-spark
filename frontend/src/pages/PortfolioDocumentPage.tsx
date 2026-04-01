@@ -33,6 +33,16 @@ type ProfileDetail = {
   dateOfBirth?: string;
 };
 
+type StudentRow = {
+  student_id?: string;
+  personal_email?: string;
+  linkedin_url?: string;
+  github_url?: string;
+  personalEmail?: string;
+  linkedinUrl?: string;
+  githubUrl?: string;
+};
+
 type Project = {
   id: string;
   projectName: string;
@@ -183,6 +193,15 @@ export default function PortfolioDocumentPage() {
     },
   });
 
+  const { data: studentRow } = useQuery<StudentRow | null>({
+    queryKey: ["student"],
+    queryFn: async () => {
+      const res = await http.get("/api/student");
+      return (res.data?.data?.[0] ?? null) as StudentRow | null;
+    },
+    retry: false,
+  });
+
   const sections = useMemo(
     () => parseMarkdownSections(data?.content ?? ""),
     [data?.content]
@@ -303,7 +322,22 @@ export default function PortfolioDocumentPage() {
     () => allSkills.filter((skill) => isSoftSkill(skill)),
     [allSkills]
   );
-  const personalEmail = profile?.personalEmail || profile?.email || "—";
+  const personalEmail =
+    studentRow?.personal_email ||
+    studentRow?.personalEmail ||
+    profile?.personalEmail ||
+    profile?.email ||
+    "—";
+  const linkedInUrl =
+    studentRow?.linkedin_url ||
+    studentRow?.linkedinUrl ||
+    profile?.linkedinUrl ||
+    "";
+  const githubUrl =
+    studentRow?.github_url ||
+    studentRow?.githubUrl ||
+    profile?.githubUrl ||
+    "";
   const universityEmail = profile?.universityEmail || "—";
   const graduationYear = expectedGraduationYear(profile?.year || me?.year);
 
@@ -482,9 +516,9 @@ export default function PortfolioDocumentPage() {
               <span><b>Personal Email:</b> {personalEmail}</span>
               <span>
                 <b>LinkedIn:</b>{" "}
-                {profile?.linkedinUrl ? (
-                  <a href={normalizeUrl(profile.linkedinUrl)} target="_blank" rel="noreferrer">
-                    {profile.linkedinUrl}
+                {linkedInUrl ? (
+                  <a href={normalizeUrl(linkedInUrl)} target="_blank" rel="noreferrer">
+                    {linkedInUrl}
                   </a>
                 ) : (
                   "—"
@@ -492,9 +526,9 @@ export default function PortfolioDocumentPage() {
               </span>
               <span>
                 <b>GitHub:</b>{" "}
-                {profile?.githubUrl ? (
-                  <a href={normalizeUrl(profile.githubUrl)} target="_blank" rel="noreferrer">
-                    {profile.githubUrl}
+                {githubUrl ? (
+                  <a href={normalizeUrl(githubUrl)} target="_blank" rel="noreferrer">
+                    {githubUrl}
                   </a>
                 ) : (
                   "—"
@@ -572,8 +606,8 @@ export default function PortfolioDocumentPage() {
             <div className="docSlipRow"><b>Phone:</b> {profile?.contactNumber || "—"}</div>
             <div className="docSlipRow"><b>University Email:</b> {universityEmail}</div>
             <div className="docSlipRow"><b>Personal Email:</b> {personalEmail}</div>
-            <div className="docSlipRow"><b>LinkedIn:</b> {profile?.linkedinUrl || "—"}</div>
-            <div className="docSlipRow"><b>GitHub:</b> {profile?.githubUrl || "—"}</div>
+            <div className="docSlipRow"><b>LinkedIn:</b> {linkedInUrl || "—"}</div>
+            <div className="docSlipRow"><b>GitHub:</b> {githubUrl || "—"}</div>
           </footer>
         </article>
       </div>

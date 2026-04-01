@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { http } from "../services/http";
 import { useMe } from "../features/student/hooks/useMe";
@@ -251,6 +251,19 @@ export default function HomePage() {
     careerFocus || careerFocusOptions[0];
 
   const [selectedSkill, setSelectedSkill] = useState<RadarAxis>("Problem Solving");
+
+  useEffect(() => {
+    if (!careerFocus) return;
+
+    http
+      .get("/api/dacal", { params: { careerFocus } })
+      .then((response) => {
+        console.log("DACAL response:", response.data);
+      })
+      .catch((error) => {
+        console.error("Failed to fetch /api/dacal", error);
+      });
+  }, [careerFocus]);
 
   const studentScores = useMemo(() => MOCK_STUDENT, []);
   const reqScores = useMemo(

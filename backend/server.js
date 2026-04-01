@@ -49,11 +49,137 @@ const USER_AUTH = [
 ];
 
 // ===== TEST DB CONNECTION =====
-app.get("/api/test", async (req, res) => {
-  const results = await pool.query("SELECT * FROM courses");
-  res.status(200).json({
-    data: results.rows
-  });
+app.get("/api/dacal", requireUser, async (req, res) => {
+  try {
+    const profile = meStore[req.user.id];
+    if (!profile) return res.status(404).json({ message: "Profile not found" });
+    const studentId = profile.studentId;
+    if (!studentId) return res.status(400).json({ message: "Missing student ID" });
+
+    const careerFocus = normalizeCareerFocus(req.query?.careerFocus);
+    if (!careerFocus) {
+      return res.status(400).json({ message: "Missing or invalid career focus" });
+    }
+
+    const results = await pool.query(`
+      SELECT 
+          c.course_code,
+          c.semester,
+          c.level_id,
+          c.skill_id,
+
+          e.enrollment_type,
+
+          csm.career_id,
+          csm.level_id,
+          csm.skill_id,
+
+          sas.student_score_clo,
+          asm.full_score_clo
+
+      FROM student_assessment_scores sas
+
+      INNER JOIN clo c 
+          ON sas.clo_id = c.clo_id
+
+      INNER JOIN enrollments e 
+          ON sas.student_id = e.student_id 
+          AND c.course_code = e.course_code
+          AND c.semester = e.semester
+
+      INNER JOIN career_skill_mapping csm 
+          ON c.skill_id = csm.skill_id 
+          AND c.level_id = csm.level_id
+
+      INNER JOIN careers cr 
+          ON csm.career_id = cr.career_id
+
+      INNER JOIN assessment_clo_mapping asm
+          ON c.clo_id = asm.clo_id
+          AND sas.assessment_id = asm.assessment_id
+
+      WHERE cr.career_name = $1 AND sas.student_id = $2
+    `, [careerFocus, studentId]);
+
+    res.status(200).json({
+      data: results.rows,
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: "Internal Server Error",
+    });
+  }
+});
+
+app.get("/api/assessments", requireUser, async (req, res) => {
+  try {
+    const profile = meStore[req.user.id];
+    if (!profile) return res.status(404).json({ message: "Profile not found" });
+    const studentId = profile.studentId;
+    if (!studentId) return res.status(400).json({ message: "Missing student ID" });
+
+    const careerFocus = normalizeCareerFocus(req.query?.careerFocus);
+    if (!careerFocus) {
+      return res.status(400).json({ message: "Missing or invalid career focus" });
+    }
+
+    const results = await pool.query(`
+      SELECT 
+          c.course_code,
+          c.semester,
+          c.level_id,
+          c.skill_id,
+
+          e.enrollment_type,
+
+          csm.career_id,
+          csm.level_id,
+          csm.skill_id,
+
+          sas.student_score_clo,
+          acm.full_score_clo,
+
+          asm.assessment_type
+
+      FROM student_assessment_scores sas
+
+      INNER JOIN clo c 
+          ON sas.clo_id = c.clo_id
+
+      INNER JOIN enrollments e 
+          ON sas.student_id = e.student_id 
+          AND c.course_code = e.course_code
+          AND c.semester = e.semester
+
+      INNER JOIN career_skill_mapping csm 
+          ON c.skill_id = csm.skill_id 
+          AND c.level_id = csm.level_id
+
+      INNER JOIN careers cr 
+          ON csm.career_id = cr.career_id
+
+      INNER JOIN assessment_clo_mapping acm
+          ON c.clo_id = acm.clo_id
+          AND sas.assessment_id = acm.assessment_id
+
+      INNER JOIN assessments asm
+          ON asm.assessment_id = acm.assessment_id
+
+      WHERE cr.career_name = $1 AND sas.student_id = $2 AND asm.assessment_type = 'Project'
+    `, [careerFocus, studentId]);
+
+    res.status(200).json({
+      data: results.rows,
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: "Internal Server Error",
+    });
+  }
 });
 
 app.get("/api/student", requireUser, async (req, res) => {
