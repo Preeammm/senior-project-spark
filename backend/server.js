@@ -131,7 +131,7 @@ app.get("/api/assessments", requireUser, async (req, res) => {
         cos.course_name,
         c.semester,
         ss.skill_title,
-        SUM(sas.student_score_clo::float / acm.full_score_clo) AS total_normalized_score
+        AVG(sas.student_score_clo::float / acm.full_score_clo) AS total_normalized_score
 
     FROM student_assessment_scores sas
 
