@@ -126,52 +126,60 @@ app.get("/api/assessments", requireUser, async (req, res) => {
     }
 
     const results = await pool.query(`
-      SELECT 
-          c.course_code,
-          c.semester,
-          c.level_id,
-          c.skill_id,
+    SELECT 
+        c.course_code,
+        cos.course_name,
+        c.semester,
+        ss.skill_title,
+        SUM(sas.student_score_clo::float / acm.full_score_clo) AS total_normalized_score
 
-          e.enrollment_type,
+    FROM student_assessment_scores sas
 
-          csm.career_id,
-          csm.level_id,
-          csm.skill_id,
+    INNER JOIN clo c 
+        ON sas.clo_id = c.clo_id
 
-          sas.student_score_clo,
-          acm.full_score_clo,
+    INNER JOIN enrollments e 
+        ON sas.student_id = e.student_id 
+        AND c.course_code = e.course_code
+        AND c.semester = e.semester
 
-          asm.assessment_type
+    INNER JOIN career_skill_mapping csm 
+        ON c.skill_id = csm.skill_id 
+        AND c.level_id = csm.level_id
 
-      FROM student_assessment_scores sas
+    INNER JOIN careers cr 
+        ON csm.career_id = cr.career_id
 
-      INNER JOIN clo c 
-          ON sas.clo_id = c.clo_id
+    INNER JOIN assessment_clo_mapping acm
+        ON c.clo_id = acm.clo_id
+        AND sas.assessment_id = acm.assessment_id
 
-      INNER JOIN enrollments e 
-          ON sas.student_id = e.student_id 
-          AND c.course_code = e.course_code
-          AND c.semester = e.semester
+    INNER JOIN assessments asm
+        ON asm.assessment_id = acm.assessment_id
 
-      INNER JOIN career_skill_mapping csm 
-          ON c.skill_id = csm.skill_id 
-          AND c.level_id = csm.level_id
+    INNER JOIN courses cos
+        ON asm.course_code = cos.course_code
+        AND asm.semester = cos.semester
 
-      INNER JOIN careers cr 
-          ON csm.career_id = cr.career_id
+    INNER JOIN sfia_skills ss
+        ON c.skill_id = ss.skill_id
 
-      INNER JOIN assessment_clo_mapping acm
-          ON c.clo_id = acm.clo_id
-          AND sas.assessment_id = acm.assessment_id
+      WHERE sas.student_id = $1 AND cr.career_name = $2 AND asm.assessment_type = 'Project'
 
-      INNER JOIN assessments asm
-          ON asm.assessment_id = acm.assessment_id
+    GROUP BY 
+        c.course_code,
+        ss.skill_title,
+        cos.course_name,
+        c.semester;
+    `, [studentId, careerFocus]);
 
-      WHERE cr.career_name = $1 AND sas.student_id = $2 AND asm.assessment_type = 'Project'
-    `, [careerFocus, studentId]);
+    const data = results.rows.map((row) => ({
+      ...row,
+      total_normalized_score: Math.round(Number(row.total_normalized_score) * 100),
+    }));
 
     res.status(200).json({
-      data: results.rows,
+      data,
     });
 
   } catch (error) {
