@@ -336,13 +336,9 @@ const studentId = sanitizeText(profile.studentId, 40).replace(/[^\w.-]/g, "");
   );
 }
 
-const CAREER_FOCUS = ["Data Analyst", "Data Engineer", "Software Engineer"];
-
 function normalizeCareerFocus(raw) {
-  const value = String(raw ?? "").trim().toLowerCase();
-  if (!value) return "";
-  const found = CAREER_FOCUS.find((label) => label.toLowerCase() === value);
-  return found ?? "";
+  const value = String(raw ?? "").trim();
+  return value ? value : "";
 }
 
 const COURSE_RELEVANCE_BY_FOCUS = {
