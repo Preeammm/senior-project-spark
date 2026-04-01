@@ -42,7 +42,7 @@ const MOCK_STUDENT: Record<RadarAxis, number> = {
   "Team Collaboration": 3.0,
 };
 
-const MOCK_REQUIREMENT: Record<CareerFocusOption, Record<RadarAxis, number>> = {
+const MOCK_REQUIREMENT: Partial<Record<CareerFocusOption, Record<RadarAxis, number>>> = {
   "Data Analyst": {
     "Data Analysis": 9,
     "Data Visualization": 8,
@@ -67,6 +67,15 @@ const MOCK_REQUIREMENT: Record<CareerFocusOption, Record<RadarAxis, number>> = {
     "Communication Skills": 7,
     "Team Collaboration": 8,
   },
+};
+
+const DEFAULT_REQUIREMENT: Record<RadarAxis, number> = {
+  "Data Analysis": 6,
+  "Data Visualization": 6,
+  "Problem Solving": 6,
+  Programming: 6,
+  "Communication Skills": 6,
+  "Team Collaboration": 6,
 };
 
 type EvidenceItem = {
@@ -267,7 +276,7 @@ export default function HomePage() {
 
   const studentScores = useMemo(() => MOCK_STUDENT, []);
   const reqScores = useMemo(
-    () => MOCK_REQUIREMENT[activeCareerFocus],
+    () => MOCK_REQUIREMENT[activeCareerFocus] ?? DEFAULT_REQUIREMENT,
     [activeCareerFocus]
   );
   const { data: courses = [], isLoading: coursesLoading } = useCourses(careerFocus);
