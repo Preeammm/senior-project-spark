@@ -8,16 +8,11 @@ function formatSemester(value: string) {
   const raw = String(value ?? "").trim();
   if (!raw) return "-";
 
-  const parts = raw.split("-").map((part) => part.trim());
+  const parts = raw.split(/[-\/]/).map((part) => part.trim());
   if (parts.length === 2 && parts[0] && parts[1]) {
     const year = parts[0].length === 2 ? `25${parts[0]}` : parts[0];
     const sem = parts[1];
-    return (
-      <div>
-        <div>year {year}</div>
-        <div>sem {sem}</div>
-      </div>
-    );
+    return `${year}/${sem}`;
   }
 
   return raw;
@@ -35,7 +30,7 @@ export default function AssessmentsTable({
           <tr>
             <th className="thLeft">Assessment</th>
             <th className="thLeft">Course</th>
-            <th className="thLeft">Semester</th>
+            <th className="thLeft">Year/Semester</th>
             <th className="thLeft">Competency Tags</th>
             <th className="relevanceCell">Performance %</th>
           </tr>
