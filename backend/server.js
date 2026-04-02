@@ -63,42 +63,65 @@ app.get("/api/dacal", requireUser, async (req, res) => {
 
     const results = await pool.query(`
       SELECT 
-          c.course_code,
+          cr.career_name,
+          sfsk.skill_title,
+          cos.course_name,
+          c.clo_code,
+          sfle.level_id,
+          SUM(sas.student_score_clo) as total_st_score,
+          SUM(acm.full_score_clo) as total_full_score
+
+      FROM careers cr
+
+      INNER JOIN career_skill_mapping csm
+          ON cr.career_id = csm.career_id
+
+      INNER JOIN sfia_skills sfsk
+          ON csm.skill_id = sfsk.skill_id
+
+      inner join sfia_levels sfle
+          ON csm.level_id = sfle.level_id
+          
+      inner join clo c
+          ON csm.skill_id = c.skill_id and csm.level_id = c.level_id   
+
+      inner join courses cos 
+          ON c.course_code = cos.course_code and c.semester = cos.semester
+
+      inner join assessments assm
+          ON cos.course_code = assm.course_code and cos.semester = assm.semester
+
+      inner join assessment_clo_mapping acm
+          ON c.clo_id = acm.clo_id and assm.assessment_id = acm.assessment_id
+
+      inner join student_assessment_scores sas
+          ON acm.clo_id = sas.clo_id and acm.assessment_id = sas.assessment_id
+
+      inner join students st
+          ON sas.student_id = st.student_id
+
+      WHERE 
+        cr.career_name = $1 and st.student_id = $2 and
+        c.semester = (
+          SELECT MAX(c2.semester)
+          FROM clo c2
+          WHERE c2.course_code = c.course_code 
+      )
+
+      GROUP BY 
+          cr.career_name,
+          sfsk.skill_title,
+          cos.course_name,
+          c.clo_code,
+          sfle.level_id,
           c.semester,
-          c.level_id,
-          c.skill_id,
+          c.clo_id
 
-          e.enrollment_type,
-
-          csm.career_id,
-          csm.level_id,
-          csm.skill_id,
-
-          sas.student_score_clo,
-          asm.full_score_clo
-
-      FROM student_assessment_scores sas
-
-      INNER JOIN clo c 
-          ON sas.clo_id = c.clo_id
-
-      INNER JOIN enrollments e 
-          ON sas.student_id = e.student_id 
-          AND c.course_code = e.course_code
-          AND c.semester = e.semester
-
-      INNER JOIN career_skill_mapping csm 
-          ON c.skill_id = csm.skill_id 
-          AND c.level_id = csm.level_id
-
-      INNER JOIN careers cr 
-          ON csm.career_id = cr.career_id
-
-      INNER JOIN assessment_clo_mapping asm
-          ON c.clo_id = asm.clo_id
-          AND sas.assessment_id = asm.assessment_id
-
-      WHERE cr.career_name = $1 AND sas.student_id = $2
+      ORDER BY 
+          cr.career_name,
+          sfsk.skill_title,
+          cos.course_name, 
+          c.semester
     `, [careerFocus, studentId]);
 
     res.status(200).json({
