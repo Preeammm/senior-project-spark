@@ -59,7 +59,7 @@ export default function AssessmentsTable({
                 <td className="courseCell">
                   <Link className="courseLink" to={`/courses/${encodeURIComponent(assessment.courseCode)}`}>
                     {assessment.courseCode && assessment.courseName
-                      ? `${assessment.courseCode} - ${assessment.courseName}`
+                      ? `${assessment.courseCode}_${assessment.courseName}`
                       : assessment.courseName || assessment.courseCode || "-"}
                   </Link>
                 </td>
