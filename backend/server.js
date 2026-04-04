@@ -292,9 +292,15 @@ function sanitizeUrl(url) {
   const trimmed = String(url).trim();
   if (!trimmed) return "";
 
-  // allow only http/https (avoid javascript: etc)
-  if (!/^https?:\/\//i.test(trimmed)) return "";
-  return trimmed;
+  // allow users to save common profile URLs with or without protocol
+  const normalized = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  try {
+    const parsed = new URL(normalized);
+    if (!["http:", "https:"].includes(parsed.protocol)) return "";
+    return parsed.toString();
+  } catch {
+    return "";
+  }
 }
 
 function sanitizeText(value, max = 300) {

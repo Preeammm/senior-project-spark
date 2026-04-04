@@ -184,6 +184,7 @@
 }
 
 .docSocialCard {
+  min-width: 0;
   border: 1px solid #dbe7fb;
   border-radius: 12px;
   background: linear-gradient(180deg, #f8fbff 0%, #eff6ff 100%);
@@ -198,9 +199,12 @@
 }
 
 .docSocialCard a {
+  display: block;
   color: #1d4ed8;
   font-size: 14px;
   font-weight: 700;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .docSection ul {

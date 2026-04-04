@@ -265,7 +265,6 @@ export default function PortfolioDocumentPage() {
   });
   const descriptionLines = (shortSection?.lines ?? []).map(normalizeInlineMarkdown);
   const aboutMe = descriptionLines.join(" ").trim() || "—";
-  const shortDescription = descriptionLines.join(" ").trim() || "—";
   const occupation =
     occupationSection?.lines.map(normalizeInlineMarkdown).join(" ").trim() ||
     careerFocus ||
@@ -332,20 +331,20 @@ export default function PortfolioDocumentPage() {
     [allSkills]
   );
   const personalEmail =
-    studentRow?.personal_email ||
-    studentRow?.personalEmail ||
     profile?.personalEmail ||
     profile?.email ||
+    studentRow?.personal_email ||
+    studentRow?.personalEmail ||
     "—";
   const linkedInUrl =
+    profile?.linkedinUrl ||
     studentRow?.linkedin_url ||
     studentRow?.linkedinUrl ||
-    profile?.linkedinUrl ||
     "";
   const githubUrl =
+    profile?.githubUrl ||
     studentRow?.github_url ||
     studentRow?.githubUrl ||
-    profile?.githubUrl ||
     "";
   const universityEmail = profile?.universityEmail || "—";
 
@@ -520,8 +519,14 @@ export default function PortfolioDocumentPage() {
               <span><b>Phone:</b> {profile?.contactNumber || "—"}</span>
               <span><b>University Email:</b> {universityEmail}</span>
               <span><b>Personal Email:</b> {personalEmail}</span>
-              <span>
-                <b>LinkedIn:</b>{" "}
+            </div>
+          </section>
+
+          <section className="docSection">
+            <h2>LinkedIn / GitHub</h2>
+            <div className="docSocialGrid">
+              <div className="docSocialCard">
+                <div className="docSocialLabel">LinkedIn</div>
                 {linkedInUrl ? (
                   <a href={normalizeUrl(linkedInUrl)} target="_blank" rel="noreferrer">
                     {linkedInUrl}
@@ -529,9 +534,9 @@ export default function PortfolioDocumentPage() {
                 ) : (
                   <span>—</span>
                 )}
-              </span>
-              <span>
-                <b>GitHub:</b>{" "}
+              </div>
+              <div className="docSocialCard">
+                <div className="docSocialLabel">GitHub</div>
                 {githubUrl ? (
                   <a href={normalizeUrl(githubUrl)} target="_blank" rel="noreferrer">
                     {githubUrl}
@@ -539,9 +544,8 @@ export default function PortfolioDocumentPage() {
                 ) : (
                   <span>—</span>
                 )}
-              </span>
+              </div>
             </div>
-          {/* </div> */}
           </section>
 
           <section className="docSection">
@@ -593,20 +597,6 @@ export default function PortfolioDocumentPage() {
             )}
           </section>
 
-          <section className="docSection">
-            <h2>Short Description</h2>
-            <p>{shortDescription}</p>
-          </section>
-
-          <footer className="docContactSlip">
-            <div className="docContactSlipTitle">Contact Information Slip (For HR)</div>
-            <div className="docSlipRow"><b>Name:</b> {studentName}</div>
-            <div className="docSlipRow"><b>Phone:</b> {profile?.contactNumber || "—"}</div>
-            <div className="docSlipRow"><b>University Email:</b> {universityEmail}</div>
-            <div className="docSlipRow"><b>Personal Email:</b> {personalEmail}</div>
-            <div className="docSlipRow"><b>LinkedIn:</b> {linkedInUrl || "—"}</div>
-            <div className="docSlipRow"><b>GitHub:</b> {githubUrl || "—"}</div>
-          </footer>
         </article>
       </div>
     // </div>
