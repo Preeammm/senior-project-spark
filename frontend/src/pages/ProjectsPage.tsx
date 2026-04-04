@@ -2,8 +2,9 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useMemo } from "react";
 
 import PageHeader from "../components/PageHeader";
-import ProjectsTable from "../features/projects/components/ProjectsTable";
-import { useProjects } from "../features/projects/hooks/useProjects";
+import AssessmentsTable from "../features/assessments/components/AssessmentsTable";
+import { useAssessments } from "../features/assessments/hooks/useAssessments";
+import type { Assessment } from "../features/assessments/types";
 import { useCareerFocus } from "../features/careerFocus/useCareerFocus";
 import { useProtectedRoute } from "../hooks/useProtectedRoute";
 import "../styles/page.css";
@@ -20,21 +21,18 @@ export default function ProjectsPage() {
 
   const { careerFocus, setCareerFocus, careerFocusOptions } = useCareerFocus();
 
-  const { data, isLoading, error } = useProjects(careerFocus);
-  const sortedProjects = useMemo(() => {
+  const assessmentsQuery = useAssessments(careerFocus);
+  const data = assessmentsQuery.data as Assessment[] | undefined;
+  const { isLoading, error } = assessmentsQuery;
+  const sortedAssessments = useMemo(() => {
     if (!data) return [];
 
     return [...data].sort((a, b) => {
-      if (careerFocus) {
-        return (
-          (b.courseImportancePercent ?? 0) - (a.courseImportancePercent ?? 0) ||
-          b.performancePercent - a.performancePercent
-        );
-      }
-
-      return b.performancePercent - a.performancePercent;
+      const aScore = a.fullScoreClo ? a.studentScoreClo / a.fullScoreClo : 0;
+      const bScore = b.fullScoreClo ? b.studentScoreClo / b.fullScoreClo : 0;
+      return bScore - aScore;
     });
-  }, [careerFocus, data]);
+  }, [data]);
 
   return (
     <div className="pageContainer">
@@ -73,20 +71,22 @@ export default function ProjectsPage() {
 
       <div className="dividerLine" />
 
-      <div className="assessTopBar">
-        <div className="assessCount">
-          {isLoading ? "Loading..." : data ? `${data.length} assessments` : ""}
-        </div>
-        <div className="assessHint">
-          {careerFocus
-            ? `Sorted by relevance for ${careerFocus}`
-            : "Showing student performance across all assessments"}
-        </div>
-      </div>
+      {careerFocus ? (
+        <>
+          <div className="assessTopBar">
+            <div className="assessCount">
+              {isLoading ? "Loading..." : data ? `${data.length} assessments` : ""}
+            </div>
+            <div className="assessHint">
+              {`Sorted by relevance for ${careerFocus}`}
+            </div>
+          </div>
 
-      {isLoading && <div className="assessState">Loading assessments...</div>}
-      {error && <div className="assessState error">Failed to load assessments</div>}
-      {data && <ProjectsTable projects={sortedProjects} />}
+          {isLoading && <div className="assessState">Loading assessments...</div>}
+          {error && <div className="assessState error">Failed to load assessments</div>}
+          {data && <AssessmentsTable assessments={sortedAssessments} />}
+        </>
+      ) : null}
     </div>
   );
 }

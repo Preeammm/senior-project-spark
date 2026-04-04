@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { http } from "../services/http";
 import { useMe } from "../features/student/hooks/useMe";
 import { useCourses } from "../features/courses/hooks/useCourses";
 import { useProjects } from "../features/projects/hooks/useProjects";
@@ -40,7 +42,7 @@ const MOCK_STUDENT: Record<RadarAxis, number> = {
   "Team Collaboration": 3.0,
 };
 
-const MOCK_REQUIREMENT: Record<CareerFocusOption, Record<RadarAxis, number>> = {
+const MOCK_REQUIREMENT: Partial<Record<CareerFocusOption, Record<RadarAxis, number>>> = {
   "Data Analyst": {
     "Data Analysis": 9,
     "Data Visualization": 8,
@@ -67,11 +69,29 @@ const MOCK_REQUIREMENT: Record<CareerFocusOption, Record<RadarAxis, number>> = {
   },
 };
 
+const DEFAULT_REQUIREMENT: Record<RadarAxis, number> = {
+  "Data Analysis": 6,
+  "Data Visualization": 6,
+  "Problem Solving": 6,
+  Programming: 6,
+  "Communication Skills": 6,
+  "Team Collaboration": 6,
+};
+
 type EvidenceItem = {
   id: string;
   label: string;
   source: "Course" | "Assessment";
   relevancePercent: number;
+};
+
+type StudentRow = {
+  student_id?: string;
+  personal_email?: string;
+  github_url?: string;
+  linkedin_url?: string;
+  githubUrl?: string;
+  linkedinUrl?: string;
 };
 
 type SuggestedCourse = {
@@ -226,15 +246,37 @@ export default function HomePage() {
   useProtectedRoute();
   const { data: me, isLoading, error } = useMe();
 
+  const { data: studentRow } = useQuery<StudentRow | null>({
+    queryKey: ["student"],
+    queryFn: async () => {
+      const res = await http.get("/api/student");
+      return (res.data?.data?.[0] ?? null) as StudentRow | null;
+    },
+    retry: false,
+  });
+
   const { careerFocus, setCareerFocus, careerFocusOptions } = useCareerFocus();
   const activeCareerFocus: CareerFocusOption =
     careerFocus || careerFocusOptions[0];
 
   const [selectedSkill, setSelectedSkill] = useState<RadarAxis>("Problem Solving");
 
+  useEffect(() => {
+    if (!careerFocus) return;
+
+    http
+      .get("/api/dacal", { params: { careerFocus } })
+      .then((response) => {
+        console.log("DACAL response:", response.data);
+      })
+      .catch((error) => {
+        console.error("Failed to fetch /api/dacal", error);
+      });
+  }, [careerFocus]);
+
   const studentScores = useMemo(() => MOCK_STUDENT, []);
   const reqScores = useMemo(
-    () => MOCK_REQUIREMENT[activeCareerFocus],
+    () => MOCK_REQUIREMENT[activeCareerFocus] ?? DEFAULT_REQUIREMENT,
     [activeCareerFocus]
   );
   const { data: courses = [], isLoading: coursesLoading } = useCourses(careerFocus);
@@ -267,6 +309,11 @@ export default function HomePage() {
 
   if (isLoading) return <div className="homeLoading">Loading...</div>;
   if (error || !me) return <div className="homeLoading">Failed to load user</div>;
+
+  const studentLinkedIn =
+    studentRow?.linkedin_url || studentRow?.linkedinUrl || me.linkedinUrl || "";
+  const studentGitHub =
+    studentRow?.github_url || studentRow?.githubUrl || me.githubUrl || "";
 
   // ✅ FIX: now name is first name, surname is last name
   const firstName = me.name ?? "Student";
@@ -342,27 +389,27 @@ export default function HomePage() {
                   <div className="infoLabel">Links</div>
                   <div className="infoValue">
                     <div className="socialRow">
-                      {me.linkedinUrl ? (
+                      {studentLinkedIn ? (
                         <a
                           className="socialBtn socialLinkedin"
-                          href={me.linkedinUrl}
+                          href={studentLinkedIn}
                           target="_blank"
                           rel="noreferrer"
                         >
-                          🔗 LinkedIn
+                          LinkedIn
                         </a>
                       ) : (
                         <span className="socialMuted">No LinkedIn</span>
                       )}
 
-                      {me.githubUrl ? (
+                      {studentGitHub ? (
                         <a
                           className="socialBtn socialGithub"
-                          href={me.githubUrl}
+                          href={studentGitHub}
                           target="_blank"
                           rel="noreferrer"
                         >
-                          💻 GitHub
+                          GitHub
                         </a>
                       ) : (
                         <span className="socialMuted">No GitHub</span>

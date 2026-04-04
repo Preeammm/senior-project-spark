@@ -5,6 +5,7 @@ import me from "./mock_data/me.js";
 import projects from "./mock_data/project.js";
 import courses from "./mock_data/course.js";
 import careers from "./mock_data/careers.js";
+import pool from "./db.js";
 
 const app = express();
 app.use(express.json());
@@ -46,6 +47,185 @@ const USER_AUTH = [
   { id: "u2", username: "u6588096", password: "ICT096", defaultPath: "/home" },
   { id: "u3", username: "u6588107", password: "ICT107", defaultPath: "/home" },
 ];
+
+// ===== TEST DB CONNECTION =====
+app.get("/api/dacal", requireUser, async (req, res) => {
+  try {
+    const profile = meStore[req.user.id];
+    if (!profile) return res.status(404).json({ message: "Profile not found" });
+    const studentId = profile.studentId;
+    if (!studentId) return res.status(400).json({ message: "Missing student ID" });
+
+    const careerFocus = normalizeCareerFocus(req.query?.careerFocus);
+    if (!careerFocus) {
+      return res.status(400).json({ message: "Missing or invalid career focus" });
+    }
+
+    const results = await pool.query(`
+      SELECT 
+          cr.career_name,
+          sfsk.skill_title,
+          cos.course_name,
+          c.clo_code,
+          sfle.level_id,
+          SUM(sas.student_score_clo) as total_st_score,
+          SUM(acm.full_score_clo) as total_full_score
+
+      FROM careers cr
+
+      INNER JOIN career_skill_mapping csm
+          ON cr.career_id = csm.career_id
+
+      INNER JOIN sfia_skills sfsk
+          ON csm.skill_id = sfsk.skill_id
+
+      inner join sfia_levels sfle
+          ON csm.level_id = sfle.level_id
+          
+      inner join clo c
+          ON csm.skill_id = c.skill_id and csm.level_id = c.level_id   
+
+      inner join courses cos 
+          ON c.course_code = cos.course_code and c.semester = cos.semester
+
+      inner join assessments assm
+          ON cos.course_code = assm.course_code and cos.semester = assm.semester
+
+      inner join assessment_clo_mapping acm
+          ON c.clo_id = acm.clo_id and assm.assessment_id = acm.assessment_id
+
+      inner join student_assessment_scores sas
+          ON acm.clo_id = sas.clo_id and acm.assessment_id = sas.assessment_id
+
+      inner join students st
+          ON sas.student_id = st.student_id
+
+      WHERE 
+        cr.career_name = $1 and st.student_id = $2 and
+        c.semester = (
+          SELECT MAX(c2.semester)
+          FROM clo c2
+          WHERE c2.course_code = c.course_code 
+      )
+
+      GROUP BY 
+          cr.career_name,
+          sfsk.skill_title,
+          cos.course_name,
+          c.clo_code,
+          sfle.level_id,
+          c.semester,
+          c.clo_id
+
+      ORDER BY 
+          cr.career_name,
+          sfsk.skill_title,
+          cos.course_name, 
+          c.semester
+    `, [careerFocus, studentId]);
+
+    res.status(200).json({
+      data: results.rows,
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: "Internal Server Error",
+    });
+  }
+});
+
+app.get("/api/assessments", requireUser, async (req, res) => {
+  try {
+    const profile = meStore[req.user.id];
+    if (!profile) return res.status(404).json({ message: "Profile not found" });
+    const studentId = profile.studentId;
+    if (!studentId) return res.status(400).json({ message: "Missing student ID" });
+
+    const careerFocus = normalizeCareerFocus(req.query?.careerFocus);
+    if (!careerFocus) {
+      return res.status(400).json({ message: "Missing or invalid career focus" });
+    }
+
+    const results = await pool.query(`
+    SELECT 
+        c.course_code,
+        cos.course_name,
+        c.semester,
+        ss.skill_title,
+        AVG(sas.student_score_clo::float / acm.full_score_clo) AS total_normalized_score
+
+    FROM student_assessment_scores sas
+
+    INNER JOIN clo c 
+        ON sas.clo_id = c.clo_id
+
+    INNER JOIN enrollments e 
+        ON sas.student_id = e.student_id 
+        AND c.course_code = e.course_code
+        AND c.semester = e.semester
+
+    INNER JOIN career_skill_mapping csm 
+        ON c.skill_id = csm.skill_id 
+        AND c.level_id = csm.level_id
+
+    INNER JOIN careers cr 
+        ON csm.career_id = cr.career_id
+
+    INNER JOIN assessment_clo_mapping acm
+        ON c.clo_id = acm.clo_id
+        AND sas.assessment_id = acm.assessment_id
+
+    INNER JOIN assessments asm
+        ON asm.assessment_id = acm.assessment_id
+
+    INNER JOIN courses cos
+        ON asm.course_code = cos.course_code
+        AND asm.semester = cos.semester
+
+    INNER JOIN sfia_skills ss
+        ON c.skill_id = ss.skill_id
+
+      WHERE sas.student_id = $1 AND cr.career_name = $2 AND asm.assessment_type = 'Project'
+
+    GROUP BY 
+        c.course_code,
+        ss.skill_title,
+        cos.course_name,
+        c.semester;
+    `, [studentId, careerFocus]);
+
+    const data = results.rows.map((row) => ({
+      ...row,
+      total_normalized_score: Math.round(Number(row.total_normalized_score) * 100),
+    }));
+
+    res.status(200).json({
+      data,
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: "Internal Server Error",
+    });
+  }
+});
+
+app.get("/api/student", requireUser, async (req, res) => {
+  const profile = meStore[req.user.id];
+  if (!profile) return res.status(404).json({ message: "Profile not found" });
+  const studentId = profile.studentId;
+  if (!studentId) return res.status(400).json({ message: "Missing student ID" });
+
+  const results = await pool.query("SELECT * FROM students WHERE student_id = $1", [studentId]);
+  res.status(200).json({
+    data: results.rows,
+  });
+});
+// ==============================
+
 
 // helper: session object to store in localStorage
 function pickSession(user) {
@@ -158,14 +338,30 @@ function deriveUniversityEmail(profile) {
   if (!sid) return "";
   return `u${sid}@student.mahidol.ac.th`;
 }
+async function persistStudentProfile(profile) {
+  if (!profile?.studentId) return;
 
-const CAREER_FOCUS = ["Data Analyst", "Data Engineer", "Software Engineer"];
+const studentId = sanitizeText(profile.studentId, 40).replace(/[^\w.-]/g, "");
+  if (!studentId) return;
+
+  const personalEmail = sanitizeEmail(profile.personalEmail ?? profile.email ?? "");
+  const githubUrl = sanitizeUrl(profile.githubUrl);
+  const linkedinUrl = sanitizeUrl(profile.linkedinUrl);
+
+  await pool.query(
+    `INSERT INTO students (student_id, personal_email, github_url, linkedin_url)
+     VALUES ($1, $2, $3, $4)
+     ON CONFLICT (student_id) DO UPDATE SET
+       personal_email = EXCLUDED.personal_email,
+       github_url = EXCLUDED.github_url,
+       linkedin_url = EXCLUDED.linkedin_url`,
+    [studentId, personalEmail, githubUrl, linkedinUrl]
+  );
+}
 
 function normalizeCareerFocus(raw) {
-  const value = String(raw ?? "").trim().toLowerCase();
-  if (!value) return "";
-  const found = CAREER_FOCUS.find((label) => label.toLowerCase() === value);
-  return found ?? "";
+  const value = String(raw ?? "").trim();
+  return value ? value : "";
 }
 
 const COURSE_RELEVANCE_BY_FOCUS = {
@@ -284,7 +480,7 @@ app.get("/api/me/profile", requireUser, (req, res) => {
   });
 });
 
-app.put("/api/me/profile", requireUser, (req, res) => {
+app.put("/api/me/profile", requireUser, async (req, res) => {
   const profile = meStore[req.user.id];
   if (!profile) return res.status(404).json({ message: "Profile not found" });
   const body = req.body ?? {};
@@ -327,6 +523,12 @@ app.put("/api/me/profile", requireUser, (req, res) => {
   }
   if (hasOwn("gender")) {
     profile.gender = sanitizeGender(body.gender);
+  }
+
+  try {
+    await persistStudentProfile(profile);
+  } catch (error) {
+    console.error("persistStudentProfile failed", error);
   }
 
   // return full profile again

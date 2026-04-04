@@ -33,6 +33,16 @@ type ProfileDetail = {
   dateOfBirth?: string;
 };
 
+type StudentRow = {
+  student_id?: string;
+  personal_email?: string;
+  linkedin_url?: string;
+  github_url?: string;
+  personalEmail?: string;
+  linkedinUrl?: string;
+  githubUrl?: string;
+};
+
 type Project = {
   id: string;
   projectName: string;
@@ -175,6 +185,15 @@ export default function PortfolioDocumentPage() {
     },
   });
 
+  const { data: studentRow } = useQuery<StudentRow | null>({
+    queryKey: ["student"],
+    queryFn: async () => {
+      const res = await http.get("/api/student");
+      return (res.data?.data?.[0] ?? null) as StudentRow | null;
+    },
+    retry: false,
+  });
+
   const sections = useMemo(
     () => parseMarkdownSections(data?.content ?? ""),
     [data?.content]
@@ -244,11 +263,9 @@ export default function PortfolioDocumentPage() {
       return res.data;
     },
   });
-  const aboutMe =
-    shortSection?.lines
-      .map(normalizeInlineMarkdown)
-      .join(" ")
-      .trim() || "—";
+  const descriptionLines = (shortSection?.lines ?? []).map(normalizeInlineMarkdown);
+  const aboutMe = descriptionLines.join(" ").trim() || "—";
+  const shortDescription = descriptionLines.join(" ").trim() || "—";
   const occupation =
     occupationSection?.lines.map(normalizeInlineMarkdown).join(" ").trim() ||
     careerFocus ||
@@ -314,7 +331,22 @@ export default function PortfolioDocumentPage() {
     () => allSkills.filter((skill) => isSoftSkill(skill)),
     [allSkills]
   );
-  const personalEmail = profile?.personalEmail || "—";
+  const personalEmail =
+    studentRow?.personal_email ||
+    studentRow?.personalEmail ||
+    profile?.personalEmail ||
+    profile?.email ||
+    "—";
+  const linkedInUrl =
+    studentRow?.linkedin_url ||
+    studentRow?.linkedinUrl ||
+    profile?.linkedinUrl ||
+    "";
+  const githubUrl =
+    studentRow?.github_url ||
+    studentRow?.githubUrl ||
+    profile?.githubUrl ||
+    "";
   const universityEmail = profile?.universityEmail || "—";
 
   if (!docId) return <div className="pageContainer">Loading document...</div>;
@@ -488,33 +520,28 @@ export default function PortfolioDocumentPage() {
               <span><b>Phone:</b> {profile?.contactNumber || "—"}</span>
               <span><b>University Email:</b> {universityEmail}</span>
               <span><b>Personal Email:</b> {personalEmail}</span>
-            </div>
-          </section>
-
-          <section className="docSection">
-            <h2>LinkedIn / GitHub</h2>
-            <div className="docSocialGrid">
-              <div className="docSocialCard">
-                <div className="docSocialLabel">LinkedIn</div>
-                {profile?.linkedinUrl ? (
-                  <a href={normalizeUrl(profile.linkedinUrl)} target="_blank" rel="noreferrer">
-                    {profile.linkedinUrl}
+              <span>
+                <b>LinkedIn:</b>{" "}
+                {linkedInUrl ? (
+                  <a href={normalizeUrl(linkedInUrl)} target="_blank" rel="noreferrer">
+                    {linkedInUrl}
                   </a>
                 ) : (
                   <span>—</span>
                 )}
-              </div>
-              <div className="docSocialCard">
-                <div className="docSocialLabel">GitHub</div>
-                {profile?.githubUrl ? (
-                  <a href={normalizeUrl(profile.githubUrl)} target="_blank" rel="noreferrer">
-                    {profile.githubUrl}
+              </span>
+              <span>
+                <b>GitHub:</b>{" "}
+                {githubUrl ? (
+                  <a href={normalizeUrl(githubUrl)} target="_blank" rel="noreferrer">
+                    {githubUrl}
                   </a>
                 ) : (
                   <span>—</span>
                 )}
-              </div>
+              </span>
             </div>
+          {/* </div> */}
           </section>
 
           <section className="docSection">
@@ -565,8 +592,23 @@ export default function PortfolioDocumentPage() {
               <p>No project selected.</p>
             )}
           </section>
+
+          <section className="docSection">
+            <h2>Short Description</h2>
+            <p>{shortDescription}</p>
+          </section>
+
+          <footer className="docContactSlip">
+            <div className="docContactSlipTitle">Contact Information Slip (For HR)</div>
+            <div className="docSlipRow"><b>Name:</b> {studentName}</div>
+            <div className="docSlipRow"><b>Phone:</b> {profile?.contactNumber || "—"}</div>
+            <div className="docSlipRow"><b>University Email:</b> {universityEmail}</div>
+            <div className="docSlipRow"><b>Personal Email:</b> {personalEmail}</div>
+            <div className="docSlipRow"><b>LinkedIn:</b> {linkedInUrl || "—"}</div>
+            <div className="docSlipRow"><b>GitHub:</b> {githubUrl || "—"}</div>
+          </footer>
         </article>
       </div>
-    </div>
+    // </div>
   );
 }

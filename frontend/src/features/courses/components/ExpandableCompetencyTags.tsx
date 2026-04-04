@@ -9,7 +9,7 @@ type Props = {
 };
 
 function toneByIndex(i: number) {
-  return (["pink", "green", "blue", "sand"] as const)[i % 4];
+  return (["green", "green", "green", "green"] as const)[i % 4];
 }
 
 export default function ExpandableCompetencyTags({ tags, maxVisible = 2, contextText }: Props) {
