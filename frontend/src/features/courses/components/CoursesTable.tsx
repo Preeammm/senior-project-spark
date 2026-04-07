@@ -22,25 +22,39 @@ export default function CoursesTable({ courses, showRelevance = true }: Props & 
 
         <tbody>
           {courses.map((c) => {
+            // Format course name as ITCS495_Special Topics
+            const formattedCourseName = c.courseCode ? `${c.courseCode}_${c.courseName}` : c.courseName;
+            
+            // Use skills from API if available, otherwise use competencyTags
+            const displaySkills = c.skills && c.skills.length > 0 ? c.skills : c.competencyTags;
+
             return (
               <tr key={c.id}>
                 <td>
                   {/* ✅ real navigation */}
                   <Link className="courseLink" to={`/courses/${c.id}`}>
-                    {c.courseCode}_ {c.courseName}
+                    {formattedCourseName}
                   </Link>
                 </td>
 
                 <td>
                   <ExpandableCompetencyTags
-                    tags={c.competencyTags}
+                    tags={displaySkills}
                     maxVisible={2}
                     contextText={`${c.courseCode} ${c.courseName}`}
                   />
                 </td>
 
                 <td className="relevanceCol">
-                  {showRelevance ? <RelevanceIndicator value={c.relevancePercent} /> : "—"}
+                  {showRelevance ? (
+                    c.score !== undefined ? (
+                      <RelevanceIndicator value={c.score} isNewFormat={true} />
+                    ) : (
+                      <RelevanceIndicator value={c.relevancePercent} />
+                    )
+                  ) : (
+                    "—"
+                  )}
                 </td>
 
                 <td className="gradeCol">{c.grade}</td>

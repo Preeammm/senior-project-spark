@@ -1,5 +1,6 @@
 type Props = {
   value: number;
+  isNewFormat?: boolean; // If true, value is 0-1 range with custom colors
 };
 
 function getRelevanceMeta(value: number) {
@@ -49,7 +50,66 @@ function getRelevanceMeta(value: number) {
   };
 }
 
-export default function RelevanceIndicator({ value }: Props) {
+// New format for score-based relevance (0-1 range)
+function getScoreRelevanceMeta(score: number) {
+  if (score > 0.6) {
+    return {
+      color: "#44CE1B",
+      label: "Very high relevance",
+      description: "Excellent match for this career path.",
+    };
+  }
+
+  if (score > 0.3) {
+    return {
+      color: "#BBDB44",
+      label: "High relevance",
+      description: "Good match for this career path.",
+    };
+  }
+
+  if (score > 0.1) {
+    return {
+      color: "#F7E379",
+      label: "Moderate relevance",
+      description: "Moderate match for this career path.",
+    };
+  }
+
+  if (score > 0) {
+    return {
+      color: "#F2A134",
+      label: "Low relevance",
+      description: "Limited match for this career path.",
+    };
+  }
+
+  return {
+    color: "#E51F1F",
+    label: "No relevance",
+    description: "Not relevant to this career path.",
+  };
+}
+
+export default function RelevanceIndicator({ value, isNewFormat = false }: Props) {
+  if (isNewFormat) {
+    const meta = getScoreRelevanceMeta(value);
+    return (
+      <div className="relevanceIndicatorWrap">
+        <button
+          type="button"
+          className="relevanceIndicator"
+          style={{ backgroundColor: meta.color }}
+          aria-label={`${meta.label}. ${meta.description}`}
+        />
+        <div className="relevanceTooltip" role="tooltip">
+          <div className="relevanceTooltipTitle">{meta.label}</div>
+          <div className="relevanceTooltipText">{meta.description}</div>
+        </div>
+      </div>
+    );
+  }
+
   const meta = getRelevanceMeta(value);
 
   return (

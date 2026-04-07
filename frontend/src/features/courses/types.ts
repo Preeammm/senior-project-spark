@@ -5,6 +5,10 @@ export type Course = {
   competencyTags: string[];
   relevancePercent: number; // 0-100
   grade: string;
+  // New fields from relevance endpoints
+  skills?: string[]; // All skills from relavacne_info
+  score?: number; // Normalized score from relavacne_scores
+  index?: number; // Index score from relavacne_scores
 };
 
 export type CourseDetail = {

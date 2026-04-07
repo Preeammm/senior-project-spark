@@ -17,3 +17,17 @@ export async function getCourseDetail(
   });
   return data;
 }
+
+export async function getRelevanceInfo(careerFocus?: string) {
+  const { data } = await http.get("/api/relavacne_info", {
+    params: careerFocus ? { careerFocus } : undefined,
+  });
+  return data.data || [];
+}
+
+export async function getRelevanceScores(careerFocus?: string) {
+  const { data } = await http.get("/api/relavacne_scores", {
+    params: careerFocus ? { careerFocus } : undefined,
+  });
+  return data.data || [];
+}
