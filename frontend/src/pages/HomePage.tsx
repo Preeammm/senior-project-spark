@@ -15,15 +15,12 @@ import type { Project } from "../features/projects/types";
 import { useProtectedRoute } from "../hooks/useProtectedRoute";
 import "./HomePage.css";
 
-type RadarAxis =
-  | "Data Analysis"
-  | "Data Visualization"
-  | "Problem Solving"
-  | "Programming"
-  | "Communication Skills"
-  | "Team Collaboration";
+type RadarAxis = string;
 
-const RADAR_AXES: RadarAxis[] = [
+const RADAR_MAX_LEVEL = 4;
+
+// Base 6 skills used for all three lines in spider chart
+const BASE_AXES: RadarAxis[] = [
   "Data Analysis",
   "Data Visualization",
   "Problem Solving",
@@ -32,51 +29,8 @@ const RADAR_AXES: RadarAxis[] = [
   "Team Collaboration",
 ];
 
-const RADAR_MAX_LEVEL = 4;
-const MOCK_STUDENT: Record<RadarAxis, number> = {
-  "Data Analysis": 3.2,
-  "Data Visualization": 2.8,
-  "Problem Solving": 3.4,
-  Programming: 3.1,
-  "Communication Skills": 2.9,
-  "Team Collaboration": 3.0,
-};
-
-const MOCK_REQUIREMENT: Partial<Record<CareerFocusOption, Record<RadarAxis, number>>> = {
-  "Data Analyst": {
-    "Data Analysis": 9,
-    "Data Visualization": 8,
-    "Problem Solving": 8,
-    Programming: 6,
-    "Communication Skills": 7,
-    "Team Collaboration": 7,
-  },
-  "Data Engineer": {
-    "Data Analysis": 7,
-    "Data Visualization": 6,
-    "Problem Solving": 8,
-    Programming: 9,
-    "Communication Skills": 6,
-    "Team Collaboration": 7,
-  },
-  "Software Engineer": {
-    "Data Analysis": 6,
-    "Data Visualization": 5,
-    "Problem Solving": 9,
-    Programming: 9,
-    "Communication Skills": 7,
-    "Team Collaboration": 8,
-  },
-};
-
-const DEFAULT_REQUIREMENT: Record<RadarAxis, number> = {
-  "Data Analysis": 6,
-  "Data Visualization": 6,
-  "Problem Solving": 6,
-  Programming: 6,
-  "Communication Skills": 6,
-  "Team Collaboration": 6,
-};
+// Default skills for fallback
+const DEFAULT_AXES: RadarAxis[] = BASE_AXES;
 
 type EvidenceItem = {
   id: string;
@@ -223,8 +177,8 @@ function toRadarLevel(score: number) {
  * score 0..4 => scale 0..1
  */
 function radarPoints(
-  scores: Record<RadarAxis, number>,
-  axes: RadarAxis[],
+  scores: Record<string, number>,
+  axes: string[],
   cx: number,
   cy: number,
   r: number
@@ -259,7 +213,87 @@ export default function HomePage() {
   const activeCareerFocus: CareerFocusOption =
     careerFocus || careerFocusOptions[0];
 
-  const [selectedSkill, setSelectedSkill] = useState<RadarAxis>("Problem Solving");
+  // Fetch career info for gray line in spider chart
+  const { data: careerInfoData = [] } = useQuery<
+    Array<{ career_name: string; level_id: number; skill_title: string }>
+  >({
+    queryKey: ["careerInfo", careerFocus],
+    queryFn: async () => {
+      if (!careerFocus) return [];
+      const res = await http.get("/api/career_info", { params: { careerFocus } });
+      return res.data?.data ?? [];
+    },
+    retry: false,
+    enabled: !!careerFocus,
+  });
+
+  // Fetch student assessment scores to build dynamic student scores
+  const { data: assessmentData = [] } = useQuery<
+    Array<{
+      course_code: string;
+      course_name: string;
+      semester: number;
+      skill_title: string;
+      total_normalized_score: number;
+    }>
+  >({
+    queryKey: ["assessments", careerFocus],
+    queryFn: async () => {
+      if (!careerFocus) return [];
+      const res = await http.get("/api/assessments", { params: { careerFocus } });
+      return res.data?.data ?? [];
+    },
+    retry: false,
+    enabled: !!careerFocus,
+  });
+
+  // Fetch skill scores for blue line
+  const { data: skillScoreData = [] } = useQuery<
+    Array<{
+      career_name: string;
+      skill_title: string;
+      level_id: number;
+      performance_score: number;
+    }>
+  >({
+    queryKey: ["skillScore", careerFocus],
+    queryFn: async () => {
+      if (!careerFocus) return [];
+      const res = await http.get("/api/skill_score", { params: { careerFocus } });
+      return res.data?.data ?? [];
+    },
+    retry: false,
+    enabled: !!careerFocus,
+  });
+
+  // Build fixed 6 axes from API career info; pad missing skills with "-"
+  const dynamicAxes = useMemo(() => {
+    if (careerInfoData.length === 0) {
+      return BASE_AXES;
+    }
+
+    const skillsSet = new Set<string>();
+    careerInfoData.forEach((item) => {
+      skillsSet.add(item.skill_title);
+    });
+
+    const skills = Array.from(skillsSet).slice(0, 6);
+    while (skills.length < 6) {
+      skills.push("-");
+    }
+    return skills;
+  }, [careerInfoData]);
+
+  const [selectedSkill, setSelectedSkill] = useState<string>(
+    dynamicAxes[0] || "Problem Solving"
+  );
+
+  // Reset selected skill when career changes
+  useEffect(() => {
+    if (dynamicAxes.length > 0) {
+      setSelectedSkill(dynamicAxes[0]);
+    }
+  }, [dynamicAxes, careerFocus]);
 
   useEffect(() => {
     if (!careerFocus) return;
@@ -274,11 +308,77 @@ export default function HomePage() {
       });
   }, [careerFocus]);
 
-  const studentScores = useMemo(() => MOCK_STUDENT, []);
-  const reqScores = useMemo(
-    () => MOCK_REQUIREMENT[activeCareerFocus] ?? DEFAULT_REQUIREMENT,
-    [activeCareerFocus]
-  );
+  // Build dynamic student scores from skill score data
+  const { studentScores, shownLevels, skillMaxLevels } = useMemo(() => {
+    if (skillScoreData.length === 0 || dynamicAxes.length === 0) {
+      const defaultScores = Object.fromEntries(dynamicAxes.map((axis) => [axis, axis === "-" ? 0 : 2.5]));
+      const defaultShownLevels = Object.fromEntries(dynamicAxes.map((axis) => [axis, 0]));
+      const defaultMaxLevels = new Map<string, number>();
+      return { studentScores: defaultScores, shownLevels: defaultShownLevels, skillMaxLevels: defaultMaxLevels };
+    }
+
+    const skillDataMap = new Map<string, { levels: number[]; sumScore: number }>();
+    skillScoreData.forEach((item) => {
+      if (!skillDataMap.has(item.skill_title)) {
+        skillDataMap.set(item.skill_title, { levels: [], sumScore: 0 });
+      }
+      const data = skillDataMap.get(item.skill_title)!;
+      data.levels.push(item.level_id);
+      data.sumScore += item.performance_score;
+    });
+
+    const scores: Record<string, number> = {};
+    const shownLevelsMap: Record<string, number> = {};
+    const maxLevelsMap = new Map<string, number>();
+    dynamicAxes.forEach((axis) => {
+      if (axis === "-") {
+        scores[axis] = 0;
+        shownLevelsMap[axis] = 0;
+        return;
+      }
+
+      const data = skillDataMap.get(axis);
+      if (!data) {
+        scores[axis] = 0;
+        shownLevelsMap[axis] = 0;
+        return;
+      }
+
+      const { levels, sumScore } = data;
+      levels.sort((a, b) => a - b);
+      const maxLevel = Math.max(...levels);
+      maxLevelsMap.set(axis, maxLevel);
+      const minLevelAboveSum = levels.find(level => level > sumScore);
+      const shownLevel = minLevelAboveSum !== undefined ? minLevelAboveSum : maxLevel;
+      shownLevelsMap[axis] = shownLevel;
+      scores[axis] = Math.min(shownLevel, RADAR_MAX_LEVEL);
+    });
+
+    return { studentScores: scores, shownLevels: shownLevelsMap, skillMaxLevels: maxLevelsMap };
+  }, [skillScoreData, dynamicAxes]);
+  
+  // Build career requirement scores from API - grey line
+  const reqScores = useMemo(() => {
+    if (!careerFocus || careerInfoData.length === 0 || dynamicAxes.length === 0) {
+      return Object.fromEntries(dynamicAxes.map((axis) => [axis, 0]));
+    }
+
+    const skillLevelMap = new Map<string, number>();
+    careerInfoData.forEach((item) => {
+      skillLevelMap.set(item.skill_title, item.level_id);
+    });
+
+    const scores: Record<string, number> = {};
+    dynamicAxes.forEach((axis) => {
+      if (axis === "-") {
+        scores[axis] = 0;
+        return;
+      }
+      scores[axis] = skillLevelMap.get(axis) || 0;
+    });
+
+    return scores;
+  }, [careerFocus, careerInfoData, dynamicAxes]);
   const { data: courses = [], isLoading: coursesLoading } = useCourses(careerFocus);
   const { data: projects = [], isLoading: projectsLoading } = useProjects(careerFocus);
 
@@ -299,13 +399,62 @@ export default function HomePage() {
   const r = 110;
 
   const studentPoly = useMemo(
-    () => radarPoints(studentScores, RADAR_AXES, cx, cy, r),
-    [studentScores]
+    () => radarPoints(studentScores, dynamicAxes, cx, cy, r),
+    [studentScores, dynamicAxes, cx, cy, r]
   );
   const reqPoly = useMemo(
-    () => radarPoints(reqScores, RADAR_AXES, cx, cy, r),
-    [reqScores]
+    () => radarPoints(reqScores, dynamicAxes, cx, cy, r),
+    [reqScores, dynamicAxes, cx, cy, r]
   );
+
+  function renderAxisLabel(displayAxis: string, lx: number, ly: number, isActive: boolean, axis: string) {
+    const words = displayAxis.split(' ');
+    const handleClick = () => setSelectedSkill(axis);
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        setSelectedSkill(axis);
+      }
+    };
+
+    if (words.length === 1 || displayAxis.length <= 15) {
+      return (
+        <text
+          x={lx}
+          y={ly}
+          className={`mpAxisLabel ${isActive ? "active" : ""}`}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          role="button"
+          tabIndex={0}
+          onClick={handleClick}
+          onKeyDown={handleKeyDown}
+        >
+          {displayAxis}
+        </text>
+      );
+    } else {
+      const mid = Math.ceil(words.length / 2);
+      const line1 = words.slice(0, mid).join(' ');
+      const line2 = words.slice(mid).join(' ');
+      return (
+        <text
+          x={lx}
+          y={ly}
+          className={`mpAxisLabel ${isActive ? "active" : ""}`}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          role="button"
+          tabIndex={0}
+          onClick={handleClick}
+          onKeyDown={handleKeyDown}
+        >
+          <tspan x={lx} dy="-0.5em">{line1}</tspan>
+          <tspan x={lx} dy="1em">{line2}</tspan>
+        </text>
+      );
+    }
+  }
 
   if (isLoading) return <div className="homeLoading">Loading...</div>;
   if (error || !me) return <div className="homeLoading">Failed to load user</div>;
@@ -498,48 +647,40 @@ export default function HomePage() {
                   <svg width={W} height={H} className="mpRadar" viewBox={`0 0 ${W} ${H}`}>
                     {[1, 2, 3, 4].map((level) => {
                       const ringScores = Object.fromEntries(
-                        RADAR_AXES.map((a) => [a, level])
-                      ) as Record<RadarAxis, number>;
-                      const ring = radarPoints(ringScores, RADAR_AXES, cx, cy, r);
+                        dynamicAxes.map((a) => [a, level])
+                      ) as Record<string, number>;
+                      const ring = radarPoints(ringScores, dynamicAxes, cx, cy, r);
                       return <polygon key={level} points={ring} className="mpRing" />;
                     })}
 
-                    {RADAR_AXES.map((axis, i) => {
-                      const n = RADAR_AXES.length;
+                    {/* Axis lines */}
+                    {dynamicAxes.map((axis, i) => {
+                      const n = dynamicAxes.length;
                       const ang = -Math.PI / 2 + (i * (2 * Math.PI)) / n;
                       const x2 = cx + Math.cos(ang) * r;
                       const y2 = cy + Math.sin(ang) * r;
 
-                      const lx = cx + Math.cos(ang) * (r + 26);
-                      const ly = cy + Math.sin(ang) * (r + 26);
-
                       return (
-                        <g key={axis}>
-                          <line x1={cx} y1={cy} x2={x2} y2={y2} className="mpAxis" />
-                          <text
-                            x={lx}
-                            y={ly}
-                            className={`mpAxisLabel ${selectedSkill === axis ? "active" : ""}`}
-                            textAnchor="middle"
-                            dominantBaseline="middle"
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => setSelectedSkill(axis)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" || e.key === " ") {
-                                e.preventDefault();
-                                setSelectedSkill(axis);
-                              }
-                            }}
-                          >
-                            {axis}
-                          </text>
-                        </g>
+                        <line key={`line-${axis}`} x1={cx} y1={cy} x2={x2} y2={y2} className="mpAxis" />
                       );
                     })}
 
                     <polygon points={reqPoly} className="mpPolyReq" />
                     <polygon points={studentPoly} className="mpPolyStudent" />
+
+                    {/* Axis labels */}
+                    {dynamicAxes.map((axis, i) => {
+                      const n = dynamicAxes.length;
+                      const ang = -Math.PI / 2 + (i * (2 * Math.PI)) / n;
+                      const lx = cx + Math.cos(ang) * (r + 26);
+                      const ly = cy + Math.sin(ang) * (r + 26);
+
+                      const maxLevel = skillMaxLevels.get(axis) || 0;
+                      const shownLevel = shownLevels[axis] || 0;
+                      const displayAxis = shownLevel === maxLevel && shownLevel > 0 ? `${axis} (Max Level)` : axis;
+
+                      return renderAxisLabel(displayAxis, lx, ly, selectedSkill === axis, axis);
+                    })}
                   </svg>
                 </div>
 

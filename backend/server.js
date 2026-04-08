@@ -49,7 +49,7 @@ const USER_AUTH = [
 ];
 
 // ===== TEST DB CONNECTION =====
-app.get("/api/dacal", requireUser, async (req, res) => {
+app.get("/api/skill_score", requireUser, async (req, res) => {
   try {
     const profile = meStore[req.user.id];
     if (!profile) return res.status(404).json({ message: "Profile not found" });
@@ -62,12 +62,13 @@ app.get("/api/dacal", requireUser, async (req, res) => {
     }
 
     const results = await pool.query(`
+      WITH spider_chart AS (
       SELECT 
           cr.career_name,
           sfsk.skill_title,
           cos.course_name,
           c.clo_code,
-          sfle.level_id,
+          c.level_id,
           SUM(sas.student_score_clo) as total_st_score,
           SUM(acm.full_score_clo) as total_full_score
 
@@ -83,7 +84,7 @@ app.get("/api/dacal", requireUser, async (req, res) => {
           ON csm.level_id = sfle.level_id
           
       inner join clo c
-          ON csm.skill_id = c.skill_id and csm.level_id = c.level_id   
+          ON csm.skill_id = c.skill_id   
 
       inner join courses cos 
           ON c.course_code = cos.course_code and c.semester = cos.semester
@@ -101,12 +102,12 @@ app.get("/api/dacal", requireUser, async (req, res) => {
           ON sas.student_id = st.student_id
 
       WHERE 
-        cr.career_name = $1 and st.student_id = $2 and
-        c.semester = (
+        st.student_id = $1 and cr.career_name = $2 
+        and c.semester = (
           SELECT MAX(c2.semester)
           FROM clo c2
           WHERE c2.course_code = c.course_code 
-      )
+          )
 
       GROUP BY 
           cr.career_name,
@@ -122,7 +123,21 @@ app.get("/api/dacal", requireUser, async (req, res) => {
           sfsk.skill_title,
           cos.course_name, 
           c.semester
-    `, [careerFocus, studentId]);
+      )
+
+      SELECT 
+          career_name,
+          skill_title,
+          level_id,
+          AVG(total_st_score::numeric / NULLIF(total_full_score, 0)) * level_id AS performance_score
+      FROM spider_chart
+      GROUP BY 
+          career_name,
+          level_id,
+          skill_title
+          
+      order by skill_title
+    `, [studentId, careerFocus]);
 
     res.status(200).json({
       data: results.rows,
@@ -135,6 +150,27 @@ app.get("/api/dacal", requireUser, async (req, res) => {
     });
   }
 });//
+
+app.get("/api/career_info", requireUser, async (req, res) => {
+  const careerFocus = normalizeCareerFocus(req.query?.careerFocus);
+    if (!careerFocus) {
+      return res.status(400).json({ message: "Missing or invalid career focus" });
+    }
+
+  const results = await pool.query(`
+    SELECT careers.career_name,
+    csm.level_id,
+    sfsk.skill_title
+      FROM careers 
+      INNER JOIN career_skill_mapping csm
+        On careers.career_id = csm.career_id
+      INNER JOIN sfia_skills sfsk
+        on csm.skill_id = sfsk.skill_id
+      WHERE career_name = $1`, [careerFocus]);
+  res.status(200).json({
+    data: results.rows,
+  });
+});// this call data for skills required for each career focus
 
 app.get("/api/assessments", requireUser, async (req, res) => {
   try {
@@ -224,7 +260,6 @@ app.get("/api/student", requireUser, async (req, res) => {
     data: results.rows,
   });
 }); // this call data for student information (personal email, github, linkedin)
-
 
 app.get("/api/relavacne_scores", requireUser, async (req, res) => {
   try {
@@ -322,7 +357,7 @@ app.get("/api/relavacne_scores", requireUser, async (req, res) => {
         career_name,
         course_name,
         LEAST(ROUND(SUM(lcourse)::numeric / NULLIF(SUM(lcareer), 0), 2),1) AS score,
-        LEAST(ROUND(SUM(lcourse)::numeric / NULLIF(SUM(lcareer), 0), 2),1) * COUNT(course_name) AS index
+        LEAST(ROUND(SUM(lcourse)::numeric / NULLIF(SUM(lcareer), 0), 2),1) + COUNT(course_name) AS index
     FROM ranked_data
     GROUP BY career_name, course_code,course_name;
     `, [studentId, careerFocus]);
@@ -393,7 +428,6 @@ app.get("/api/relavacne_info", requireUser, async (req, res) => {
         st.student_id = $1
         AND cr.career_name = $2
 
-
         AND (c.skill_id, cos.course_name, c.semester, c.level_id, c.clo_code) IN (
             SELECT skill_id, course_name, semester, level_id, clo_code
             FROM (
@@ -446,7 +480,6 @@ app.get("/api/relavacne_info", requireUser, async (req, res) => {
     });
   }
 });// this call data for skills for each course
-
 
 // ==============================
 
