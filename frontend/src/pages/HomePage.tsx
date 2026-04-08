@@ -309,9 +309,12 @@ export default function HomePage() {
   }, [careerFocus]);
 
   // Build dynamic student scores from skill score data
-  const studentScores = useMemo(() => {
+  const { studentScores, shownLevels, skillMaxLevels } = useMemo(() => {
     if (skillScoreData.length === 0 || dynamicAxes.length === 0) {
-      return Object.fromEntries(dynamicAxes.map((axis) => [axis, axis === "-" ? 0 : 2.5]));
+      const defaultScores = Object.fromEntries(dynamicAxes.map((axis) => [axis, axis === "-" ? 0 : 2.5]));
+      const defaultShownLevels = Object.fromEntries(dynamicAxes.map((axis) => [axis, 0]));
+      const defaultMaxLevels = new Map<string, number>();
+      return { studentScores: defaultScores, shownLevels: defaultShownLevels, skillMaxLevels: defaultMaxLevels };
     }
 
     const skillDataMap = new Map<string, { levels: number[]; sumScore: number }>();
@@ -325,27 +328,33 @@ export default function HomePage() {
     });
 
     const scores: Record<string, number> = {};
+    const shownLevelsMap: Record<string, number> = {};
+    const maxLevelsMap = new Map<string, number>();
     dynamicAxes.forEach((axis) => {
       if (axis === "-") {
         scores[axis] = 0;
+        shownLevelsMap[axis] = 0;
         return;
       }
 
       const data = skillDataMap.get(axis);
       if (!data) {
         scores[axis] = 0;
+        shownLevelsMap[axis] = 0;
         return;
       }
 
       const { levels, sumScore } = data;
       levels.sort((a, b) => a - b);
       const maxLevel = Math.max(...levels);
+      maxLevelsMap.set(axis, maxLevel);
       const minLevelAboveSum = levels.find(level => level > sumScore);
       const shownLevel = minLevelAboveSum !== undefined ? minLevelAboveSum : maxLevel;
+      shownLevelsMap[axis] = shownLevel;
       scores[axis] = Math.min(shownLevel, RADAR_MAX_LEVEL);
     });
 
-    return scores;
+    return { studentScores: scores, shownLevels: shownLevelsMap, skillMaxLevels: maxLevelsMap };
   }, [skillScoreData, dynamicAxes]);
   
   // Build career requirement scores from API - grey line
@@ -397,6 +406,55 @@ export default function HomePage() {
     () => radarPoints(reqScores, dynamicAxes, cx, cy, r),
     [reqScores, dynamicAxes, cx, cy, r]
   );
+
+  function renderAxisLabel(displayAxis: string, lx: number, ly: number, isActive: boolean, axis: string) {
+    const words = displayAxis.split(' ');
+    const handleClick = () => setSelectedSkill(axis);
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        setSelectedSkill(axis);
+      }
+    };
+
+    if (words.length === 1 || displayAxis.length <= 15) {
+      return (
+        <text
+          x={lx}
+          y={ly}
+          className={`mpAxisLabel ${isActive ? "active" : ""}`}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          role="button"
+          tabIndex={0}
+          onClick={handleClick}
+          onKeyDown={handleKeyDown}
+        >
+          {displayAxis}
+        </text>
+      );
+    } else {
+      const mid = Math.ceil(words.length / 2);
+      const line1 = words.slice(0, mid).join(' ');
+      const line2 = words.slice(mid).join(' ');
+      return (
+        <text
+          x={lx}
+          y={ly}
+          className={`mpAxisLabel ${isActive ? "active" : ""}`}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          role="button"
+          tabIndex={0}
+          onClick={handleClick}
+          onKeyDown={handleKeyDown}
+        >
+          <tspan x={lx} dy="-0.5em">{line1}</tspan>
+          <tspan x={lx} dy="1em">{line2}</tspan>
+        </text>
+      );
+    }
+  }
 
   if (isLoading) return <div className="homeLoading">Loading...</div>;
   if (error || !me) return <div className="homeLoading">Failed to load user</div>;
@@ -595,42 +653,34 @@ export default function HomePage() {
                       return <polygon key={level} points={ring} className="mpRing" />;
                     })}
 
+                    {/* Axis lines */}
                     {dynamicAxes.map((axis, i) => {
                       const n = dynamicAxes.length;
                       const ang = -Math.PI / 2 + (i * (2 * Math.PI)) / n;
                       const x2 = cx + Math.cos(ang) * r;
                       const y2 = cy + Math.sin(ang) * r;
 
-                      const lx = cx + Math.cos(ang) * (r + 26);
-                      const ly = cy + Math.sin(ang) * (r + 26);
-
                       return (
-                        <g key={axis}>
-                          <line x1={cx} y1={cy} x2={x2} y2={y2} className="mpAxis" />
-                          <text
-                            x={lx}
-                            y={ly}
-                            className={`mpAxisLabel ${selectedSkill === axis ? "active" : ""}`}
-                            textAnchor="middle"
-                            dominantBaseline="middle"
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => setSelectedSkill(axis)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" || e.key === " ") {
-                                e.preventDefault();
-                                setSelectedSkill(axis);
-                              }
-                            }}
-                          >
-                            {axis}
-                          </text>
-                        </g>
+                        <line key={`line-${axis}`} x1={cx} y1={cy} x2={x2} y2={y2} className="mpAxis" />
                       );
                     })}
 
                     <polygon points={reqPoly} className="mpPolyReq" />
                     <polygon points={studentPoly} className="mpPolyStudent" />
+
+                    {/* Axis labels */}
+                    {dynamicAxes.map((axis, i) => {
+                      const n = dynamicAxes.length;
+                      const ang = -Math.PI / 2 + (i * (2 * Math.PI)) / n;
+                      const lx = cx + Math.cos(ang) * (r + 26);
+                      const ly = cy + Math.sin(ang) * (r + 26);
+
+                      const maxLevel = skillMaxLevels.get(axis) || 0;
+                      const shownLevel = shownLevels[axis] || 0;
+                      const displayAxis = shownLevel === maxLevel && shownLevel > 0 ? `${axis} (Max Level)` : axis;
+
+                      return renderAxisLabel(displayAxis, lx, ly, selectedSkill === axis, axis);
+                    })}
                   </svg>
                 </div>
 
