@@ -666,7 +666,7 @@ export default function HomePage() {
                     })}
 
                     <polygon points={reqPoly} className="mpPolyReq" />
-                    <polygon points={studentPoly} className="mpPolyStudent" />
+                    {skillScoreData.length > 0 && <polygon points={studentPoly} className="mpPolyStudent" />}
 
                     {/* Axis labels */}
                     {dynamicAxes.map((axis, i) => {
