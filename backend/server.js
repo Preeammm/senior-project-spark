@@ -464,6 +464,17 @@ app.get("/api/relavacne_info", requireUser, async (req, res) => {
   }
 });// this call data for skills for each course
 
+app.get("/api/enrollment_info", requireUser, async (req, res) => {
+  const profile = meStore[req.user.id];
+  if (!profile) return res.status(404).json({ message: "Profile not found" });
+  const studentId = profile.studentId;
+  if (!studentId) return res.status(400).json({ message: "Missing student ID" });
+
+  const results = await pool.query("SELECT * FROM enrollments WHERE student_id = $1", [studentId]);
+  res.status(200).json({
+    data: results.rows,
+  });
+});
 // ==============================
 
 

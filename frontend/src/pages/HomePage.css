@@ -523,6 +523,66 @@
   font-weight: 600;
 }
 
+.mpRelevantCourse {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid #eff6ff;
+}
+
+.mpRelevantCourse:last-child {
+  border-bottom: none;
+}
+
+.mpEnrollmentStatus {
+  font-size: 12px;
+  font-weight: 700;
+  color: inherit;
+}
+
+.mpEnrollmentStatus.notEnrolled {
+  color: #94a3b8;
+}
+
+.mpSectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.mpSectionLabel {
+  margin-top: 0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.mpSectionToggle {
+  background: transparent;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #1e3a8a;
+  cursor: pointer;
+}
+
+.mpSectionToggle:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.mpNotEnrolledCourse {
+  color: #6b7280;
+}
+
 .mpSectionLabel {
   margin-top: 6px;
   font-size: 11px;

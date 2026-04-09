@@ -48,65 +48,16 @@ type StudentRow = {
   linkedinUrl?: string;
 };
 
-type SuggestedCourse = {
-  id: string;
-  courseCode: string;
-  courseName: string;
-  supports: RadarAxis[];
-  enrollmentPlan: string;
+type EnrollmentInfo = {
+  course_code?: string;
+  semester?: number;
 };
 
-const SUGGESTED_COURSE_CATALOG: SuggestedCourse[] = [
-  {
-    id: "ITCS326",
-    courseCode: "ITCS326",
-    courseName: "Data Mining",
-    supports: ["Data Analysis", "Problem Solving"],
-    enrollmentPlan: "Year 3, Semester 2",
-  },
-  {
-    id: "ITCS321",
-    courseCode: "ITCS321",
-    courseName: "Business Intelligence and Visualization",
-    supports: ["Data Analysis", "Data Visualization", "Communication Skills"],
-    enrollmentPlan: "Year 4, Semester 1",
-  },
-  {
-    id: "ITCS314",
-    courseCode: "ITCS314",
-    courseName: "Statistics for Computing",
-    supports: ["Data Analysis", "Problem Solving"],
-    enrollmentPlan: "Year 2, Semester 2",
-  },
-  {
-    id: "ITCS225",
-    courseCode: "ITCS225",
-    courseName: "Human-Computer Interaction",
-    supports: ["Data Visualization", "Communication Skills"],
-    enrollmentPlan: "Year 3, Semester 1",
-  },
-  {
-    id: "ITCS316",
-    courseCode: "ITCS316",
-    courseName: "Software Engineering",
-    supports: ["Programming", "Team Collaboration", "Communication Skills"],
-    enrollmentPlan: "Year 3, Semester 2",
-  },
-  {
-    id: "ITCS339",
-    courseCode: "ITCS339",
-    courseName: "DevOps and Cloud Infrastructure",
-    supports: ["Programming", "Problem Solving", "Team Collaboration"],
-    enrollmentPlan: "Year 4, Semester 1",
-  },
-  {
-    id: "ITCS332",
-    courseCode: "ITCS332",
-    courseName: "Project Management for IT",
-    supports: ["Team Collaboration", "Communication Skills"],
-    enrollmentPlan: "Year 3, Semester 1",
-  },
-];
+function getRelevantCoursesForSkill(axis: RadarAxis, courses: Course[]) {
+  return courses
+    .filter((course) => course.skills?.includes(axis))
+    .sort((a, b) => (b.index ?? 0) - (a.index ?? 0));
+}
 
 function toCourseEvidence(c: Course): EvidenceItem {
   return {
@@ -143,22 +94,6 @@ function pickEvidence(axis: RadarAxis, courses: Course[], projects: Project[]) {
   return merged
     .sort((a, b) => b.relevancePercent - a.relevancePercent)
     .slice(0, 2);
-}
-
-function pickSuggestedCourses(
-  axis: RadarAxis,
-  takenCourses: Course[],
-  maxItems = 2
-) {
-  const takenCourseCodes = new Set(
-    takenCourses.map((course) => course.courseCode.trim().toUpperCase())
-  );
-
-  return SUGGESTED_COURSE_CATALOG.filter((course) =>
-    course.supports.includes(axis)
-  )
-    .filter((course) => !takenCourseCodes.has(course.courseCode.toUpperCase()))
-    .slice(0, maxItems);
 }
 
 function clamp01(n: number) {
@@ -287,6 +222,8 @@ export default function HomePage() {
   const [selectedSkill, setSelectedSkill] = useState<string>(
     dynamicAxes[0] || "Problem Solving"
   );
+  const [showEnrolledCourses, setShowEnrolledCourses] = useState(false);
+  const [showNotEnrolledCourses, setShowNotEnrolledCourses] = useState(false);
 
   // Reset selected skill when career changes
   useEffect(() => {
@@ -381,14 +318,47 @@ export default function HomePage() {
   }, [careerFocus, careerInfoData, dynamicAxes]);
   const { data: courses = [], isLoading: coursesLoading } = useCourses(careerFocus);
   const { data: projects = [], isLoading: projectsLoading } = useProjects(careerFocus);
+  const { data: enrollmentInfo = [], isLoading: enrollmentLoading } = useQuery<
+    EnrollmentInfo[]
+  >({
+    queryKey: ["enrollmentInfo"],
+    queryFn: async () => {
+      const res = await http.get("/api/enrollment_info");
+      return res.data?.data ?? [];
+    },
+    retry: false,
+  });
 
-  const evidenceItems = useMemo(
-    () => pickEvidence(selectedSkill, courses, projects),
-    [selectedSkill, courses, projects]
+  const enrolledCourseCodes = useMemo(
+    () =>
+      new Set(
+        enrollmentInfo.map((row) => String(row.course_code ?? "").trim().toUpperCase())
+      ),
+    [enrollmentInfo]
   );
-  const suggestedCourses = useMemo(
-    () => pickSuggestedCourses(selectedSkill, courses),
+
+  const relevantCourses = useMemo(
+    () => getRelevantCoursesForSkill(selectedSkill, courses),
     [selectedSkill, courses]
+  );
+
+  const enrolledCourses = useMemo(
+    () => relevantCourses.filter((course) =>
+      enrolledCourseCodes.has(course.courseCode.trim().toUpperCase())
+    ),
+    [relevantCourses, enrolledCourseCodes]
+  );
+
+  const notEnrolledCourses = useMemo(
+    () => relevantCourses.filter((course) =>
+      !enrolledCourseCodes.has(course.courseCode.trim().toUpperCase())
+    ),
+    [relevantCourses, enrolledCourseCodes]
+  );
+
+  const suggestedCourse = useMemo(
+    () => notEnrolledCourses[0] ?? null,
+    [notEnrolledCourses]
   );
 
   // Radar SVG settings
@@ -686,48 +656,101 @@ export default function HomePage() {
 
                 {/* Right: Evidence Breakdown */}
                 <div className="mpRight">
-                  <div className="mpRightTitle">Evidence Breakdown</div>
-                  <div className="mpEvidenceHint">
-                    Click a skill on the radar chart to view evidence.
-                  </div>
-
                   <div className="mpEvidenceBox">
                     <div className="mpEvidenceTitle">{selectedSkill}</div>
-                    {coursesLoading || projectsLoading ? (
+                    {coursesLoading || projectsLoading || enrollmentLoading ? (
                       <div className="mpEvidenceText">Loading evidence...</div>
-                    ) : evidenceItems.length > 0 ? (
+                    ) : (
                       <>
-                        <div className="mpSectionLabel">Top evidence</div>
-                        <div className="mpEvidenceList">
-                          {evidenceItems.map((item) => (
-                            <div key={item.id} className="mpEvidenceLine">
-                              {item.source}: {item.label} ({item.relevancePercent}% match)
-                            </div>
-                          ))}
+                        <div className="mpSectionHeader">
+                          <div className="mpSectionLabel">Enrolled courses</div>
+                          <button
+                            type="button"
+                            className="mpSectionToggle"
+                            onClick={() => setShowEnrolledCourses((value) => !value)}
+                          >
+                            {showEnrolledCourses ? "Hide" : "Show"}
+                          </button>
                         </div>
-                        {suggestedCourses.length > 0 ? (
-                          <div className="mpSuggestedBox">
-                            <div className="mpSuggestedTitle">Course related to skill</div>
-                            <div className="mpSuggestedNote">
-                              These are courses you have not achieved yet.
-                            </div>
+                        {showEnrolledCourses ? (
+                          enrolledCourses.length > 0 ? (
                             <div className="mpEvidenceList">
-                              {suggestedCourses.map((course) => (
-                                <div key={course.id} className="mpSuggestedItem">
-                                  <div className="mpEvidenceLine mpSuggestedLine">
-                                    Course: {course.courseCode} - {course.courseName}
-                                  </div>
-                                  <div className="mpSuggestedMeta">
-                                    Eligible enrollment period: {course.enrollmentPlan}
-                                  </div>
+                              {enrolledCourses.map((course) => (
+                                <div
+                                  key={course.id}
+                                  className="mpEvidenceLine mpRelevantCourse"
+                                >
+                                  <span>
+                                    {course.courseCode} - {course.courseName}
+                                  </span>
+                                  <span className="mpEnrollmentStatus">Enrolled</span>
                                 </div>
                               ))}
                             </div>
-                          </div>
+                          ) : (
+                            <div className="mpEvidenceText">
+                              No enrolled courses found for this skill.
+                            </div>
+                          )
                         ) : null}
+
+                        <div className="mpSectionHeader">
+                          <div className="mpSectionLabel">Not enrolled courses</div>
+                          <button
+                            type="button"
+                            className="mpSectionToggle"
+                            onClick={() => setShowNotEnrolledCourses((value) => !value)}
+                          >
+                            {showNotEnrolledCourses ? "Hide" : "Show"}
+                          </button>
+                        </div>
+                        {showNotEnrolledCourses ? (
+                          notEnrolledCourses.length > 0 ? (
+                            <div className="mpEvidenceList">
+                              {notEnrolledCourses.map((course) => (
+                                <div
+                                  key={course.id}
+                                  className="mpEvidenceLine mpRelevantCourse"
+                                >
+                                  <span className="mpNotEnrolledCourse">
+                                    {course.courseCode} - {course.courseName}
+                                  </span>
+                                  <span className="mpEnrollmentStatus notEnrolled">
+                                    Not enrolled
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="mpEvidenceText">
+                              No not-enrolled courses found for this skill.
+                            </div>
+                          )
+                        ) : null}
+
+                        <div className="mpSuggestedBox">
+                          <div className="mpSuggestedTitle">Course suggestion</div>
+                          {suggestedCourse ? (
+                            <>
+                              <div className="mpEvidenceLine mpRelevantCourse">
+                                <span>
+                                  {suggestedCourse.courseCode} - {suggestedCourse.courseName}
+                                </span>
+                                <span className="mpEnrollmentStatus notEnrolled">
+                                  Recommended
+                                </span>
+                              </div>
+                              <div className="mpSuggestedMeta">
+                                This course is a strong match for {selectedSkill} and not currently enrolled.
+                              </div>
+                            </>
+                          ) : (
+                            <div className="mpEvidenceText">
+                              No recommended course available for this skill.
+                            </div>
+                          )}
+                        </div>
                       </>
-                    ) : (
-                      <div className="mpEvidenceText">No evidence available for this focus.</div>
                     )}
                   </div>
                 </div>
