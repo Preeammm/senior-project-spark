@@ -304,17 +304,8 @@ app.get("/api/relavacne_scores", requireUser, async (req, res) => {
     INNER JOIN assessment_clo_mapping acm
         ON c.clo_id = acm.clo_id 
 
-    INNER JOIN student_assessment_scores sas
-        ON acm.clo_id = sas.clo_id 
-        AND acm.assessment_id = sas.assessment_id
-
-    INNER JOIN students st
-        ON sas.student_id = st.student_id
-
     WHERE 
-        st.student_id = $1
-        AND cr.career_name = $2
-
+        cr.career_name = $1
 
         AND (c.skill_id, cos.course_name, c.semester, c.level_id, c.clo_code) IN (
             SELECT skill_id, course_name, semester, level_id, clo_code
@@ -360,7 +351,7 @@ app.get("/api/relavacne_scores", requireUser, async (req, res) => {
         LEAST(ROUND(SUM(lcourse)::numeric / NULLIF(SUM(lcareer), 0), 2),1) + COUNT(course_name) AS index
     FROM ranked_data
     GROUP BY career_name, course_code,course_name;
-    `, [studentId, careerFocus]);
+    `, [careerFocus]);
 
     res.status(200).json({
       data: results.rows,
@@ -417,16 +408,8 @@ app.get("/api/relavacne_info", requireUser, async (req, res) => {
     INNER JOIN assessment_clo_mapping acm
         ON c.clo_id = acm.clo_id 
 
-    INNER JOIN student_assessment_scores sas
-        ON acm.clo_id = sas.clo_id 
-        AND acm.assessment_id = sas.assessment_id
-
-    INNER JOIN students st
-        ON sas.student_id = st.student_id
-
     WHERE 
-        st.student_id = $1
-        AND cr.career_name = $2
+        cr.career_name = $1
 
         AND (c.skill_id, cos.course_name, c.semester, c.level_id, c.clo_code) IN (
             SELECT skill_id, course_name, semester, level_id, clo_code
@@ -467,7 +450,7 @@ app.get("/api/relavacne_info", requireUser, async (req, res) => {
         SELECT *
         FROM ranked_data;
         
-    `, [studentId, careerFocus]);
+    `, [careerFocus]);
 
     res.status(200).json({
       data: results.rows,

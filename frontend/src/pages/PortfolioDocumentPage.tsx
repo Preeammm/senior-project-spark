@@ -61,6 +61,13 @@ type Course = {
   relevancePercent: number;
 };
 
+type SkillScoreRow = {
+  career_name?: string;
+  skill_title?: string;
+  level_id?: number;
+  performance_score?: number;
+};
+
 function formatDate(iso: string) {
   try {
     const d = new Date(iso);
@@ -263,6 +270,17 @@ export default function PortfolioDocumentPage() {
       return res.data;
     },
   });
+  const { data: skillScores = [] } = useQuery<SkillScoreRow[]>({
+    queryKey: ["skillScoreByFocus", careerFocus],
+    enabled: !!careerFocus && careerFocus !== "—",
+    queryFn: async () => {
+      const res = await http.get<{ data: SkillScoreRow[] }>("/api/skill_score", {
+        params: { careerFocus },
+      });
+      return res.data?.data ?? [];
+    },
+    retry: false,
+  });
   const descriptionLines = (shortSection?.lines ?? []).map(normalizeInlineMarkdown);
   const aboutMe = descriptionLines.join(" ").trim() || "—";
   const occupation =
@@ -322,10 +340,20 @@ export default function PortfolioDocumentPage() {
     courseSkills.forEach((skill) => tags.add(skill));
     return Array.from(tags);
   }, [projectSkills, courseSkills]);
-  const hardSkills = useMemo(
-    () => allSkills.filter((skill) => !isSoftSkill(skill)),
-    [allSkills]
-  );
+  const skillScoreSkills = useMemo(() => {
+    const titles = new Set<string>();
+    skillScores.forEach((row) => {
+      const title = String(row.skill_title ?? "").trim();
+      if (title) titles.add(title);
+    });
+    return Array.from(titles).sort((a, b) => a.localeCompare(b));
+  }, [skillScores]);
+  const hardSkills = useMemo(() => {
+    if (skillScoreSkills.length > 0) {
+      return skillScoreSkills;
+    }
+    return allSkills.filter((skill) => !isSoftSkill(skill));
+  }, [skillScoreSkills, allSkills]);
   const softSkills = useMemo(
     () => allSkills.filter((skill) => isSoftSkill(skill)),
     [allSkills]
