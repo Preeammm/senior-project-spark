@@ -383,17 +383,26 @@ export default function HomePage() {
     [selectedSkill, courses]
   );
 
+function extractCourseNumber(courseCode: string): number {
+  const match = courseCode.match(/\d+/);
+  return match ? parseInt(match[0], 10) : 0;
+}
+
   const enrolledCourses = useMemo(
-    () => relevantCourses.filter((course) =>
-      enrolledCourseCodes.has(course.courseCode.trim().toUpperCase())
-    ),
+    () => relevantCourses
+      .filter((course) =>
+        enrolledCourseCodes.has(course.courseCode.trim().toUpperCase())
+      )
+      .sort((a, b) => extractCourseNumber(a.courseCode) - extractCourseNumber(b.courseCode)),
     [relevantCourses, enrolledCourseCodes]
   );
 
   const notEnrolledCourses = useMemo(
-    () => relevantCourses.filter((course) =>
-      !enrolledCourseCodes.has(course.courseCode.trim().toUpperCase())
-    ),
+    () => relevantCourses
+      .filter((course) =>
+        !enrolledCourseCodes.has(course.courseCode.trim().toUpperCase())
+      )
+      .sort((a, b) => extractCourseNumber(a.courseCode) - extractCourseNumber(b.courseCode)),
     [relevantCourses, enrolledCourseCodes]
   );
 
@@ -651,16 +660,16 @@ export default function HomePage() {
                 <div className="mpLeft">
                   <div className="mpLegend">
                     <div className="mpLegendItem">
-                      <span className="mpDot mpDotStudent" />
-                      <span>Student</span>
-                    </div>
-                    <div className="mpLegendItem">
                       <span className="mpDot mpDotReq" />
-                      <span>Career Requirement</span>
+                      <span>Career</span>
                     </div>
                     <div className="mpLegendItem">
                       <span className="mpDot mpDotCourseMax" />
-                      <span>Course Max</span>
+                      <span>Course</span>
+                    </div>
+                    <div className="mpLegendItem">
+                      <span className="mpDot mpDotStudent" />
+                      <span>Student</span>
                     </div>
                   </div>
 
@@ -803,6 +812,30 @@ export default function HomePage() {
                         </div>
                       </>
                     )}
+                  </div>
+
+                  <div className="mpColorExplainBox">
+                    <div className="mpColorExplainItem">
+                      <span className="mpColorDot mpColorDotReq" />
+                      <div className="mpColorExplainText">
+                        <div className="mpColorName">Career</div>
+                        <div className="mpColorDesc">Skills required for the selected career</div>
+                      </div>
+                    </div>
+                    <div className="mpColorExplainItem">
+                      <span className="mpColorDot mpColorDotCourse" />
+                      <div className="mpColorExplainText">
+                        <div className="mpColorName">Course</div>
+                        <div className="mpColorDesc">Maximum skill levels from available courses</div>
+                      </div>
+                    </div>
+                    <div className="mpColorExplainItem">
+                      <span className="mpColorDot mpColorDotStudent" />
+                      <div className="mpColorExplainText">
+                        <div className="mpColorName">Student</div>
+                        <div className="mpColorDesc">Your current skill level achievements</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

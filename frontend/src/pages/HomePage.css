@@ -367,9 +367,9 @@
   border-radius: 999px;
 }
 
-.mpDotStudent { background: #2563eb; }
+.mpDotStudent { background: #93c5fd; }
 .mpDotReq { background: #94a3b8; }
-.mpDotCourseMax { background: #ea580c; }
+.mpDotCourseMax { background: #fed7aa; }
 
 /* Radar */
 .mpRadar {
@@ -421,20 +421,20 @@
 
 .mpPolyReq {
   fill: rgba(148, 163, 184, 0.18);
-  stroke: #94a3b8;
-  stroke-width: 2;
+  stroke: rgba(148, 163, 184, 0.18);
+  stroke-width: 1;
 }
 
 .mpPolyStudent {
-  fill: rgba(37, 99, 235, 0.18);
-  stroke: #2563eb;
-  stroke-width: 2.5;
+  fill: rgba(147, 197, 253, 0.55);
+  stroke: #93c5fd;
+  stroke-width: 1;
 }
 
 .mpPolyCourseMax {
-  fill: rgba(234, 88, 12, 0.18);
-  stroke: #ea580c;
-  stroke-width: 2.5;
+  fill: rgba(254, 215, 170, 0.40);
+  stroke: #fed7aa;
+  stroke-width: 1;
 }
 
 /* Evidence Right */
@@ -645,6 +645,64 @@
 
 .mpSuggestedLink:hover {
   text-decoration: underline;
+}
+
+/* Color Explanation Box */
+.mpColorExplainBox {
+  margin-top: 12px;
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 16px;
+}
+
+.mpColorExplainTitle {
+  font-weight: 900;
+  font-size: 14px;
+  color: #0f172a;
+  margin-bottom: 12px;
+}
+
+.mpColorExplainItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid #eff6ff;
+}
+
+.mpColorExplainItem:last-child {
+  border-bottom: none;
+}
+
+.mpColorDot {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.mpColorDotReq { background: #94a3b8; }
+.mpColorDotCourse { background: #fed7aa; }
+.mpColorDotStudent { background: #93c5fd; }
+
+.mpColorExplainText {
+  flex: 1;
+  min-width: 0;
+}
+
+.mpColorName {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.mpColorDesc {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 3px;
+  line-height: 1.45;
 }
 
 /* Responsive */
