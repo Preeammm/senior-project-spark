@@ -172,6 +172,94 @@ app.get("/api/career_info", requireUser, async (req, res) => {
   });
 });// this call data for skills required for each career focus
 
+app.get("/api/course_max_info", requireUser, async (req, res) => {
+  const careerFocus = normalizeCareerFocus(req.query?.careerFocus);
+    if (!careerFocus) {
+      return res.status(400).json({ message: "Missing or invalid career focus" });
+    }
+
+  const results = await pool.query(`
+    WITH ranked_data AS (
+    SELECT 
+        c.course_code,
+        cr.career_name,
+        cos.course_name,
+        sfsk.skill_title,
+        c.level_id as lcourse,
+        csm.level_id as lcareer
+
+    FROM careers cr
+
+    INNER JOIN career_skill_mapping csm
+        ON cr.career_id = csm.career_id
+
+    INNER JOIN sfia_skills sfsk
+        ON csm.skill_id = sfsk.skill_id
+
+    INNER JOIN sfia_levels sfle
+        ON csm.level_id = sfle.level_id
+        
+    INNER JOIN clo c
+        ON csm.skill_id = c.skill_id   
+
+    INNER JOIN courses cos 
+        ON c.course_code = cos.course_code 
+        AND c.semester = cos.semester
+
+    INNER JOIN assessment_clo_mapping acm
+        ON c.clo_id = acm.clo_id 
+
+    WHERE 
+        cr.career_name = $1
+
+
+        AND (c.skill_id, cos.course_name, c.semester, c.level_id, c.clo_code) IN (
+            SELECT skill_id, course_name, semester, level_id, clo_code
+            FROM (
+                SELECT 
+                    c2.skill_id,
+                    cos2.course_name,
+                    c2.semester,
+                    c2.level_id,
+                    c2.clo_code,
+
+                    ROW_NUMBER() OVER (
+                        PARTITION BY cos2.course_name,c2.skill_id
+                        ORDER BY 
+                            c2.semester DESC,
+                            c2.level_id DESC,
+                            c2.clo_code DESC
+                    ) as rn
+
+                FROM clo c2 
+
+                INNER JOIN courses cos2
+                    ON c2.course_code = cos2.course_code
+            ) t
+            WHERE rn = 1
+        )
+
+    group by c.course_code,
+        c.semester,
+        cr.career_name,
+        sfsk.skill_title,
+        cos.course_name,
+        c.clo_code,
+        c.level_id,
+        csm.level_id
+    )
+
+    SELECT 
+        skill_title,
+        MAX(lcourse) AS max_lcourse
+    FROM ranked_data
+    GROUP BY skill_title
+    ORDER BY skill_title;`, [careerFocus]);
+  res.status(200).json({
+    data: results.rows,
+  });
+});// this call data for max level of each skill in courses for each career focus
+
 app.get("/api/assessments", requireUser, async (req, res) => {
   try {
     const profile = meStore[req.user.id];

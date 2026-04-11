@@ -369,6 +369,7 @@
 
 .mpDotStudent { background: #2563eb; }
 .mpDotReq { background: #94a3b8; }
+.mpDotCourseMax { background: #ea580c; }
 
 /* Radar */
 .mpRadar {
@@ -394,6 +395,10 @@
 .mpAxis {
   stroke: #dbeafe;
   stroke-width: 1;
+}
+
+.mpAxisTaper {
+  fill: rgba(219, 234, 254, 0.92);
 }
 
 .mpAxisLabel {
@@ -423,6 +428,12 @@
 .mpPolyStudent {
   fill: rgba(37, 99, 235, 0.18);
   stroke: #2563eb;
+  stroke-width: 2.5;
+}
+
+.mpPolyCourseMax {
+  fill: rgba(234, 88, 12, 0.18);
+  stroke: #ea580c;
   stroke-width: 2.5;
 }
 

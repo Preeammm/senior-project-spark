@@ -201,6 +201,23 @@ export default function HomePage() {
     enabled: !!careerFocus,
   });
 
+  // Fetch course max info for orange line
+  const { data: courseMaxInfoData = [] } = useQuery<
+    Array<{
+      skill_title: string;
+      max_lcourse: number;
+    }>
+  >({
+    queryKey: ["courseMaxInfo", careerFocus],
+    queryFn: async () => {
+      if (!careerFocus) return [];
+      const res = await http.get("/api/course_max_info", { params: { careerFocus } });
+      return res.data?.data ?? [];
+    },
+    retry: false,
+    enabled: !!careerFocus,
+  });
+
   // Build fixed 6 axes from API career info; pad missing skills with "-"
   const dynamicAxes = useMemo(() => {
     if (careerInfoData.length === 0) {
@@ -316,6 +333,30 @@ export default function HomePage() {
 
     return scores;
   }, [careerFocus, careerInfoData, dynamicAxes]);
+
+  // Build course max info scores from API - orange line
+  const courseMaxScores = useMemo(() => {
+    if (!careerFocus || courseMaxInfoData.length === 0 || dynamicAxes.length === 0) {
+      return Object.fromEntries(dynamicAxes.map((axis) => [axis, 0]));
+    }
+
+    const skillLevelMap = new Map<string, number>();
+    courseMaxInfoData.forEach((item) => {
+      skillLevelMap.set(item.skill_title, item.max_lcourse);
+    });
+
+    const scores: Record<string, number> = {};
+    dynamicAxes.forEach((axis) => {
+      if (axis === "-") {
+        scores[axis] = 0;
+        return;
+      }
+      scores[axis] = skillLevelMap.get(axis) || 0;
+    });
+
+    return scores;
+  }, [careerFocus, courseMaxInfoData, dynamicAxes]);
+
   const { data: courses = [], isLoading: coursesLoading } = useCourses(careerFocus);
   const { data: projects = [], isLoading: projectsLoading } = useProjects(careerFocus);
   const { data: enrollmentInfo = [], isLoading: enrollmentLoading } = useQuery<
@@ -375,6 +416,11 @@ export default function HomePage() {
   const reqPoly = useMemo(
     () => radarPoints(reqScores, dynamicAxes, cx, cy, r),
     [reqScores, dynamicAxes, cx, cy, r]
+  );
+
+  const courseMaxPoly = useMemo(
+    () => radarPoints(courseMaxScores, dynamicAxes, cx, cy, r),
+    [courseMaxScores, dynamicAxes, cx, cy, r]
   );
 
   function renderAxisLabel(displayAxis: string, lx: number, ly: number, isActive: boolean, axis: string) {
@@ -612,6 +658,10 @@ export default function HomePage() {
                       <span className="mpDot mpDotReq" />
                       <span>Career Requirement</span>
                     </div>
+                    <div className="mpLegendItem">
+                      <span className="mpDot mpDotCourseMax" />
+                      <span>Course Max</span>
+                    </div>
                   </div>
 
                   <svg width={W} height={H} className="mpRadar" viewBox={`0 0 ${W} ${H}`}>
@@ -636,6 +686,7 @@ export default function HomePage() {
                     })}
 
                     <polygon points={reqPoly} className="mpPolyReq" />
+                    <polygon points={courseMaxPoly} className="mpPolyCourseMax" />
                     {skillScoreData.length > 0 && <polygon points={studentPoly} className="mpPolyStudent" />}
 
                     {/* Axis labels */}
@@ -647,7 +698,7 @@ export default function HomePage() {
 
                       const maxLevel = skillMaxLevels.get(axis) || 0;
                       const shownLevel = shownLevels[axis] || 0;
-                      const displayAxis = shownLevel === maxLevel && shownLevel > 0 ? `${axis} (Max Level)` : axis;
+                      const displayAxis = axis;
 
                       return renderAxisLabel(displayAxis, lx, ly, selectedSkill === axis, axis);
                     })}
