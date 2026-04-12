@@ -444,8 +444,9 @@ export default function PortfolioDocumentPage() {
     <meta charset="utf-8" />
     <title>${docTitle}</title>
     <style>
-      @page { size: A4; margin: 12mm; }
-      html, body { margin: 0; padding: 0; }
+      @page { size: A4; margin: 15mm; }
+      * { page-break-inside: avoid; }
+      html, body { margin: 0; padding: 0; width: 210mm; height: 297mm; }
       body { font-family: Calibri, Arial, sans-serif; color: #111827; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .docPaper { width: 100%; box-sizing: border-box; border: 1px solid #d1d5db; padding: 10mm; }
       .docPaperHeader { border-bottom: 1px solid #d1d5db; padding-bottom: 10px; margin-bottom: 10px; }
