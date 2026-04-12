@@ -348,17 +348,52 @@
   margin-bottom: 12px;
 }
 
+.mpLegendInExplain {
+  margin-bottom: 0;
+}
+
 .mpLegendItem {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 12px;
+  padding: 8px 14px;
   border-radius: 999px;
-  background: #eff6ff;
-  border: 1px solid #dbeafe;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.18);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   color: #1d4ed8;
+  cursor: pointer;
+  appearance: none;
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease, background-color 120ms ease;
+}
+
+.mpLegendItem:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+}
+
+.mpLegendItem.active {
+  background: #ffffff;
+  border-color: #93c5fd;
+  box-shadow: 0 10px 24px rgba(59, 130, 246, 0.12);
+}
+
+.mpLegendItemStatic {
+  cursor: default;
+}
+
+.mpLegendItemStatic:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.mpLegendItem:focus {
+  outline: none;
+}
+
+.mpLegendItem:focus-visible {
+  box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.32);
 }
 
 .mpDot {
@@ -367,9 +402,33 @@
   border-radius: 999px;
 }
 
-.mpDotStudent { background: #93c5fd; }
-.mpDotReq { background: #94a3b8; }
-.mpDotCourseMax { background: #fed7aa; }
+.mpDotStudent { background: #8dbcf7; }
+.mpDotReq { background: #bcc7d6; }
+.mpDotCourseMax { background: #f4c38a; }
+
+.mpCourseDot {
+  fill: rgba(244, 195, 138, 0.95);
+  stroke: rgba(224, 163, 93, 0.9);
+  stroke-width: 0.8;
+}
+
+.mpCourseDot.isTopLayer {
+  fill: #f59e0b;
+  stroke: #ea580c;
+  stroke-width: 0.9;
+}
+
+.mpStudentDot {
+  fill: rgba(141, 188, 247, 0.95);
+  stroke: rgba(106, 158, 226, 0.95);
+  stroke-width: 0.9;
+}
+
+.mpStudentDot.isTopLayer {
+  fill: #60a5fa;
+  stroke: #2563eb;
+  stroke-width: 1;
+}
 
 /* Radar */
 .mpRadar {
@@ -397,12 +456,25 @@
   stroke-width: 1;
 }
 
+.mpLevelMarker {
+  fill: rgba(255, 255, 255, 0.92);
+  stroke: #cbd5e1;
+  stroke-width: 1;
+}
+
+.mpLevelMarkerText {
+  font-size: 10px;
+  font-weight: 800;
+  fill: #64748b;
+  pointer-events: none;
+}
+
 .mpAxisTaper {
   fill: rgba(219, 234, 254, 0.92);
 }
 
 .mpAxisLabel {
-  font-size: 12px;
+  font-size: 10px;
   fill: #475569;
   font-weight: 700;
   cursor: pointer;
@@ -420,22 +492,40 @@
 }
 
 .mpPolyReq {
-  fill: rgba(148, 163, 184, 0.18);
-  stroke: rgba(148, 163, 184, 0.18);
-  stroke-width: 1;
+  fill: rgba(188, 199, 214, 0.24);
+  stroke: none;
 }
 
 .mpPolyStudent {
-  fill: rgba(147, 197, 253, 0.55);
-  stroke: #93c5fd;
-  stroke-width: 1;
+  fill: rgba(141, 188, 247, 0.2);
+  stroke: #8dbcf7;
+  stroke-width: 1.6;
+}
+
+.mpPolyStudent.isTopLayer {
+  fill: rgba(96, 165, 250, 0.24);
+  stroke: #3b82f6;
+  stroke-width: 1.8;
 }
 
 .mpPolyCourseMax {
-  fill: rgba(254, 215, 170, 0.40);
-  stroke: #fed7aa;
-  stroke-width: 1;
+  fill: rgba(244, 195, 138, 0.18);
+  stroke: #f4c38a;
+  stroke-width: 1.4;
 }
+
+.mpPolyCourseMax.isTopLayer {
+  fill: rgba(251, 191, 36, 0.24);
+  stroke: #f59e0b;
+  stroke-width: 1.8;
+}
+
+.mpCourseDot {
+  fill: #f4c38a;
+  stroke: #e0a35d;
+  stroke-width: 0.5;
+}
+
 
 /* Evidence Right */
 .mpRightTitle {
@@ -649,11 +739,25 @@
 
 /* Color Explanation Box */
 .mpColorExplainBox {
-  margin-top: 12px;
+  margin-top: 0;
+  margin-bottom: 14px;
   border: 1px solid #dbeafe;
   border-radius: 14px;
   background: #ffffff;
   padding: 16px;
+}
+
+.mpColorExplainHeader {
+  margin-top: 0;
+  margin-bottom: 14px;
+}
+
+.mpColorExplainLabel {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #64748b;
 }
 
 .mpColorExplainTitle {
@@ -671,8 +775,108 @@
   border-bottom: 1px solid #eff6ff;
 }
 
+.mpExplainIntro {
+  font-size: 12px;
+  line-height: 1.55;
+  color: #475569;
+  padding: 0 0 12px;
+  border-bottom: 1px solid #eff6ff;
+}
+
+.mpExplainTips {
+  display: grid;
+  gap: 8px;
+  padding: 12px 0 2px;
+}
+
+.mpExplainTip {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #64748b;
+  padding-left: 14px;
+  position: relative;
+}
+
+.mpExplainTip::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 7px;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: #93c5fd;
+}
+
+.mpLegendInExplain + .mpColorExplainItem {
+  margin-top: 10px;
+  border-top: 1px solid #eff6ff;
+}
+
 .mpColorExplainItem:last-child {
   border-bottom: none;
+}
+
+.mpChartLevelToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 10px 0 12px;
+  padding: 0 4px;
+}
+
+.mpColorExplainHint {
+  font-size: 12px;
+  line-height: 1.45;
+  color: #64748b;
+}
+
+.mpSwitchControl {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.mpSwitchInput {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mpSwitchSlider {
+  position: relative;
+  width: 42px;
+  height: 24px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  border: 1px solid #cbd5e1;
+  transition: background-color 140ms ease, border-color 140ms ease;
+}
+
+.mpSwitchSlider::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.18);
+  transition: transform 140ms ease;
+}
+
+.mpSwitchInput:checked + .mpSwitchSlider {
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+
+.mpSwitchInput:checked + .mpSwitchSlider::after {
+  transform: translateX(18px);
 }
 
 .mpColorDot {
@@ -683,9 +887,9 @@
   margin-top: 3px;
 }
 
-.mpColorDotReq { background: #94a3b8; }
-.mpColorDotCourse { background: #fed7aa; }
-.mpColorDotStudent { background: #93c5fd; }
+.mpColorDotReq { background: #bcc7d6; }
+.mpColorDotCourse { background: #f4c38a; }
+.mpColorDotStudent { background: #8dbcf7; }
 
 .mpColorExplainText {
   flex: 1;
@@ -705,12 +909,79 @@
   line-height: 1.45;
 }
 
+.mpLevelGuide {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #eff6ff;
+}
+
+.mpLevelGuideTitle {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.mpLevelGuideIntro {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #64748b;
+}
+
+.mpLevelGuideGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.mpLevelCard {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fbff;
+  padding: 12px;
+}
+
+.mpLevelCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mpLevelBadge {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: #e8f0fb;
+  color: #4b5563;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.mpLevelName {
+  font-size: 13px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.mpLevelDesc {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: #475569;
+}
+
 /* Responsive */
 @media (max-width: 900px) {
   .studentGrid { grid-template-columns: 1fr; }
   .infoRow { grid-template-columns: 120px 1fr; }
   .infoLabel { text-align: left; }
   .quickGrid { grid-template-columns: 1fr; }
+  .mpLevelGuideGrid { grid-template-columns: 1fr; }
+  .mpChartLevelToggle { flex-direction: column; align-items: stretch; padding: 0; }
 }
 
 @media (max-width: 920px) {

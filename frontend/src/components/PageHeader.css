@@ -60,7 +60,6 @@
 }
 
 .pageHeaderExtraRow{
-  /* ✅ ทำให้เห็นใต้ title/row */
   margin-top: 2px;
   display: inline-flex;
   align-items: center;

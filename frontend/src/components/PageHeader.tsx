@@ -48,7 +48,6 @@ export default function PageHeader<TCareer extends string = string>({
         </div>
       ) : null}
 
-      {/* ✅ MUST render independently */}
       {careerExtra ? <div className="pageHeaderExtraRow">{careerExtra}</div> : null}
     </div>
   );

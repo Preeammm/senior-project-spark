@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getRelevanceInfo, getRelevanceScores } from "../services/courses.api";
+import { getRelevanceInfo, getRelevanceScores, listCourses, listMyCourses } from "../services/courses.api";
 import type { Course } from "../types";
 
 export function useCourses(careerFocus?: string) {
@@ -7,13 +7,17 @@ export function useCourses(careerFocus?: string) {
     queryKey: ["courses", careerFocus],
     queryFn: async () => {
       if (!careerFocus) {
-        return [];
+        return listMyCourses();
       }
 
-      const [relevanceInfoData, relevanceScoresData] = await Promise.all([
+      const [allCourses, relevanceInfoData, relevanceScoresData] = await Promise.all([
+        listCourses(),
         getRelevanceInfo(careerFocus),
         getRelevanceScores(careerFocus),
       ]);
+
+      const baseCourses = Array.isArray(allCourses) ? allCourses : [];
+      const baseCourseByCode = new Map(baseCourses.map((course) => [course.courseCode, course]));
 
       if (!Array.isArray(relevanceInfoData) || relevanceInfoData.length === 0) {
         return [];
@@ -50,7 +54,7 @@ export function useCourses(careerFocus?: string) {
         }
       });
 
-      const coursesFromApi: Course[] = relevanceScoresData
+      const scoredCourses: Course[] = relevanceScoresData
         .map((scoreRow: any) => {
           const courseCode = scoreRow?.course_code;
           const courseName = scoreRow?.course_name;
@@ -65,23 +69,25 @@ export function useCourses(careerFocus?: string) {
 
           const score = typeof scoreRow.score === "number" ? scoreRow.score : parseFloat(scoreRow.score || "0");
           const index = typeof scoreRow.index === "number" ? scoreRow.index : parseFloat(scoreRow.index || "0");
+          const baseCourse = baseCourseByCode.get(courseCode);
 
           return {
-            id: courseCode,
+            id: baseCourse?.id ?? courseCode,
             courseCode,
             courseName,
             competencyTags: info.skills,
             relevancePercent: 0,
-            grade: "",
+            grade: baseCourse?.grade ?? "",
             skills: info.skills,
             score,
             index,
           } as Course;
         })
         .filter((course): course is Course => course !== null)
+        .filter((course) => (course.score ?? 0) > 0)
         .sort((a, b) => (b.index || 0) - (a.index || 0));
 
-      return coursesFromApi;
+      return scoredCourses;
     },
   });
 }

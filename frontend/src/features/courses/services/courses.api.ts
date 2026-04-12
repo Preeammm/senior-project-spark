@@ -8,6 +8,25 @@ export async function listCourses(careerFocus?: string): Promise<Course[]> {
   return data;
 }
 
+export async function listMyCourses(): Promise<Course[]> {
+  const { data } = await http.get("/api/my-courses");
+  const rows = Array.isArray(data?.data) ? data.data : [];
+
+  return rows.map((row: any) => ({
+    id: String(row.course_code ?? ""),
+    courseCode: String(row.course_code ?? ""),
+    courseName: String(row.course_name ?? row.course_code ?? ""),
+    competencyTags: Array.isArray(row.competency_tags)
+      ? row.competency_tags.map((tag: any) => String(tag))
+      : [],
+    relevancePercent: 0,
+    grade: "",
+    skills: Array.isArray(row.competency_tags)
+      ? row.competency_tags.map((tag: any) => String(tag))
+      : [],
+  }));
+}
+
 export async function getCourseDetail(
   courseId: string,
   careerFocus?: string

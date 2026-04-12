@@ -6,6 +6,5 @@ export function useAssessments(careerFocus?: string) {
   return useQuery<Assessment[], Error>({
     queryKey: ["assessments", careerFocus],
     queryFn: () => listAssessments(careerFocus),
-    enabled: Boolean(careerFocus),
   });
 }

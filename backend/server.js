@@ -268,57 +268,94 @@ app.get("/api/assessments", requireUser, async (req, res) => {
     if (!studentId) return res.status(400).json({ message: "Missing student ID" });
 
     const careerFocus = normalizeCareerFocus(req.query?.careerFocus);
-    if (!careerFocus) {
-      return res.status(400).json({ message: "Missing or invalid career focus" });
-    }
+    const results = careerFocus
+      ? await pool.query(`
+        SELECT 
+            c.course_code,
+            cos.course_name,
+            c.semester,
+            ss.skill_title,
+            AVG(sas.student_score_clo::float / acm.full_score_clo) AS total_normalized_score
 
-    const results = await pool.query(`
-    SELECT 
-        c.course_code,
-        cos.course_name,
-        c.semester,
-        ss.skill_title,
-        AVG(sas.student_score_clo::float / acm.full_score_clo) AS total_normalized_score
+        FROM student_assessment_scores sas
 
-    FROM student_assessment_scores sas
+        INNER JOIN clo c 
+            ON sas.clo_id = c.clo_id
 
-    INNER JOIN clo c 
-        ON sas.clo_id = c.clo_id
+        INNER JOIN enrollments e 
+            ON sas.student_id = e.student_id 
+            AND c.course_code = e.course_code
+            AND c.semester = e.semester
 
-    INNER JOIN enrollments e 
-        ON sas.student_id = e.student_id 
-        AND c.course_code = e.course_code
-        AND c.semester = e.semester
+        INNER JOIN career_skill_mapping csm 
+            ON c.skill_id = csm.skill_id 
+            AND c.level_id = csm.level_id
 
-    INNER JOIN career_skill_mapping csm 
-        ON c.skill_id = csm.skill_id 
-        AND c.level_id = csm.level_id
+        INNER JOIN careers cr 
+            ON csm.career_id = cr.career_id
 
-    INNER JOIN careers cr 
-        ON csm.career_id = cr.career_id
+        INNER JOIN assessment_clo_mapping acm
+            ON c.clo_id = acm.clo_id
+            AND sas.assessment_id = acm.assessment_id
 
-    INNER JOIN assessment_clo_mapping acm
-        ON c.clo_id = acm.clo_id
-        AND sas.assessment_id = acm.assessment_id
+        INNER JOIN assessments asm
+            ON asm.assessment_id = acm.assessment_id
 
-    INNER JOIN assessments asm
-        ON asm.assessment_id = acm.assessment_id
+        INNER JOIN courses cos
+            ON asm.course_code = cos.course_code
+            AND asm.semester = cos.semester
 
-    INNER JOIN courses cos
-        ON asm.course_code = cos.course_code
-        AND asm.semester = cos.semester
+        INNER JOIN sfia_skills ss
+            ON c.skill_id = ss.skill_id
 
-    INNER JOIN sfia_skills ss
-        ON c.skill_id = ss.skill_id
+          WHERE sas.student_id = $1 AND cr.career_name = $2 AND asm.assessment_type = 'Project'
 
-      WHERE sas.student_id = $1 AND cr.career_name = $2 AND asm.assessment_type = 'Project'
+        GROUP BY 
+            c.course_code,
+            ss.skill_title,
+            cos.course_name,
+            c.semester;
+        `, [studentId, careerFocus])
+      : await pool.query(`
+        SELECT 
+            c.course_code,
+            cos.course_name,
+            c.semester,
+            ss.skill_title,
+            AVG(sas.student_score_clo::float / acm.full_score_clo) AS total_normalized_score
 
-    GROUP BY 
-        c.course_code,
-        ss.skill_title,
-        cos.course_name,
-        c.semester;
-    `, [studentId, careerFocus]);
+        FROM student_assessment_scores sas
+
+        INNER JOIN clo c 
+            ON sas.clo_id = c.clo_id
+
+        INNER JOIN enrollments e 
+            ON sas.student_id = e.student_id 
+            AND c.course_code = e.course_code
+            AND c.semester = e.semester
+
+        INNER JOIN assessment_clo_mapping acm
+            ON c.clo_id = acm.clo_id
+            AND sas.assessment_id = acm.assessment_id
+
+        INNER JOIN assessments asm
+            ON asm.assessment_id = acm.assessment_id
+
+        INNER JOIN courses cos
+            ON asm.course_code = cos.course_code
+            AND asm.semester = cos.semester
+
+        INNER JOIN sfia_skills ss
+            ON c.skill_id = ss.skill_id
+
+          WHERE sas.student_id = $1 AND asm.assessment_type = 'Project'
+
+        GROUP BY 
+            c.course_code,
+            ss.skill_title,
+            cos.course_name,
+            c.semester;
+        `, [studentId]);
 
     const data = results.rows.map((row) => ({
       ...row,
@@ -348,6 +385,48 @@ app.get("/api/student", requireUser, async (req, res) => {
     data: results.rows,
   });
 }); // this call data for student information (personal email, github, linkedin)
+
+app.get("/api/my-courses", requireUser, async (req, res) => {
+  try {
+    const profile = meStore[req.user.id];
+    if (!profile) return res.status(404).json({ message: "Profile not found" });
+    const studentId = profile.studentId;
+    if (!studentId) return res.status(400).json({ message: "Missing student ID" });
+
+    const results = await pool.query(`
+      SELECT
+        e.course_code,
+        c.course_name,
+        e.semester,
+        e.enrollment_type,
+        COALESCE(
+          ARRAY_AGG(DISTINCT s.skill_title) FILTER (WHERE s.skill_title IS NOT NULL),
+          ARRAY[]::VARCHAR[]
+        ) AS competency_tags
+      FROM enrollments e
+      INNER JOIN courses c
+        ON e.course_code = c.course_code
+        AND e.semester = c.semester
+      LEFT JOIN clo cl
+        ON e.course_code = cl.course_code
+        AND e.semester = cl.semester
+      LEFT JOIN sfia_skills s
+        ON cl.skill_id = s.skill_id
+      WHERE e.student_id = $1
+      GROUP BY e.course_code, c.course_name, e.semester, e.enrollment_type
+      ORDER BY e.semester DESC, e.course_code ASC
+    `, [studentId]);
+
+    res.status(200).json({
+      data: results.rows,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: "Internal Server Error",
+    });
+  }
+});
 
 app.get("/api/relavacne_scores", requireUser, async (req, res) => {
   try {

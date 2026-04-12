@@ -1,3 +1,188 @@
+.coursesGuide {
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border: 1px solid #dbe4ef;
+  border-radius: 12px;
+  background: #f8fbff;
+}
+
+.coursesTopBarLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.coursesGuideTitle {
+  margin-top: 0;
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.coursesGuideToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  border: 1px solid #c7d2fe;
+  border-radius: 999px;
+  padding: 7px 12px;
+  min-height: 34px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1e3a8a;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.08);
+  transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.coursesGuideToggle:hover {
+  transform: translateY(-1px);
+  border-color: #93c5fd;
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.12);
+}
+
+.coursesGuideToggle[aria-expanded="true"] {
+  background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%);
+  border-color: #93c5fd;
+}
+
+.coursesGuideToggleArrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #2563eb;
+  font-size: 11px;
+  line-height: 1;
+  transition: transform 140ms ease;
+}
+
+.coursesGuideToggleArrow.open {
+  transform: rotate(180deg);
+}
+
+.coursesGuideText {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #475569;
+}
+
+.coursesGuideList {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.coursesGuideItem {
+  position: relative;
+  padding-left: 14px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #64748b;
+}
+
+.coursesGuideItem::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 7px;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: #93c5fd;
+}
+
+.coursesGuideSection {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #e6edf5;
+}
+
+.coursesGuideSectionTitle {
+  font-size: 13px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.coursesGuideSectionText {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #475569;
+}
+
+.coursesGuideNote {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #64748b;
+}
+
+.coursesColorLegend {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.coursesColorItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.coursesColorSwatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 7px;
+  flex-shrink: 0;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 4px 10px rgba(15, 23, 42, 0.08);
+}
+
+.coursesColorVeryHigh {
+  background: linear-gradient(180deg, #43da15 0%, #36c90f 100%);
+}
+
+.coursesColorHigh {
+  background: linear-gradient(180deg, #c7e53e 0%, #badc2f 100%);
+}
+
+.coursesColorModerate {
+  background: linear-gradient(180deg, #ffeb85 0%, #f7df6e 100%);
+}
+
+.coursesColorLow {
+  background: linear-gradient(180deg, #ffb13a 0%, #f59d1d 100%);
+}
+
+.coursesColorNone {
+  background: linear-gradient(180deg, #ff2626 0%, #ee1616 100%);
+}
+
+.coursesColorContent {
+  min-width: 0;
+}
+
+.coursesColorName {
+  font-size: 12px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.coursesColorDesc {
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #64748b;
+}
+
 .coursesTopBar {
   margin: 0 0 16px;
   padding: 2px 2px 8px;
@@ -44,5 +229,8 @@
   .coursesTopBar {
     flex-direction: column;
     align-items: flex-start;
+  }
+  .coursesTopBarLeft {
+    width: 100%;
   }
 }

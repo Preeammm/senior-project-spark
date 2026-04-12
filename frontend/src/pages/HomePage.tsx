@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { http } from "../services/http";
 import { useMe } from "../features/student/hooks/useMe";
@@ -16,9 +16,9 @@ import { useProtectedRoute } from "../hooks/useProtectedRoute";
 import "./HomePage.css";
 
 type RadarAxis = string;
+type RadarLayer = "career" | "course" | "student";
 
 const RADAR_MAX_LEVEL = 4;
-
 // Base 6 skills used for all three lines in spider chart
 const BASE_AXES: RadarAxis[] = [
   "Data Analysis",
@@ -31,6 +31,33 @@ const BASE_AXES: RadarAxis[] = [
 
 // Default skills for fallback
 const DEFAULT_AXES: RadarAxis[] = BASE_AXES;
+
+const LEVEL_GUIDE = [
+  {
+    id: 1,
+    name: "Follow",
+    description:
+      "Performs routine tasks under close supervision, follows instructions, and needs guidance to complete work. Learns and applies basic skills and knowledge.",
+  },
+  {
+    id: 2,
+    name: "Assist",
+    description:
+      "Supports others, works under routine supervision, and uses judgment to solve routine problems. Learns through training and on-the-job experience.",
+  },
+  {
+    id: 3,
+    name: "Apply",
+    description:
+      "Handles varied tasks, including some complex work, using standard methods. Works with general direction, manages deadlines, and improves their impact over time.",
+  },
+  {
+    id: 4,
+    name: "Enable",
+    description:
+      "Performs complex activities, supports and guides others, works autonomously, and contributes expertise to help the team achieve its goals.",
+  },
+] as const;
 
 type EvidenceItem = {
   id: string;
@@ -239,8 +266,12 @@ export default function HomePage() {
   const [selectedSkill, setSelectedSkill] = useState<string>(
     dynamicAxes[0] || "Problem Solving"
   );
+  const [activeRadarLayer, setActiveRadarLayer] = useState<RadarLayer | null>(null);
+  const legendRef = useRef<HTMLDivElement | null>(null);
   const [showEnrolledCourses, setShowEnrolledCourses] = useState(false);
   const [showNotEnrolledCourses, setShowNotEnrolledCourses] = useState(false);
+  const [showLevelMarkers, setShowLevelMarkers] = useState(false);
+  const [showColorExplain, setShowColorExplain] = useState(false);
 
   // Reset selected skill when career changes
   useEffect(() => {
@@ -248,6 +279,23 @@ export default function HomePage() {
       setSelectedSkill(dynamicAxes[0]);
     }
   }, [dynamicAxes, careerFocus]);
+
+  useEffect(() => {
+    const handlePointerDown = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (legendRef.current?.contains(target)) return;
+      setActiveRadarLayer(null);
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+    };
+  }, []);
 
   useEffect(() => {
     if (!careerFocus) return;
@@ -431,6 +479,12 @@ function extractCourseNumber(courseCode: string): number {
     () => radarPoints(courseMaxScores, dynamicAxes, cx, cy, r),
     [courseMaxScores, dynamicAxes, cx, cy, r]
   );
+
+  const radarLayerOrder = useMemo<RadarLayer[]>(() => {
+    const base: RadarLayer[] = ["career", "course", "student"];
+    if (!activeRadarLayer) return base;
+    return [...base.filter((layer) => layer !== activeRadarLayer), activeRadarLayer];
+  }, [activeRadarLayer]);
 
   function renderAxisLabel(displayAxis: string, lx: number, ly: number, isActive: boolean, axis: string) {
     const words = displayAxis.split(' ');
@@ -658,19 +712,35 @@ function extractCourseNumber(courseCode: string): number {
               <div className="mpInner">
                 {/* Left: Radar */}
                 <div className="mpLeft">
-                  <div className="mpLegend">
-                    <div className="mpLegendItem">
+                  <div className="mpLegend" ref={legendRef}>
+                    <div className="mpLegendItem mpLegendItemStatic">
                       <span className="mpDot mpDotReq" />
                       <span>Career</span>
                     </div>
-                    <div className="mpLegendItem">
+                    <button
+                      type="button"
+                      className={`mpLegendItem ${activeRadarLayer === "course" ? "active" : ""}`}
+                      onClick={() =>
+                        setActiveRadarLayer((current) =>
+                          current === "course" ? null : "course"
+                        )
+                      }
+                    >
                       <span className="mpDot mpDotCourseMax" />
                       <span>Course</span>
-                    </div>
-                    <div className="mpLegendItem">
+                    </button>
+                    <button
+                      type="button"
+                      className={`mpLegendItem ${activeRadarLayer === "student" ? "active" : ""}`}
+                      onClick={() =>
+                        setActiveRadarLayer((current) =>
+                          current === "student" ? null : "student"
+                        )
+                      }
+                    >
                       <span className="mpDot mpDotStudent" />
                       <span>Student</span>
-                    </div>
+                    </button>
                   </div>
 
                   <svg width={W} height={H} className="mpRadar" viewBox={`0 0 ${W} ${H}`}>
@@ -694,9 +764,88 @@ function extractCourseNumber(courseCode: string): number {
                       );
                     })}
 
-                    <polygon points={reqPoly} className="mpPolyReq" />
-                    <polygon points={courseMaxPoly} className="mpPolyCourseMax" />
-                    {skillScoreData.length > 0 && <polygon points={studentPoly} className="mpPolyStudent" />}
+                    {radarLayerOrder.map((layer) => {
+                      if (layer === "career") {
+                        return <polygon key="layer-career" points={reqPoly} className="mpPolyReq" />;
+                      }
+
+                      if (layer === "course") {
+                        return (
+                          <g key="layer-course">
+                            <polygon
+                              points={courseMaxPoly}
+                              className={`mpPolyCourseMax ${activeRadarLayer === "course" ? "isTopLayer" : ""}`}
+                            />
+                            {dynamicAxes.map((axis, i) => {
+                              const n = dynamicAxes.length;
+                              const ang = -Math.PI / 2 + (i * (2 * Math.PI)) / n;
+                              const level = courseMaxScores[axis] ?? 0;
+                              if (level <= 0) return null;
+                              const t = clamp01(toRadarLevel(level) / RADAR_MAX_LEVEL);
+                              const x = cx + Math.cos(ang) * r * t;
+                              const y = cy + Math.sin(ang) * r * t;
+                              return (
+                                <circle
+                                  key={`course-dot-${axis}`}
+                                  cx={x}
+                                  cy={y}
+                                  r="2.5"
+                                  className={`mpCourseDot ${activeRadarLayer === "course" ? "isTopLayer" : ""}`}
+                                />
+                              );
+                            })}
+                          </g>
+                        );
+                      }
+
+                      if (skillScoreData.length === 0) return null;
+
+                      return (
+                        <g key="layer-student">
+                          <polygon
+                            points={studentPoly}
+                            className={`mpPolyStudent ${activeRadarLayer === "student" ? "isTopLayer" : ""}`}
+                          />
+                          {dynamicAxes.map((axis, i) => {
+                            const n = dynamicAxes.length;
+                            const ang = -Math.PI / 2 + (i * (2 * Math.PI)) / n;
+                            const level = studentScores[axis] ?? 0;
+                            if (level <= 0) return null;
+                            const t = clamp01(toRadarLevel(level) / RADAR_MAX_LEVEL);
+                            const x = cx + Math.cos(ang) * r * t;
+                            const y = cy + Math.sin(ang) * r * t;
+                            return (
+                              <circle
+                                key={`student-dot-${axis}`}
+                                cx={x}
+                                cy={y}
+                                r="2.5"
+                                className={`mpStudentDot ${activeRadarLayer === "student" ? "isTopLayer" : ""}`}
+                              />
+                            );
+                          })}
+                        </g>
+                      );
+                    })}
+
+                    {showLevelMarkers && [1, 2, 3, 4].map((level) => {
+                      const t = level / RADAR_MAX_LEVEL;
+                      const y = cy - r * t;
+                      return (
+                        <g key={`level-label-${level}`}>
+                          <circle cx={cx - 14} cy={y} r="9" className="mpLevelMarker" />
+                          <text
+                            x={cx - 14}
+                            y={y}
+                            className="mpLevelMarkerText"
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                          >
+                            {level}
+                          </text>
+                        </g>
+                      );
+                    })}
 
                     {/* Axis labels */}
                     {dynamicAxes.map((axis, i) => {
@@ -712,6 +861,90 @@ function extractCourseNumber(courseCode: string): number {
                       return renderAxisLabel(displayAxis, lx, ly, selectedSkill === axis, axis);
                     })}
                   </svg>
+
+                  <div className="mpChartLevelToggle">
+                    <div className="mpColorExplainHint">
+                      Turn this on when you want to see the level numbers on each chart ring.
+                    </div>
+                    <label className="mpSwitchControl">
+                      <input
+                        type="checkbox"
+                        className="mpSwitchInput"
+                        checked={showLevelMarkers}
+                        onChange={(e) => setShowLevelMarkers(e.target.checked)}
+                      />
+                      <span className="mpSwitchSlider" aria-hidden="true" />
+                    </label>
+                  </div>
+
+                  <div className="mpColorExplainBox">
+                    <div className="mpSectionHeader mpColorExplainHeader">
+                      <div className="mpColorExplainLabel">How to read this chart</div>
+                      <button
+                        type="button"
+                        className="mpSectionToggle"
+                        onClick={() => setShowColorExplain((value) => !value)}
+                      >
+                        {showColorExplain ? "Hide" : "Show"}
+                      </button>
+                    </div>
+
+                    {showColorExplain ? (
+                      <>
+                        <div className="mpExplainIntro">
+                          This chart compares your current skill level with the career target and the highest level available from courses for your selected career focus.
+                        </div>
+
+                        <div className="mpExplainTips">
+                          <div className="mpExplainTip">Click a skill name around the chart to update the details on the right.</div>
+                          <div className="mpExplainTip">Click `Course` or `Student` above the chart to bring that layer to the front for easier comparison.</div>
+                          <div className="mpExplainTip">The farther a point is from the center, the higher the level for that skill.</div>
+                        </div>
+
+                        <div className="mpColorExplainItem">
+                          <span className="mpColorDot mpColorDotReq" />
+                          <div className="mpColorExplainText">
+                            <div className="mpColorName">Career</div>
+                            <div className="mpColorDesc">The target level expected for this career. Use it as the benchmark.</div>
+                          </div>
+                        </div>
+                        <div className="mpColorExplainItem">
+                          <span className="mpColorDot mpColorDotCourse" />
+                          <div className="mpColorExplainText">
+                            <div className="mpColorName">Course</div>
+                            <div className="mpColorDesc">The highest level you could reach from the available courses in this area.</div>
+                          </div>
+                        </div>
+                        <div className="mpColorExplainItem">
+                          <span className="mpColorDot mpColorDotStudent" />
+                          <div className="mpColorExplainText">
+                            <div className="mpColorName">Student</div>
+                            <div className="mpColorDesc">Your current level based on your assessment and performance data.</div>
+                          </div>
+                        </div>
+
+                        <div className="mpLevelGuide">
+                          <div className="mpLevelGuideTitle">Skill levels</div>
+                          <div className="mpLevelGuideIntro">
+                            Levels go from 1 to 4. Higher levels mean you can work more independently, solve harder problems, and support others more effectively.
+                          </div>
+
+                          <div className="mpLevelGuideGrid">
+                            {LEVEL_GUIDE.map((level) => (
+                              <div key={level.id} className="mpLevelCard">
+                                <div className="mpLevelCardHeader">
+                                  <span className="mpLevelBadge">{level.id}</span>
+                                  <span className="mpLevelName">{level.name}</span>
+                                </div>
+                                <div className="mpLevelDesc">{level.description}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    ) : null}
+                  </div>
+
                 </div>
 
                 {/* Right: Evidence Breakdown */}
@@ -814,29 +1047,6 @@ function extractCourseNumber(courseCode: string): number {
                     )}
                   </div>
 
-                  <div className="mpColorExplainBox">
-                    <div className="mpColorExplainItem">
-                      <span className="mpColorDot mpColorDotReq" />
-                      <div className="mpColorExplainText">
-                        <div className="mpColorName">Career</div>
-                        <div className="mpColorDesc">Skills required for the selected career</div>
-                      </div>
-                    </div>
-                    <div className="mpColorExplainItem">
-                      <span className="mpColorDot mpColorDotCourse" />
-                      <div className="mpColorExplainText">
-                        <div className="mpColorName">Course</div>
-                        <div className="mpColorDesc">Maximum skill levels from available courses</div>
-                      </div>
-                    </div>
-                    <div className="mpColorExplainItem">
-                      <span className="mpColorDot mpColorDotStudent" />
-                      <div className="mpColorExplainText">
-                        <div className="mpColorName">Student</div>
-                        <div className="mpColorDesc">Your current skill level achievements</div>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             ) : null}
