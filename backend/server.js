@@ -271,56 +271,66 @@ app.get("/api/assessments", requireUser, async (req, res) => {
     const results = careerFocus
       ? await pool.query(`
         SELECT 
-            c.course_code,
-            cos.course_name,
-            c.semester,
-            ss.skill_title,
-            AVG(sas.student_score_clo::float / acm.full_score_clo) AS total_normalized_score
+        c.course_code,
+        cos.course_name,
+        pj.project_name,
+        c.semester,
+        ss.skill_title,
+        AVG(sas.student_score_clo::float / acm.full_score_clo) AS total_normalized_score
 
-        FROM student_assessment_scores sas
+    FROM student_assessment_scores sas
 
-        INNER JOIN clo c 
-            ON sas.clo_id = c.clo_id
+    INNER JOIN clo c 
+        ON sas.clo_id = c.clo_id
 
-        INNER JOIN enrollments e 
-            ON sas.student_id = e.student_id 
-            AND c.course_code = e.course_code
-            AND c.semester = e.semester
+    INNER JOIN enrollments e 
+        ON sas.student_id = e.student_id 
+        AND c.course_code = e.course_code
+        AND c.semester = e.semester
 
-        INNER JOIN career_skill_mapping csm 
-            ON c.skill_id = csm.skill_id 
-            AND c.level_id = csm.level_id
+    INNER JOIN career_skill_mapping csm 
+        ON c.skill_id = csm.skill_id 
+        AND c.level_id = csm.level_id
 
-        INNER JOIN careers cr 
-            ON csm.career_id = cr.career_id
+    INNER JOIN careers cr 
+        ON csm.career_id = cr.career_id
 
-        INNER JOIN assessment_clo_mapping acm
-            ON c.clo_id = acm.clo_id
-            AND sas.assessment_id = acm.assessment_id
+    INNER JOIN assessment_clo_mapping acm
+        ON c.clo_id = acm.clo_id
+        AND sas.assessment_id = acm.assessment_id
 
-        INNER JOIN assessments asm
-            ON asm.assessment_id = acm.assessment_id
+    INNER JOIN assessments asm
+        ON asm.assessment_id = acm.assessment_id
 
-        INNER JOIN courses cos
-            ON asm.course_code = cos.course_code
-            AND asm.semester = cos.semester
+    INNER JOIN courses cos
+        ON asm.course_code = cos.course_code
+        AND asm.semester = cos.semester
 
-        INNER JOIN sfia_skills ss
-            ON c.skill_id = ss.skill_id
+    INNER JOIN sfia_skills ss
+        ON c.skill_id = ss.skill_id
 
-          WHERE sas.student_id = $1 AND cr.career_name = $2 AND asm.assessment_type = 'Project'
+    INNER JOIN project pj 
+        ON asm.assessment_id = pj.assessment_id
 
-        GROUP BY 
-            c.course_code,
-            ss.skill_title,
-            cos.course_name,
-            c.semester;
+    WHERE 
+        cr.career_name = $2
+        AND sas.student_id = $1 
+        AND asm.assessment_type = 'Project'
+
+    GROUP BY 
+        c.course_code,
+        pj.project_name,
+        ss.skill_title,
+        cos.course_name,
+        c.semester
+        ;
         `, [studentId, careerFocus])
       : await pool.query(`
         SELECT 
             c.course_code,
             cos.course_name,
             c.semester,
+            pj.project_name,
             ss.skill_title,
             AVG(sas.student_score_clo::float / acm.full_score_clo) AS total_normalized_score
 
@@ -348,12 +358,16 @@ app.get("/api/assessments", requireUser, async (req, res) => {
         INNER JOIN sfia_skills ss
             ON c.skill_id = ss.skill_id
 
-          WHERE sas.student_id = $1 AND asm.assessment_type = 'Project'
+        INNER JOIN project pj 
+        ON asm.assessment_id = pj.assessment_id
+
+        WHERE sas.student_id = $1 AND asm.assessment_type = 'Project'
 
         GROUP BY 
             c.course_code,
             ss.skill_title,
             cos.course_name,
+            pj.project_name,
             c.semester;
         `, [studentId]);
 
@@ -434,7 +448,7 @@ app.get("/api/relavacne_scores", requireUser, async (req, res) => {
     if (!profile) return res.status(404).json({ message: "Profile not found" });
     const studentId = profile.studentId;
     if (!studentId) return res.status(400).json({ message: "Missing student ID" });
-
+    
     const careerFocus = normalizeCareerFocus(req.query?.careerFocus);
     if (!careerFocus) {
       return res.status(400).json({ message: "Missing or invalid career focus" });

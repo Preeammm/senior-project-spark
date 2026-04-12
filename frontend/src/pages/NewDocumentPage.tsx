@@ -23,6 +23,8 @@ import type { PortfolioDraftData } from "../features/portfolio/types";
 import "../styles/page.css";
 import "./NewDocumentPage.css";
 
+import type { Assessment } from "../features/assessments/types";
+
 type Project = {
   id: string;
   projectName: string;
@@ -38,10 +40,30 @@ type ParsedSection = {
 };
 
 async function fetchProjects(careerFocus: CareerFocusOption): Promise<Project[]> {
-  const { data } = await http.get("/api/projects", {
+  const { data } = await http.get("/api/assessments", {
     params: { careerFocus },
   });
-  return data;
+  
+  const rows = Array.isArray(data?.data) ? data.data : [];
+  
+  function formatYearSemester(semester: any): string | undefined {
+    if (!semester) return undefined;
+    const parts = String(semester).trim().split(/[-\/]/);
+    if (parts.length === 2) {
+      const year = parts[0].length === 2 ? `25${parts[0]}` : parts[0];
+      return `year ${year} semester ${parts[1]}`;
+    }
+    return String(semester);
+  }
+  
+  return rows.map((row: any, index: number) => ({
+    id: `${row.course_code}-${row.clo_code ?? ""}-${index}`,
+    projectName: row.project_name || `${row.course_name} project` || row.clo_code || "Assessment",
+    courseName: row.course_code ? `${row.course_code}_${row.course_name}` : undefined,
+    yearSemester: formatYearSemester(row.semester),
+    type: row.enrollment_type,
+    relevancePercent: row.total_normalized_score ? Math.round(Number(row.total_normalized_score)) : 0,
+  }));
 }
 
 const PORTFOLIO_CONTENT_ROUTE = "/portfolio";
@@ -418,7 +440,7 @@ export default function NewDocumentPage() {
                             {project.yearSemester ? ` • ${project.yearSemester}` : ""}
                             {project.type ? ` • ${project.type}` : ""}
                             {typeof project.relevancePercent === "number"
-                              ? ` • ${project.relevancePercent}% relevance`
+                              ? ` • ${project.relevancePercent}% performance`
                               : ""}
                           </div>
                         </div>

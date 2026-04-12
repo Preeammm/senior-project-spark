@@ -877,74 +877,6 @@ function extractCourseNumber(courseCode: string): number {
                     </label>
                   </div>
 
-                  <div className="mpColorExplainBox">
-                    <div className="mpSectionHeader mpColorExplainHeader">
-                      <div className="mpColorExplainLabel">How to read this chart</div>
-                      <button
-                        type="button"
-                        className="mpSectionToggle"
-                        onClick={() => setShowColorExplain((value) => !value)}
-                      >
-                        {showColorExplain ? "Hide" : "Show"}
-                      </button>
-                    </div>
-
-                    {showColorExplain ? (
-                      <>
-                        <div className="mpExplainIntro">
-                          This chart compares your current skill level with the career target and the highest level available from courses for your selected career focus.
-                        </div>
-
-                        <div className="mpExplainTips">
-                          <div className="mpExplainTip">Click a skill name around the chart to update the details on the right.</div>
-                          <div className="mpExplainTip">Click `Course` or `Student` above the chart to bring that layer to the front for easier comparison.</div>
-                          <div className="mpExplainTip">The farther a point is from the center, the higher the level for that skill.</div>
-                        </div>
-
-                        <div className="mpColorExplainItem">
-                          <span className="mpColorDot mpColorDotReq" />
-                          <div className="mpColorExplainText">
-                            <div className="mpColorName">Career</div>
-                            <div className="mpColorDesc">The target level expected for this career. Use it as the benchmark.</div>
-                          </div>
-                        </div>
-                        <div className="mpColorExplainItem">
-                          <span className="mpColorDot mpColorDotCourse" />
-                          <div className="mpColorExplainText">
-                            <div className="mpColorName">Course</div>
-                            <div className="mpColorDesc">The highest level you could reach from the available courses in this area.</div>
-                          </div>
-                        </div>
-                        <div className="mpColorExplainItem">
-                          <span className="mpColorDot mpColorDotStudent" />
-                          <div className="mpColorExplainText">
-                            <div className="mpColorName">Student</div>
-                            <div className="mpColorDesc">Your current level based on your assessment and performance data.</div>
-                          </div>
-                        </div>
-
-                        <div className="mpLevelGuide">
-                          <div className="mpLevelGuideTitle">Skill levels</div>
-                          <div className="mpLevelGuideIntro">
-                            Levels go from 1 to 4. Higher levels mean you can work more independently, solve harder problems, and support others more effectively.
-                          </div>
-
-                          <div className="mpLevelGuideGrid">
-                            {LEVEL_GUIDE.map((level) => (
-                              <div key={level.id} className="mpLevelCard">
-                                <div className="mpLevelCardHeader">
-                                  <span className="mpLevelBadge">{level.id}</span>
-                                  <span className="mpLevelName">{level.name}</span>
-                                </div>
-                                <div className="mpLevelDesc">{level.description}</div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </>
-                    ) : null}
-                  </div>
-
                 </div>
 
                 {/* Right: Evidence Breakdown */}
@@ -1045,6 +977,74 @@ function extractCourseNumber(courseCode: string): number {
                         </div>
                       </>
                     )}
+                  </div>
+
+                  <div className="mpColorExplainBox">
+                    <div className="mpSectionHeader mpColorExplainHeader">
+                      <div className="mpColorExplainLabel">How to read this chart</div>
+                      <button
+                        type="button"
+                        className="mpSectionToggle"
+                        onClick={() => setShowColorExplain((value) => !value)}
+                      >
+                        {showColorExplain ? "Hide" : "Show"}
+                      </button>
+                    </div>
+
+                    {showColorExplain ? (
+                      <>
+                        <div className="mpExplainIntro">
+                          This chart compares your current skill level with the career target and the highest level available from courses for your selected career focus.
+                        </div>
+
+                        <div className="mpExplainTips">
+                          <div className="mpExplainTip">Click a skill name around the chart to update the details on the right.</div>
+                          <div className="mpExplainTip">Click `Course` or `Student` above the chart to bring that layer to the front for easier comparison.</div>
+                          <div className="mpExplainTip">The farther a point is from the center, the higher the level for that skill.</div>
+                        </div>
+
+                        <div className="mpColorExplainItem">
+                          <span className="mpColorDot mpColorDotReq" />
+                          <div className="mpColorExplainText">
+                            <div className="mpColorName">Career</div>
+                            <div className="mpColorDesc">The target level expected for this career. Use it as the benchmark.</div>
+                          </div>
+                        </div>
+                        <div className="mpColorExplainItem">
+                          <span className="mpColorDot mpColorDotCourse" />
+                          <div className="mpColorExplainText">
+                            <div className="mpColorName">Course</div>
+                            <div className="mpColorDesc">The highest level you could reach from the available courses in this area.</div>
+                          </div>
+                        </div>
+                        <div className="mpColorExplainItem">
+                          <span className="mpColorDot mpColorDotStudent" />
+                          <div className="mpColorExplainText">
+                            <div className="mpColorName">Student</div>
+                            <div className="mpColorDesc">Your current level based on your assessment and performance data.</div>
+                          </div>
+                        </div>
+
+                        <div className="mpLevelGuide">
+                          <div className="mpLevelGuideTitle">Skill levels</div>
+                          <div className="mpLevelGuideIntro">
+                            Levels go from 1 to 4. Higher levels mean you can work more independently, solve harder problems, and support others more effectively.
+                          </div>
+
+                          <div className="mpLevelGuideGrid">
+                            {LEVEL_GUIDE.map((level) => (
+                              <div key={level.id} className="mpLevelCard">
+                                <div className="mpLevelCardHeader">
+                                  <span className="mpLevelBadge">{level.id}</span>
+                                  <span className="mpLevelName">{level.name}</span>
+                                </div>
+                                <div className="mpLevelDesc">{level.description}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    ) : null}
                   </div>
 
                 </div>
