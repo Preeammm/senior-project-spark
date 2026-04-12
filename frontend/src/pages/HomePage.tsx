@@ -201,6 +201,23 @@ export default function HomePage() {
     enabled: !!careerFocus,
   });
 
+  // Fetch course max info for orange line
+  const { data: courseMaxInfoData = [] } = useQuery<
+    Array<{
+      skill_title: string;
+      max_lcourse: number;
+    }>
+  >({
+    queryKey: ["courseMaxInfo", careerFocus],
+    queryFn: async () => {
+      if (!careerFocus) return [];
+      const res = await http.get("/api/course_max_info", { params: { careerFocus } });
+      return res.data?.data ?? [];
+    },
+    retry: false,
+    enabled: !!careerFocus,
+  });
+
   // Build fixed 6 axes from API career info; pad missing skills with "-"
   const dynamicAxes = useMemo(() => {
     if (careerInfoData.length === 0) {
@@ -316,6 +333,30 @@ export default function HomePage() {
 
     return scores;
   }, [careerFocus, careerInfoData, dynamicAxes]);
+
+  // Build course max info scores from API - orange line
+  const courseMaxScores = useMemo(() => {
+    if (!careerFocus || courseMaxInfoData.length === 0 || dynamicAxes.length === 0) {
+      return Object.fromEntries(dynamicAxes.map((axis) => [axis, 0]));
+    }
+
+    const skillLevelMap = new Map<string, number>();
+    courseMaxInfoData.forEach((item) => {
+      skillLevelMap.set(item.skill_title, item.max_lcourse);
+    });
+
+    const scores: Record<string, number> = {};
+    dynamicAxes.forEach((axis) => {
+      if (axis === "-") {
+        scores[axis] = 0;
+        return;
+      }
+      scores[axis] = skillLevelMap.get(axis) || 0;
+    });
+
+    return scores;
+  }, [careerFocus, courseMaxInfoData, dynamicAxes]);
+
   const { data: courses = [], isLoading: coursesLoading } = useCourses(careerFocus);
   const { data: projects = [], isLoading: projectsLoading } = useProjects(careerFocus);
   const { data: enrollmentInfo = [], isLoading: enrollmentLoading } = useQuery<
@@ -342,17 +383,26 @@ export default function HomePage() {
     [selectedSkill, courses]
   );
 
+function extractCourseNumber(courseCode: string): number {
+  const match = courseCode.match(/\d+/);
+  return match ? parseInt(match[0], 10) : 0;
+}
+
   const enrolledCourses = useMemo(
-    () => relevantCourses.filter((course) =>
-      enrolledCourseCodes.has(course.courseCode.trim().toUpperCase())
-    ),
+    () => relevantCourses
+      .filter((course) =>
+        enrolledCourseCodes.has(course.courseCode.trim().toUpperCase())
+      )
+      .sort((a, b) => extractCourseNumber(a.courseCode) - extractCourseNumber(b.courseCode)),
     [relevantCourses, enrolledCourseCodes]
   );
 
   const notEnrolledCourses = useMemo(
-    () => relevantCourses.filter((course) =>
-      !enrolledCourseCodes.has(course.courseCode.trim().toUpperCase())
-    ),
+    () => relevantCourses
+      .filter((course) =>
+        !enrolledCourseCodes.has(course.courseCode.trim().toUpperCase())
+      )
+      .sort((a, b) => extractCourseNumber(a.courseCode) - extractCourseNumber(b.courseCode)),
     [relevantCourses, enrolledCourseCodes]
   );
 
@@ -375,6 +425,11 @@ export default function HomePage() {
   const reqPoly = useMemo(
     () => radarPoints(reqScores, dynamicAxes, cx, cy, r),
     [reqScores, dynamicAxes, cx, cy, r]
+  );
+
+  const courseMaxPoly = useMemo(
+    () => radarPoints(courseMaxScores, dynamicAxes, cx, cy, r),
+    [courseMaxScores, dynamicAxes, cx, cy, r]
   );
 
   function renderAxisLabel(displayAxis: string, lx: number, ly: number, isActive: boolean, axis: string) {
@@ -605,12 +660,16 @@ export default function HomePage() {
                 <div className="mpLeft">
                   <div className="mpLegend">
                     <div className="mpLegendItem">
-                      <span className="mpDot mpDotStudent" />
-                      <span>Student</span>
+                      <span className="mpDot mpDotReq" />
+                      <span>Career</span>
                     </div>
                     <div className="mpLegendItem">
-                      <span className="mpDot mpDotReq" />
-                      <span>Career Requirement</span>
+                      <span className="mpDot mpDotCourseMax" />
+                      <span>Course</span>
+                    </div>
+                    <div className="mpLegendItem">
+                      <span className="mpDot mpDotStudent" />
+                      <span>Student</span>
                     </div>
                   </div>
 
@@ -636,6 +695,7 @@ export default function HomePage() {
                     })}
 
                     <polygon points={reqPoly} className="mpPolyReq" />
+                    <polygon points={courseMaxPoly} className="mpPolyCourseMax" />
                     {skillScoreData.length > 0 && <polygon points={studentPoly} className="mpPolyStudent" />}
 
                     {/* Axis labels */}
@@ -647,7 +707,7 @@ export default function HomePage() {
 
                       const maxLevel = skillMaxLevels.get(axis) || 0;
                       const shownLevel = shownLevels[axis] || 0;
-                      const displayAxis = shownLevel === maxLevel && shownLevel > 0 ? `${axis} (Max Level)` : axis;
+                      const displayAxis = axis;
 
                       return renderAxisLabel(displayAxis, lx, ly, selectedSkill === axis, axis);
                     })}
@@ -752,6 +812,30 @@ export default function HomePage() {
                         </div>
                       </>
                     )}
+                  </div>
+
+                  <div className="mpColorExplainBox">
+                    <div className="mpColorExplainItem">
+                      <span className="mpColorDot mpColorDotReq" />
+                      <div className="mpColorExplainText">
+                        <div className="mpColorName">Career</div>
+                        <div className="mpColorDesc">Skills required for the selected career</div>
+                      </div>
+                    </div>
+                    <div className="mpColorExplainItem">
+                      <span className="mpColorDot mpColorDotCourse" />
+                      <div className="mpColorExplainText">
+                        <div className="mpColorName">Course</div>
+                        <div className="mpColorDesc">Maximum skill levels from available courses</div>
+                      </div>
+                    </div>
+                    <div className="mpColorExplainItem">
+                      <span className="mpColorDot mpColorDotStudent" />
+                      <div className="mpColorExplainText">
+                        <div className="mpColorName">Student</div>
+                        <div className="mpColorDesc">Your current skill level achievements</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
