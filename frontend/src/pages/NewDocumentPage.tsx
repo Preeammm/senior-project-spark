@@ -178,17 +178,10 @@ export default function NewDocumentPage() {
     if (!existingDoc || hasHydratedDraft) return;
 
     const draft = existingDoc.data;
-    const sections = parseMarkdownSections(existingDoc.content ?? "");
-    const basicSection = sections.find((section) => section.heading.toLowerCase() === "basic information");
-    const aboutSection = sections.find((section) =>
-      ["about me", "profile / about me", "short description"].includes(section.heading.toLowerCase())
-    );
 
-    const draftCareerFocus =
-      draft?.careerFocus || extractLineValue(basicSection?.lines ?? [], "Career Focus:");
     setTitle(existingDoc.title ?? "");
-    setCareerFocus((draftCareerFocus || "") as CareerFocus);
-    setAboutMe(draft?.aboutMe || aboutSection?.lines?.join(" ").trim() || "");
+    setCareerFocus((existingDoc.careerName || "") as CareerFocus);
+    setAboutMe(existingDoc.aboutMe || "");
     setSelectedProjectIds(draft?.selectedProjectIds ?? []);
     setHasHydratedDraft(true);
   }, [existingDoc, hasHydratedDraft, setCareerFocus]);

@@ -11,8 +11,11 @@ export type PortfolioDocLite = {
 };
 
 export type PortfolioDoc = PortfolioDocLite & {
-  content: string;
+  content?: string;
   data?: PortfolioDraftData | null;
+  aboutMe?: string;
+  careerName?: string;
+  careerId?: number;
 };
 
 // LIST

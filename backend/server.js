@@ -1166,6 +1166,36 @@ const CAREER_NAME_TO_ID = {
   "UI Designer": 24,
   "UX Designer": 25
 };
+const CAREER_ID_TO_NAME = {
+  1: "Application Support",
+  2: "Automation Tester",
+  3: "Business Analyst",
+  4: "Data Analyst",
+  5: "Data Engineer",
+  6: "Data Scientist",
+  7: "Database Administrator",
+  8: "Front-end Developer",
+  9: "Game Developer",
+  10: "IT Auditor",
+  11: "IT Project Manager",
+  12: "IT Support",
+  13: "Manual Tester",
+  14: "Network Administrator",
+  15: "Penetration Tester",
+  16: "Platform Engineer",
+  17: "Pre-sale Consultant",
+  18: "Sales Engineer",
+  19: "Security Engineer",
+  20: "Software Engineer",
+  21: "System Administrator",
+  22: "System Analyst",
+  23: "Technical Consultant",
+  24: "UI Designer",
+  25: "UX Designer"
+};
+
+
+
 app.get("/api/portfolio/documents", requireUser, async (req, res) => {
   try {
     const profile = meStore[req.user.id];
@@ -1175,7 +1205,7 @@ app.get("/api/portfolio/documents", requireUser, async (req, res) => {
 
     const result = await pool.query(
       `
-      SELECT portfolio_id, title, about_me, created_at, updated_at
+      SELECT portfolio_id, title, career_id, about_me, created_at, updated_at
       FROM portfolio
       WHERE student_id = $1
       ORDER BY created_at DESC
@@ -1186,10 +1216,12 @@ app.get("/api/portfolio/documents", requireUser, async (req, res) => {
     const data = result.rows.map((doc) => {
       const text = doc.about_me || "";
       const oneLine = text.replace(/\n+/g, " ").trim();
-
+      
       return {
         id: doc.portfolio_id,
         title: doc.title,
+        careerName: CAREER_ID_TO_NAME[doc.career_id] || "Unknown",
+        aboutMe: doc.about_me,
         createdAt: doc.created_at,
         updatedAt: doc.updated_at,
         snippet: oneLine.slice(0, 180),
@@ -1288,6 +1320,7 @@ app.get("/api/portfolio/documents/:docId", requireUser, async (req, res) => {
       title: doc.title,
       aboutMe: doc.about_me,
       careerId: doc.career_id,
+      careerName: CAREER_ID_TO_NAME[doc.career_id] || "Unknown",
       createdAt: doc.created_at,
       updatedAt: doc.updated_at,
     });
@@ -1373,6 +1406,7 @@ app.patch("/api/portfolio/documents/:docId", requireUser, async (req, res) => {
       title: doc.title,
       aboutMe: doc.about_me,
       careerId: doc.career_id,
+      careerName: CAREER_ID_TO_NAME[doc.career_id] || "Unknown",
       createdAt: doc.created_at,
       updatedAt: doc.updated_at,
     });

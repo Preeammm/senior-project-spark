@@ -234,7 +234,7 @@ export default function PortfolioDocumentPage() {
   );
 
   const studentName = `${me?.name ?? ""} ${me?.surname ?? ""}`.trim() || "Student";
-  const careerFocus = extractLineValue(basicSection?.lines ?? [], "Career Focus:");
+  const careerFocus = data?.careerName ?? "";
   const selectedProjectNames = useMemo(
     () =>
       (selectedProjects?.lines ?? [])
@@ -281,12 +281,8 @@ export default function PortfolioDocumentPage() {
     },
     retry: false,
   });
-  const descriptionLines = (shortSection?.lines ?? []).map(normalizeInlineMarkdown);
-  const aboutMe = descriptionLines.join(" ").trim() || "—";
-  const occupation =
-    occupationSection?.lines.map(normalizeInlineMarkdown).join(" ").trim() ||
-    careerFocus ||
-    "—";
+  const aboutMe = data?.aboutMe ?? "—";
+  const occupation = data?.careerName ?? "—";
   const projectLines = selectedProjects?.lines.filter((line) => /^\d+\./.test(line.trim())) ?? [];
   const selectedProjectDetails = useMemo(() => {
     if (!selectedProjectNames.length) return [];
