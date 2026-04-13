@@ -27,7 +27,11 @@ export async function createDocument(input: {
   content?: string;
   data?: PortfolioDraftData;
 }): Promise<PortfolioDocLite> {
-  const res = await http.post("/api/portfolio/documents", input);
+  const res = await http.post("/api/portfolio/documents", {
+    title: input.title,
+    careerFocus: input.data?.careerFocus,
+    aboutMe: input.data?.aboutMe,
+  });
   return res.data;
 }
 
@@ -56,6 +60,10 @@ export async function updateDocument(
     data: PortfolioDraftData;
   }
 ): Promise<PortfolioDoc> {
-  const res = await http.patch(`/api/portfolio/documents/${docId}`, input);
+  const res = await http.patch(`/api/portfolio/documents/${docId}`, {
+    title: input.title,
+    careerFocus: input.data?.careerFocus,
+    aboutMe: input.data?.aboutMe,
+  });
   return res.data;
 }

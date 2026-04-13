@@ -1138,118 +1138,280 @@ I am an ICT student focused on Data Analyst roles, with hands-on experience in d
   },
 ];
 
-// list (WITH snippet preview)
-app.get("/api/portfolio/documents", requireUser, (req, res) => {
-  res.json(
-    portfolioDocs.map(({ content, ...rest }) => {
-      const text = typeof content === "string" ? content : "";
+// Career Name to ID mapping
+const CAREER_NAME_TO_ID = {
+  "Application Support": 1,
+  "Automation Tester": 2,
+  "Business Analyst": 3,
+  "Data Analyst": 4,
+  "Data Engineer": 5,
+  "Data Scientist": 6,
+  "Database Administrator": 7,
+  "Front-end Developer": 8,
+  "Game Developer": 9,
+  "IT Auditor": 10,
+  "IT Project Manager": 11,
+  "IT Support": 12,
+  "Manual Tester": 13,
+  "Network Administrator": 14,
+  "Penetration Tester": 15,
+  "Platform Engineer": 16,
+  "Pre-sale Consultant": 17,
+  "Sales Engineer": 18,
+  "Security Engineer": 19,
+  "Software Engineer": 20,
+  "System Administrator": 21,
+  "System Analyst": 22,
+  "Technical Consultant": 23,
+  "UI Designer": 24,
+  "UX Designer": 25
+};
+app.get("/api/portfolio/documents", requireUser, async (req, res) => {
+  try {
+    const profile = meStore[req.user.id];
+    if (!profile) return res.status(404).json({ message: "Profile not found" });
+
+    const studentId = profile.studentId;
+
+    const result = await pool.query(
+      `
+      SELECT portfolio_id, title, about_me, created_at, updated_at
+      FROM portfolio
+      WHERE student_id = $1
+      ORDER BY created_at DESC
+      `,
+      [studentId]
+    );
+
+    const data = result.rows.map((doc) => {
+      const text = doc.about_me || "";
       const oneLine = text.replace(/\n+/g, " ").trim();
+
       return {
-        ...rest,
+        id: doc.portfolio_id,
+        title: doc.title,
+        createdAt: doc.created_at,
+        updatedAt: doc.updated_at,
         snippet: oneLine.slice(0, 180),
       };
-    })
-  );
-});
+    });
 
-// create
-app.post("/api/portfolio/documents", requireUser, (req, res) => {
-  const { title, content, data } = req.body ?? {};
-  if (!title || typeof title !== "string") {
-    return res.status(400).json({ message: "title is required" });
+    res.json(data);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
-
-  const now = new Date().toISOString();
-  const doc = {
-    id: `d${Date.now()}`,
-    title,
-    createdAt: now,
-    updatedAt: now,
-    content: typeof content === "string" ? content : "",
-    data: data && typeof data === "object" ? data : null,
-  };
-
-  portfolioDocs = [doc, ...portfolioDocs];
-
-  res.status(201).json({
-    id: doc.id,
-    title: doc.title,
-    createdAt: doc.createdAt,
-    updatedAt: doc.updatedAt,
-  });
 });
 
-// get doc detail (with content)
-app.get("/api/portfolio/documents/:docId", requireUser, (req, res) => {
-  const { docId } = req.params;
-  const doc = portfolioDocs.find((d) => d.id === docId);
-  if (!doc) return res.status(404).json({ message: "Document not found" });
-  res.json(doc);
-});
+// CREATE
+app.post("/api/portfolio/documents", requireUser, async (req, res) => {
+  try {
+    const profile = meStore[req.user.id];
+    if (!profile) return res.status(404).json({ message: "Profile not found" });
 
-// download as txt
-app.get("/api/portfolio/documents/:docId/download", requireUser, (req, res) => {
-  const { docId } = req.params;
-  const doc = portfolioDocs.find((d) => d.id === docId);
-  if (!doc) return res.status(404).json({ message: "Document not found" });
+    const studentId = profile.studentId;
+    const { title, careerFocus, aboutMe } = req.body;
 
-  res.setHeader("Content-Type", "text/plain; charset=utf-8");
-  res.setHeader("Content-Disposition", `attachment; filename=portfolio-${docId}.txt`);
-  res.send(`${doc.title}\n\n${doc.content}`);
-});
+    console.log(" POST /api/portfolio/documents received:", { title, careerFocus, aboutMe });
 
-// PATCH update doc
-app.patch("/api/portfolio/documents/:docId", requireUser, (req, res) => {
-  const { docId } = req.params;
-  const { title, content, data } = req.body ?? {};
-
-  const doc = portfolioDocs.find((d) => d.id === docId);
-  if (!doc) return res.status(404).json({ message: "Document not found" });
-
-  const hasTitle = typeof title === "string";
-  const hasContent = typeof content === "string";
-  const hasData = data && typeof data === "object";
-
-  if (!hasTitle && !hasContent && !hasData) {
-    return res.status(400).json({ message: "title, content, or data is required" });
-  }
-
-  if (hasTitle) {
-    if (!title.trim()) {
-      return res.status(400).json({ message: "title must not be empty" });
+    if (!title) {
+      return res.status(400).json({ message: "title is required" });
     }
-    doc.title = title;
+
+    // Get career ID from name, or default to 1
+    const careerId = careerFocus ? CAREER_NAME_TO_ID[careerFocus] : 1;
+
+    const result = await pool.query(
+      `
+      INSERT INTO portfolio (
+        student_id,
+        career_id,
+        title,
+        about_me,
+        created_at,
+        updated_at
+      )
+      VALUES ($1, $2, $3, $4, NOW(), NOW())
+      RETURNING portfolio_id, title, created_at, updated_at
+      `,
+      [
+        studentId,
+        careerId,
+        title,
+        aboutMe,
+      ]
+    );
+
+    const doc = result.rows[0];
+
+    res.status(201).json({
+      id: doc.portfolio_id,
+      title: doc.title,
+      createdAt: doc.created_at,
+      updatedAt: doc.updated_at,
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
   }
-
-  if (hasContent) {
-    doc.content = content;
-  }
-
-  if (hasData) {
-    doc.data = data;
-  }
-
-  doc.updatedAt = new Date().toISOString();
-
-  res.json({
-    id: doc.id,
-    title: doc.title,
-    createdAt: doc.createdAt,
-    updatedAt: doc.updatedAt,
-    content: doc.content,
-    data: doc.data ?? null,
-  });
 });
 
-// DELETE document
-app.delete("/api/portfolio/documents/:docId", requireUser, (req, res) => {
-  const { docId } = req.params;
+// GET DETAIL
+app.get("/api/portfolio/documents/:docId", requireUser, async (req, res) => {
+  try {
+    const profile = meStore[req.user.id];
+    if (!profile) return res.status(404).json({ message: "Profile not found" });
 
-  const idx = portfolioDocs.findIndex((d) => d.id === docId);
-  if (idx === -1) return res.status(404).json({ message: "Document not found" });
+    const studentId = profile.studentId;
+    const { docId } = req.params;
 
-  portfolioDocs.splice(idx, 1);
-  res.status(204).send();
+    const result = await pool.query(
+      `
+      SELECT portfolio_id, title, about_me, career_id, created_at, updated_at
+      FROM portfolio
+      WHERE portfolio_id = $1
+        AND student_id = $2
+      `,
+      [docId, studentId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Document not found" });
+    }
+
+    const doc = result.rows[0];
+
+    res.json({
+      id: doc.portfolio_id,
+      title: doc.title,
+      aboutMe: doc.about_me,
+      careerId: doc.career_id,
+      createdAt: doc.created_at,
+      updatedAt: doc.updated_at,
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// DOWNLOAD
+app.get("/api/portfolio/documents/:docId/download", requireUser, async (req, res) => {
+  try {
+    const profile = meStore[req.user.id];
+    if (!profile) return res.status(404).json({ message: "Profile not found" });
+
+    const studentId = profile.studentId;
+    const { docId } = req.params;
+
+    const result = await pool.query(
+      `
+      SELECT title, about_me
+      FROM portfolio
+      WHERE portfolio_id = $1
+        AND student_id = $2
+      `,
+      [docId, studentId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Document not found" });
+    }
+
+    const doc = result.rows[0];
+
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename=portfolio-${docId}.txt`);
+    res.send(`${doc.title}\n\n${doc.about_me}`);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+
+// PATCH UPDATE
+app.patch("/api/portfolio/documents/:docId", requireUser, async (req, res) => {
+  try {
+    const profile = meStore[req.user.id];
+    if (!profile) return res.status(404).json({ message: "Profile not found" });
+
+    const studentId = profile.studentId;
+    const { docId } = req.params;
+
+    const { title, careerFocus, aboutMe } = req.body;
+
+    const careerId = careerFocus ? CAREER_NAME_TO_ID[careerFocus] : null;  // null means don't update career_id
+    
+    const result = await pool.query(
+      `
+      UPDATE portfolio
+      SET
+        title = COALESCE($1, title),
+        career_id = COALESCE($2, career_id),
+        about_me = COALESCE($3, about_me),
+        updated_at = NOW()
+      WHERE portfolio_id = $4
+        AND student_id = $5
+      RETURNING portfolio_id, title, about_me, career_id, created_at, updated_at
+      `,
+      [title, careerId, aboutMe, docId, studentId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Document not found" });
+    }
+
+    const doc = result.rows[0];
+
+    res.json({
+      id: doc.portfolio_id,
+      title: doc.title,
+      aboutMe: doc.about_me,
+      careerId: doc.career_id,
+      createdAt: doc.created_at,
+      updatedAt: doc.updated_at,
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+
+// DELETE (hard delete)
+app.delete("/api/portfolio/documents/:docId", requireUser, async (req, res) => {
+  try {
+    const profile = meStore[req.user.id];
+    if (!profile) return res.status(404).json({ message: "Profile not found" });
+
+    const studentId = profile.studentId;
+    const { docId } = req.params;
+
+    const result = await pool.query(
+      `
+      DELETE FROM portfolio
+      WHERE portfolio_id = $1
+        AND student_id = $2
+      `,
+      [docId, studentId]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Document not found" });
+    }
+
+    res.status(204).send();
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
 });
 
 // ===== START SERVER =====
