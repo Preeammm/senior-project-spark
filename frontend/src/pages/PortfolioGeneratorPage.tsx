@@ -167,8 +167,6 @@ export default function PortfolioGeneratorPage() {
           <div className="pcgHint">Loading documents...</div>
         ) : error ? (
           <div className="pcgHint">Failed to load documents.</div>
-        ) : docList.length === 0 ? (
-          <div className="pcgHint">No documents yet. Click + to create one.</div>
         ) : (
           docList.map((doc) => {
             const isMenuOpen = openMenuId === doc.id;
