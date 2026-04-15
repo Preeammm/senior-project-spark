@@ -11,6 +11,8 @@ type RawAssessment = {
   enrollment_type?: string;
   student_score_clo?: string | number;
   full_score_clo?: string | number;
+  project_id?: number;
+  project_name?: string;
 };
 
 export async function listAssessments(careerFocus?: string): Promise<Assessment[]> {
@@ -28,6 +30,8 @@ export async function listAssessments(careerFocus?: string): Promise<Assessment[
 
     return {
       id,
+      projectId: row.project_id || 0,
+      projectName: String(row.project_name ?? ""),
       courseCode,
       courseName: String(row.course_name ?? courseCode),
       semester: String(semesterValue),

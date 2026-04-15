@@ -48,7 +48,7 @@ const USER_AUTH = [
   { id: "u3", username: "u6588107", password: "ICT107", defaultPath: "/home" },
 ];
 
-// ===== TEST DB CONNECTION =====
+// ====================== SKILL SCORE (protected, database) =====================
 app.get("/api/skill_score", requireUser, async (req, res) => {
   try {
     const profile = meStore[req.user.id];
@@ -273,6 +273,7 @@ app.get("/api/assessments", requireUser, async (req, res) => {
         SELECT 
         c.course_code,
         cos.course_name,
+        pj.project_id,
         pj.project_name,
         c.semester,
         ss.skill_title,
@@ -319,6 +320,7 @@ app.get("/api/assessments", requireUser, async (req, res) => {
 
     GROUP BY 
         c.course_code,
+        pj.project_id,
         pj.project_name,
         ss.skill_title,
         cos.course_name,
@@ -330,6 +332,7 @@ app.get("/api/assessments", requireUser, async (req, res) => {
             c.course_code,
             cos.course_name,
             c.semester,
+            pj.project_id,
             pj.project_name,
             ss.skill_title,
             AVG(sas.student_score_clo::float / acm.full_score_clo) AS total_normalized_score
@@ -368,6 +371,7 @@ app.get("/api/assessments", requireUser, async (req, res) => {
             ss.skill_title,
             cos.course_name,
             pj.project_name,
+            pj.project_id,
             c.semester;
         `, [studentId]);
 
@@ -656,7 +660,7 @@ app.get("/api/enrollment_info", requireUser, async (req, res) => {
     data: results.rows,
   });
 });
-// ==============================
+// ===========================================================================
 
 
 // helper: session object to store in localStorage
@@ -991,48 +995,6 @@ app.put("/api/me/profile", requireUser, async (req, res) => {
   });
 });
 
-// ===== PROJECTS (protected) =====
-app.get("/api/projects", requireUser, (req, res) => {
-  const userId = req.user.id;
-  const careerFocus = normalizeCareerFocus(req.query?.careerFocus);
-
-  const filtered = projects.filter((p) => {
-    if (!p.visibleTo) return true;
-    return p.visibleTo.includes(userId);
-  });
-
-  const scored = filtered.map((project) => ({
-    ...project,
-    performancePercent: project.performancePercent ?? project.relevancePercent ?? 0,
-    relevancePercent: getFocusedRelevance(
-      project.relevancePercent,
-      PROJECT_RELEVANCE_BY_FOCUS[project.id],
-      careerFocus
-    ),
-    courseImportancePercent: (() => {
-      const course = findCourseForProject(project);
-      if (!course) return 0;
-      return getFocusedRelevance(
-        course.relevancePercent,
-        COURSE_RELEVANCE_BY_FOCUS[course.id],
-        careerFocus
-      );
-    })(),
-  }));
-
-  scored.sort((a, b) => {
-    if (careerFocus) {
-      return (
-        b.courseImportancePercent - a.courseImportancePercent ||
-        b.performancePercent - a.performancePercent
-      );
-    }
-
-    return b.performancePercent - a.performancePercent;
-  });
-  res.json(scored);
-});
-
 // ===== COURSES (protected) =====
 app.get("/api/courses", requireUser, (req, res) => {
   const userId = req.user.id;
@@ -1104,39 +1066,7 @@ app.get("/api/careers/:careerId", requireUser, (req, res) => {
   res.json(career);
 });
 
-// ===== PORTFOLIO DOCUMENTS (protected, in-memory) =====
-let portfolioDocs = [
-  {
-    id: "d1",
-    title: "My Portfolio (Mock)",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    content: `# My Portfolio (Mock)
-
-## Basic Information
-- Career Focus: **Data Analyst**
-- Use SPARK Personal Info: **Yes**
-
-## Occupation / Position
-Data Analyst
-
-## About Me
-I am an ICT student focused on Data Analyst roles, with hands-on experience in data preparation, SQL querying, dashboard thinking, and presenting insights from project outcomes.
-
-## Academic Projects
-1. **Final Project** — ITCS495 - Special Topics in Databases and Intelligent Systems • Year 4 Semester 1 • Group
-2. **Database Mini Project** — ITCS241 - Database Management Systems • Year 2 Semester 1 • Individual
-`,
-    data: {
-      careerFocus: "Data Analyst",
-      usePersonalInfo: true,
-      occupation: "Data Analyst",
-      aboutMe:
-        "I am an ICT student focused on Data Analyst roles, with hands-on experience in data preparation, SQL querying, dashboard thinking, and presenting insights from project outcomes.",
-      selectedProjectIds: [],
-    },
-  },
-];
+//================= PORTFOLIO DOCUMENTS (protected, database) ====================
 
 // Career Name to ID mapping
 const CAREER_NAME_TO_ID = {
@@ -1194,8 +1124,6 @@ const CAREER_ID_TO_NAME = {
   25: "UX Designer"
 };
 
-
-
 app.get("/api/portfolio/documents", requireUser, async (req, res) => {
   try {
     const profile = meStore[req.user.id];
@@ -1234,9 +1162,8 @@ app.get("/api/portfolio/documents", requireUser, async (req, res) => {
     console.error(err);
     res.status(500).json({ message: "Internal server error" });
   }
-});
+});// get portfolio document list
 
-// CREATE
 app.post("/api/portfolio/documents", requireUser, async (req, res) => {
   try {
     const profile = meStore[req.user.id];
@@ -1288,9 +1215,8 @@ app.post("/api/portfolio/documents", requireUser, async (req, res) => {
     console.error(err);
     res.status(500).json({ message: "Internal server error" });
   }
-});
+});// insert new portfolio document
 
-// GET DETAIL
 app.get("/api/portfolio/documents/:docId", requireUser, async (req, res) => {
   try {
     const profile = meStore[req.user.id];
@@ -1329,9 +1255,8 @@ app.get("/api/portfolio/documents/:docId", requireUser, async (req, res) => {
     console.error(err);
     res.status(500).json({ message: "Internal server error" });
   }
-});
+});// get portfolio document detail
 
-// DOWNLOAD
 app.get("/api/portfolio/documents/:docId/download", requireUser, async (req, res) => {
   try {
     const profile = meStore[req.user.id];
@@ -1364,10 +1289,8 @@ app.get("/api/portfolio/documents/:docId/download", requireUser, async (req, res
     console.error(err);
     res.status(500).json({ message: "Internal server error" });
   }
-});
+});// download portfolio document as txt file
 
-
-// PATCH UPDATE
 app.patch("/api/portfolio/documents/:docId", requireUser, async (req, res) => {
   try {
     const profile = meStore[req.user.id];
@@ -1415,10 +1338,8 @@ app.patch("/api/portfolio/documents/:docId", requireUser, async (req, res) => {
     console.error(err);
     res.status(500).json({ message: "Internal server error" });
   }
-});
+});// update portfolio document (partial update)
 
-
-// DELETE (hard delete)
 app.delete("/api/portfolio/documents/:docId", requireUser, async (req, res) => {
   try {
     const profile = meStore[req.user.id];
@@ -1446,7 +1367,179 @@ app.delete("/api/portfolio/documents/:docId", requireUser, async (req, res) => {
     console.error(err);
     res.status(500).json({ message: "Internal server error" });
   }
-});
+});//delete portfolio document
+// ================================================================================
+
+
+
+// ===================== PORTFOLIO PROJECTS (protected) ===========================
+app.post("/api/projects", requireUser, async (req, res) => {
+  try {
+    const profile = meStore[req.user.id];
+    if (!profile) return res.status(404).json({ message: "Profile not found" });
+
+    const { portfolioId, projectIds } = req.body;
+
+    if (!portfolioId) {
+      return res.status(400).json({ message: "portfolioId is required" });
+    }
+
+    if (!Array.isArray(projectIds) || projectIds.length === 0) {
+      return res.status(400).json({ message: "projectIds array is required and cannot be empty" });
+    }
+
+    // Convert portfolioId to integer
+    const portfolio_id = parseInt(portfolioId, 10);
+    if (isNaN(portfolio_id)) {
+      return res.status(400).json({ message: "portfolioId must be a valid integer" });
+    }
+
+    // Convert all projectIds to integers
+    const project_ids = projectIds.map((id) => {
+      const num = parseInt(id, 10);
+      if (isNaN(num)) {
+        throw new Error(`Invalid projectId: ${id}`);
+      }
+      return num;
+    });
+
+    const studentId = profile.studentId;
+
+    // Verify portfolio belongs to student
+    const portfolioCheck = await pool.query(
+      `SELECT portfolio_id FROM portfolio WHERE portfolio_id = $1 AND student_id = $2`,
+      [portfolio_id, studentId]
+    );
+
+    if (portfolioCheck.rows.length === 0) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    // First, delete existing projects for this portfolio (if any)
+    await pool.query(
+      `DELETE FROM portfolio_project WHERE portfolio_id = $1`,
+      [portfolio_id]
+    );
+
+    // Then insert new projects
+    for (const project_id of project_ids) {
+      await pool.query(
+        `
+        INSERT INTO portfolio_project (
+          portfolio_id,
+          project_id,
+          added_at
+        )
+        VALUES ($1, $2, NOW())
+        `,
+        [portfolio_id, project_id]
+      );
+    }
+
+    res.status(200).json({
+      message: "Projects saved successfully",
+      portfolioId: portfolio_id,
+      projectCount: project_ids.length,
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});// insert projects to portfolio (replace all existing)
+
+app.get("/api/projects/:portfolioId", requireUser, async (req, res) => {
+  try {
+    const profile = meStore[req.user.id];
+    if (!profile) return res.status(404).json({ message: "Profile not found" });
+
+    const studentId = profile.studentId;
+    const { portfolioId } = req.params;
+
+    // Convert portfolioId to integer
+    const portfolio_id = parseInt(portfolioId, 10);
+    if (isNaN(portfolio_id)) {
+      return res.status(400).json({ message: "portfolioId must be a valid integer" });
+    }
+
+    // Verify portfolio belongs to student
+    const portfolioCheck = await pool.query(
+      `
+      SELECT portfolio_id FROM portfolio
+      WHERE portfolio_id = $1 AND student_id = $2
+      `,
+      [portfolio_id, studentId]
+    );
+
+    if (portfolioCheck.rows.length === 0) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    // Get all projects for this portfolio
+    const result = await pool.query(
+      `
+      SELECT project_id, added_at
+      FROM portfolio_project
+      WHERE portfolio_id = $1
+      ORDER BY added_at DESC
+      `,
+      [portfolio_id]
+    );
+
+    const projectIds = result.rows.map((row) => row.project_id);
+
+    res.json({
+      portfolioId: portfolio_id,
+      projectIds,
+      projectCount: projectIds.length,
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});// get projects for portfolio
+
+// DELETE PROJECT (delete project and all portfolio associations)
+app.delete("/api/projects/:projectId", requireUser, async (req, res) => {
+  try {
+    const { projectId } = req.params;
+
+    // Convert projectId to integer
+    const project_id = parseInt(projectId, 10);
+    if (isNaN(project_id)) {
+      return res.status(400).json({ message: "projectId must be a valid integer" });
+    }
+
+    // First, delete all portfolio_project associations for this project
+    await pool.query(
+      `DELETE FROM portfolio_project WHERE project_id = $1`,
+      [project_id]
+    );
+
+    // Then delete the project itself
+    const result = await pool.query(
+      `DELETE FROM project WHERE project_id = $1 RETURNING project_id`,
+      [project_id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    res.status(200).json({
+      message: "Project deleted successfully",
+      projectId: project_id,
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});// delete project 
+// ================================================================================
+
+
 
 // ===== START SERVER =====
 app.listen(3000, () => {

@@ -201,6 +201,27 @@ export default function PortfolioDocumentPage() {
     retry: false,
   });
 
+  // Fetch portfolio project IDs
+  const { data: portfolioProjects } = useQuery({
+    queryKey: ["portfolio-projects", docId],
+    enabled: !!docId,
+    queryFn: async () => {
+      const res = await http.get(`/api/projects/${docId}`);
+      return res.data;
+    },
+    retry: false,
+  });
+
+  // Fetch all assessments to match with portfolio project IDs
+  const { data: allAssessments = [] } = useQuery({
+    queryKey: ["all-assessments"],
+    queryFn: async () => {
+      const res = await http.get("/api/assessments");
+      return res.data?.data ?? [];
+    },
+    retry: false,
+  });
+
   const sections = useMemo(
     () => parseMarkdownSections(data?.content ?? ""),
     [data?.content]
@@ -284,14 +305,55 @@ export default function PortfolioDocumentPage() {
   const aboutMe = data?.aboutMe ?? "—";
   const occupation = data?.careerName ?? "—";
   const projectLines = selectedProjects?.lines.filter((line) => /^\d+\./.test(line.trim())) ?? [];
+  
+  // Get portfolio project details from assessments
+  const portfolioProjectDetails = useMemo(() => {
+    if (!portfolioProjects?.projectIds || !allAssessments.length) {
+      return [];
+    }
+    
+    const projectIdSet = new Set(portfolioProjects.projectIds);
+    
+    // Map raw assessments to detailed format
+    const assessmentMap = new Map();
+    (allAssessments as any[]).forEach((row) => {
+      if (row.project_id && projectIdSet.has(row.project_id)) {
+        const key = row.project_id;
+        if (!assessmentMap.has(key)) {
+          assessmentMap.set(key, {
+            id: `project-${row.project_id}`,
+            projectName: row.project_name || `${row.course_name} project`,
+            courseName: row.course_code ? `${row.course_code}_${row.course_name}` : row.course_name,
+            yearSemester: row.semester || "—",
+            type: row.enrollment_type || "Individual",
+            competencyTags: row.skill_title ? [row.skill_title] : [],
+            relevancePercent: row.total_normalized_score
+              ? Math.round(Number(row.total_normalized_score))
+              : 0,
+          });
+        }
+      }
+    });
+    
+    return Array.from(assessmentMap.values());
+  }, [portfolioProjects?.projectIds, allAssessments]);
+  
   const selectedProjectDetails = useMemo(() => {
+    if (portfolioProjectDetails.length > 0) {
+      return portfolioProjectDetails;
+    }
+    
+    // Fallback: try to match by project names from content
     if (!selectedProjectNames.length) return [];
     const set = new Set(selectedProjectNames.map((x) => x.toLowerCase()));
     return projects.filter((p) => set.has(p.projectName.toLowerCase()));
-  }, [projects, selectedProjectNames]);
+  }, [portfolioProjectDetails, selectedProjectNames, projects]);
   const fallbackProjectItems = useMemo(
-    () => projectLines.map((line) => normalizeInlineMarkdown(line)),
-    [projectLines]
+    () => {
+      if (portfolioProjectDetails.length > 0) return [];
+      return projectLines.map((line) => normalizeInlineMarkdown(line));
+    },
+    [projectLines, portfolioProjectDetails]
   );
   const selectedCourseCodes = useMemo(() => {
     const codes = new Set<string>();
@@ -299,10 +361,12 @@ export default function PortfolioDocumentPage() {
       const code = extractCourseCode(project.courseName);
       if (code) codes.add(code);
     });
-    fallbackProjectItems.forEach((line) => {
-      const code = extractCourseCode(line);
-      if (code) codes.add(code);
-    });
+    if (fallbackProjectItems.length > 0) {
+      fallbackProjectItems.forEach((line) => {
+        const code = extractCourseCode(line);
+        if (code) codes.add(code);
+      });
+    }
     return Array.from(codes);
   }, [selectedProjectDetails, fallbackProjectItems]);
   const selectedCourses = useMemo(() => {
@@ -313,8 +377,8 @@ export default function PortfolioDocumentPage() {
   const projectSkills = useMemo(() => {
     const tags = new Set<string>();
     selectedProjectDetails.forEach((project) => {
-      project.competencyTags.forEach((tag) => {
-        const clean = tag.trim();
+      project.competencyTags.forEach((tag?: string) => {
+        const clean = String(tag ?? "").trim();
         if (clean) tags.add(clean);
       });
     });
@@ -324,7 +388,7 @@ export default function PortfolioDocumentPage() {
     const tags = new Set<string>();
     selectedCourses.forEach((course) => {
       course.competencyTags.forEach((tag) => {
-        const clean = tag.trim();
+        const clean = String(tag ?? "").trim();
         if (clean) tags.add(clean);
       });
     });

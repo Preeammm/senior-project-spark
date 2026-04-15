@@ -11,6 +11,7 @@ import {
   getDocument,
   PORTFOLIO_DOCS_QUERY_KEY,
   updateDocument,
+  saveProjectsToPortfolio,
   type PortfolioDocLite,
 } from "../features/portfolio/services/portfolio.api";
 import {
@@ -26,7 +27,7 @@ import "./NewDocumentPage.css";
 import type { Assessment } from "../features/assessments/types";
 
 type Project = {
-  id: string;
+  projectId: number;
   projectName: string;
   courseName?: string;
   yearSemester?: string;
@@ -56,8 +57,8 @@ async function fetchProjects(careerFocus: CareerFocusOption): Promise<Project[]>
     return String(semester);
   }
   
-  return rows.map((row: any, index: number) => ({
-    id: `${row.course_code}-${row.clo_code ?? ""}-${index}`,
+  return rows.map((row: any) => ({
+    projectId: row.project_id || row.assessment_id,
     projectName: row.project_name || `${row.course_name} project` || row.clo_code || "Assessment",
     courseName: row.course_code ? `${row.course_code}_${row.course_name}` : undefined,
     yearSemester: formatYearSemester(row.semester),
@@ -174,6 +175,17 @@ export default function NewDocumentPage() {
     queryFn: () => getDocument(String(docId)),
   });
 
+  // Fetch portfolio project IDs when editing
+  const { data: portfolioProjects } = useQuery({
+    queryKey: ["portfolio-projects", docId],
+    enabled: isEditing && !!docId,
+    queryFn: async () => {
+      const res = await http.get(`/api/projects/${docId}`);
+      return res.data;
+    },
+    retry: false,
+  });
+
   useEffect(() => {
     if (!existingDoc || hasHydratedDraft) return;
 
@@ -182,9 +194,18 @@ export default function NewDocumentPage() {
     setTitle(existingDoc.title ?? "");
     setCareerFocus((existingDoc.careerName || "") as CareerFocus);
     setAboutMe(existingDoc.aboutMe || "");
-    setSelectedProjectIds(draft?.selectedProjectIds ?? []);
+    
+    // Use portfolio projects if available, otherwise use draft data
+    if (portfolioProjects?.projectIds) {
+      setSelectedProjectIds(
+        portfolioProjects.projectIds.map((id: number) => String(id))
+      );
+    } else {
+      setSelectedProjectIds(draft?.selectedProjectIds ?? []);
+    }
+    
     setHasHydratedDraft(true);
-  }, [existingDoc, hasHydratedDraft, setCareerFocus]);
+  }, [existingDoc, portfolioProjects, hasHydratedDraft, setCareerFocus]);
 
   const { data: projects, isLoading: isProjectsLoading } = useQuery({
     queryKey: ["projects", careerFocus],
@@ -200,9 +221,9 @@ export default function NewDocumentPage() {
   const selectedCount = selectedProjectIds.length;
 
   const selectedProjects = useMemo(() => {
-    const projectMap = new Map(rankedProjects.map((project) => [project.id, project]));
+    const projectMap = new Map(rankedProjects.map((project) => [project.projectId, project]));
     return selectedProjectIds
-      .map((projectId) => projectMap.get(projectId))
+      .map((projectId) => projectMap.get(Number(projectId)))
       .filter((project): project is Project => Boolean(project));
   }, [rankedProjects, selectedProjectIds]);
 
@@ -217,9 +238,9 @@ export default function NewDocumentPage() {
     !isProjectsLoading &&
     !isDocLoading;
 
-  function toggleProject(id: string) {
+  function toggleProject(id: number) {
     setSelectedProjectIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+      prev.includes(String(id)) ? prev.filter((x) => x !== String(id)) : [...prev, String(id)]
     );
   }
 
@@ -256,6 +277,10 @@ export default function NewDocumentPage() {
           content,
           data: draftData,
         });
+        // Save projects to portfolio
+        if (selectedProjectIds.length > 0) {
+          await saveProjectsToPortfolio(docId, selectedProjectIds.map(Number));
+        }
         await qc.invalidateQueries({ queryKey: PORTFOLIO_DOCS_QUERY_KEY });
         await qc.invalidateQueries({ queryKey: ["portfolioDoc", docId] });
         navigate(`/portfolio/${docId}`);
@@ -267,6 +292,11 @@ export default function NewDocumentPage() {
         content,
         data: draftData,
       });
+
+      // Save projects to portfolio
+      if (selectedProjectIds.length > 0) {
+        await saveProjectsToPortfolio(created.id, selectedProjectIds.map(Number));
+      }
 
       qc.setQueryData<PortfolioDocLite[]>(
         PORTFOLIO_DOCS_QUERY_KEY,
@@ -367,7 +397,7 @@ export default function NewDocumentPage() {
         {selectedProjects.length > 0 ? (
           <div className="ndSelectedProjects">
             {selectedProjects.map((project) => (
-              <div key={project.id} className="ndSelectedProjectCard">
+              <div key={project.projectId} className="ndSelectedProjectCard">
                 <div className="ndSelectedProjectName">{project.projectName}</div>
                 <div className="ndSelectedProjectMeta">
                   {project.courseName ? project.courseName : "No course name"}
@@ -418,13 +448,13 @@ export default function NewDocumentPage() {
                     Ranked by relevance for <b>{careerFocus}</b> (highest first)
                   </div>
                   {rankedProjects.map((project) => {
-                    const checked = selectedProjectIds.includes(project.id);
+                    const checked = selectedProjectIds.includes(String(project.projectId));
                     return (
-                      <label key={project.id} className="ndProjectItem">
+                      <label key={project.projectId} className="ndProjectItem">
                         <input
                           type="checkbox"
                           checked={checked}
-                          onChange={() => toggleProject(project.id)}
+                          onChange={() => toggleProject(project.projectId)}
                         />
                         <div className="ndProjectInfo">
                           <div className="ndProjectName">{project.projectName}</div>
