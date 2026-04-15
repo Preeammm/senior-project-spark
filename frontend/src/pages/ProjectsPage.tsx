@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 
 import PageHeader from "../components/PageHeader";
 import AssessmentsTable from "../features/assessments/components/AssessmentsTable";
 import { useAssessments } from "../features/assessments/hooks/useAssessments";
+import { deleteProject } from "../features/portfolio/services/portfolio.api";
 import type { Assessment } from "../features/assessments/types";
 import { useCareerFocus } from "../features/careerFocus/useCareerFocus";
 import { useProtectedRoute } from "../hooks/useProtectedRoute";
@@ -15,6 +17,7 @@ export default function ProjectsPage() {
   const [showGuide, setShowGuide] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const qc = useQueryClient();
 
   const { careerFocus, setCareerFocus, careerFocusOptions } = useCareerFocus();
 
@@ -30,6 +33,17 @@ export default function ProjectsPage() {
       return bScore - aScore;
     });
   }, [data]);
+
+  const handleDeleteProject = async (projectId: number) => {
+    try {
+      await deleteProject(projectId);
+      // Refresh assessments data
+      await qc.invalidateQueries({ queryKey: ["assessments", careerFocus] });
+    } catch (err) {
+      console.error("Failed to delete project:", err);
+      throw err;
+    }
+  };
 
   return (
     <div className="pageContainer">
@@ -111,7 +125,7 @@ export default function ProjectsPage() {
 
       {isLoading && <div className="assessState">Loading assessments...</div>}
       {error && <div className="assessState error">Failed to load assessments</div>}
-      {data && <AssessmentsTable assessments={sortedAssessments} />}
+      {data && <AssessmentsTable assessments={sortedAssessments} onDelete={handleDeleteProject} />}
     </div>
   );
 }

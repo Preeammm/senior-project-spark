@@ -70,3 +70,21 @@ export async function updateDocument(
   });
   return res.data;
 }
+
+// SAVE PROJECTS TO PORTFOLIO
+export async function saveProjectsToPortfolio(
+  portfolioId: string,
+  projectIds: number[]
+): Promise<void> {
+  // First, clear existing projects for this portfolio
+  // Then add new ones
+  await http.post("/api/projects", {
+    portfolioId,
+    projectIds,
+  });
+}
+
+// DELETE PROJECT (and all portfolio associations)
+export async function deleteProject(projectId: number): Promise<void> {
+  await http.delete(`/api/projects/${projectId}`);
+}

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import type { Assessment } from "../types";
 import ExpandableCompetencyTags from "../../courses/components/ExpandableCompetencyTags";
 import ProgressBadge from "../../../components/ProgressBadge";
@@ -20,9 +21,30 @@ function formatSemester(value: string) {
 
 export default function AssessmentsTable({
   assessments,
+  onDelete,
 }: {
   assessments: Assessment[];
+  onDelete?: (projectId: number) => Promise<void>;
 }) {
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  const handleDelete = async (projectId: number, projectName: string) => {
+    if (!window.confirm(`Delete "${projectName}" and all associated portfolio entries?`)) {
+      return;
+    }
+
+    if (!onDelete) return;
+
+    setDeletingId(projectId);
+    try {
+      await onDelete(projectId);
+    } catch (err) {
+      alert("Failed to delete project");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <div className="projectsTableWrap">
       <table className="projectsTable">
@@ -33,6 +55,7 @@ export default function AssessmentsTable({
             <th className="thLeft">Year/Semester</th>
             <th className="thLeft">Competency Tags</th>
             <th className="relevanceCell">Performance %</th>
+            {onDelete && <th className="thAction">Action</th>}
           </tr>
         </thead>
         <tbody>
@@ -41,6 +64,7 @@ export default function AssessmentsTable({
               ? Math.round((assessment.studentScoreClo / assessment.fullScoreClo) * 100)
               : 0;
             const tags = assessment.skillTitle ? [assessment.skillTitle] : [];
+            const isDeleting = deletingId === assessment.projectId;
 
             return (
               <tr key={assessment.id}>
@@ -78,12 +102,40 @@ export default function AssessmentsTable({
                     <ProgressBadge value={scorePercent} />
                   </div>
                 </td>
+                {onDelete && (
+                  <td className="actionCell" style={{ textAlign: "center" }}>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleDelete(
+                          assessment.projectId,
+                          assessment.courseName
+                            ? `${assessment.courseName} project`
+                            : assessment.projectName || "Assessment"
+                        )
+                      }
+                      disabled={isDeleting}
+                      style={{
+                        padding: "6px 12px",
+                        backgroundColor: isDeleting ? "#ccc" : "#ef4444",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "4px",
+                        cursor: isDeleting ? "not-allowed" : "pointer",
+                        fontSize: "12px",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {isDeleting ? "Deleting..." : "Delete"}
+                    </button>
+                  </td>
+                )}
               </tr>
             );
           })}
           {assessments.length === 0 && (
             <tr>
-              <td className="emptyRow" colSpan={5}>
+              <td className="emptyRow" colSpan={onDelete ? 6 : 5}>
                 No assessments
               </td>
             </tr>
