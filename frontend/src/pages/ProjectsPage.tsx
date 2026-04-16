@@ -125,7 +125,7 @@ export default function ProjectsPage() {
 
       {isLoading && <div className="assessState">Loading assessments...</div>}
       {error && <div className="assessState error">Failed to load assessments</div>}
-      {data && <AssessmentsTable assessments={sortedAssessments} onDelete={handleDeleteProject} />}
+      {data && <AssessmentsTable assessments={sortedAssessments} />}
     </div>
   );
 }
