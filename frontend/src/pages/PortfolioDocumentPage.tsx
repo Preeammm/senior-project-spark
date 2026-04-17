@@ -51,6 +51,7 @@ type Project = {
   type: "Group" | "Individual";
   competencyTags: string[];
   relevancePercent: number;
+  description?: string;
 };
 
 type Course = {
@@ -330,13 +331,14 @@ export default function PortfolioDocumentPage() {
             relevancePercent: row.total_normalized_score
               ? Math.round(Number(row.total_normalized_score))
               : 0,
+            description: portfolioProjects.projectDescriptions?.[row.project_id] || "",
           });
         }
       }
     });
     
     return Array.from(assessmentMap.values());
-  }, [portfolioProjects?.projectIds, allAssessments]);
+  }, [portfolioProjects?.projectIds, allAssessments, portfolioProjects?.projectDescriptions]);
   
   const selectedProjectDetails = useMemo(() => {
     if (portfolioProjectDetails.length > 0) {
@@ -601,13 +603,54 @@ export default function PortfolioDocumentPage() {
             <p>{aboutMe}</p>
           </section>
 
+          
+
+          <div className="docSection">
+            <h2>Skills</h2>
+            {hardSkills.length > 0 ? (
+              <ul className="docSkillsList">
+                {hardSkills.map((skill) => (
+                  <li key={skill}>{skill}</li>
+                ))}
+              </ul>
+            ) : (
+              <p>No skills available yet. Select projects and career focus to see recommended skills.</p>
+            )}
+          </div>
+
+          <section className="docSection">
+            <h2>Academic Projects</h2>
+            {selectedProjectDetails.length > 0 ? (
+              <ul>
+                {selectedProjectDetails.map((project) => (
+                  <li key={project.id}>
+                    <b>{project.projectName}</b> ({project.courseName}, {project.yearSemester})<br />
+                    {project.description && <div className="">{project.description}</div>}
+                    {/* {!project.description && projectDescriptionForFocus(project, careerFocus)} */}
+                  </li>
+                ))}
+              </ul>
+            ) : fallbackProjectItems.length > 0 ? (
+              <ul>
+                {fallbackProjectItems.map((projectLine, idx) => (
+                  <li key={`${projectLine}-${idx}`}>
+                    <b>{projectLine}</b><br />
+                    Relevant to {careerFocus} through applied coursework and deliverables.
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No project selected.</p>
+            )}
+          </section>
+
           <section className="docSection">
             <h2>Contact Information</h2>
             <div className="docInlineList">
-              <span><b>Birthdate:</b> {formatBirthDate(profile?.dateOfBirth)}</span>
-              <span><b>Phone:</b> {profile?.contactNumber || "—"}</span>
+             
               <span><b>University Email:</b> {universityEmail}</span>
               <span><b>Personal Email:</b> {personalEmail}</span>
+              <span><b>Phone Number:</b> {profile?.contactNumber || "—"}</span>
             </div>
           </section>
 
@@ -635,55 +678,6 @@ export default function PortfolioDocumentPage() {
                 )}
               </div>
             </div>
-          </section>
-
-          <section className="docSection">
-            <h2>Skills</h2>
-            <p><b>Hard Skills</b></p>
-            {hardSkills.length ? (
-              <ul className="docSkillsGrid">
-                {hardSkills.map((skill) => (
-                  <li key={skill}>{skill}</li>
-                ))}
-              </ul>
-            ) : (
-              <p>—</p>
-            )}
-            <p className="docSoftSkillsHeading"><b>Soft Skills</b></p>
-            {softSkills.length ? (
-              <ul>
-                {softSkills.map((skill) => (
-                  <li key={skill}>{skill}</li>
-                ))}
-              </ul>
-            ) : (
-              <p>—</p>
-            )}
-          </section>
-
-          <section className="docSection">
-            <h2>Academic Projects</h2>
-            {selectedProjectDetails.length > 0 ? (
-              <ul>
-                {selectedProjectDetails.map((project) => (
-                  <li key={project.id}>
-                    <b>{project.projectName}</b> ({project.courseName}, {project.yearSemester})<br />
-                    {projectDescriptionForFocus(project, careerFocus)}
-                  </li>
-                ))}
-              </ul>
-            ) : fallbackProjectItems.length > 0 ? (
-              <ul>
-                {fallbackProjectItems.map((projectLine, idx) => (
-                  <li key={`${projectLine}-${idx}`}>
-                    <b>{projectLine}</b><br />
-                    Relevant to {careerFocus} through applied coursework and deliverables.
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>No project selected.</p>
-            )}
           </section>
 
         </article>

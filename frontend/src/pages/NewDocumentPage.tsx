@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import PageHeader from "../components/PageHeader";
 import { useProtectedRoute } from "../hooks/useProtectedRoute";
+import { useMe } from "../features/student/hooks/useMe";
 
 import { http } from "../services/http";
 import {
@@ -26,6 +27,48 @@ import "./NewDocumentPage.css";
 
 import type { Assessment } from "../features/assessments/types";
 
+type ProfileDetail = {
+  studentId: string;
+  name: string;
+  surname: string;
+  faculty: string;
+  minor: string;
+  year: number | string;
+  universityEmail?: string;
+  personalEmail?: string;
+  email: string;
+  contactNumber: string;
+  address: string;
+  linkedinUrl: string;
+  githubUrl: string;
+  dateOfBirth?: string;
+};
+
+type StudentRow = {
+  student_id?: string;
+  personal_email?: string;
+  linkedin_url?: string;
+  github_url?: string;
+  personalEmail?: string;
+  linkedinUrl?: string;
+  githubUrl?: string;
+};
+
+type Course = {
+  id: string;
+  courseCode: string;
+  courseName: string;
+  competencyTags: string[];
+  relevancePercent: number;
+};
+
+type SkillScoreRow = {
+  career_name?: string;
+  skill_title?: string;
+  level_id?: number;
+  performance_score?: number;
+};
+
 type Project = {
   projectId: number;
   projectName: string;
@@ -33,12 +76,36 @@ type Project = {
   yearSemester?: string;
   type?: string;
   relevancePercent?: number;
+  description?: string;
 };
 
 type ParsedSection = {
   heading: string;
   lines: string[];
 };
+
+function normalizeUrl(url: string) {
+  if (!url || url === "—") return "";
+  if (/^https?:\/\//i.test(url)) return url;
+  return `https://${url}`;
+}
+
+function isSoftSkill(skill: string) {
+  const value = skill.trim().toLowerCase();
+  if (!value) return false;
+  const softKeywords = [
+    "collaboration",
+    "communication",
+    "leadership",
+    "teamwork",
+    "problem solving",
+    "adaptability",
+    "critical thinking",
+    "time management",
+    "presentation",
+  ];
+  return softKeywords.some((keyword) => value.includes(keyword));
+}
 
 async function fetchProjects(careerFocus: CareerFocusOption): Promise<Project[]> {
   const { data } = await http.get("/api/assessments", {
@@ -158,6 +225,7 @@ export default function NewDocumentPage() {
   const [title, setTitle] = useState<string>("");
   const [aboutMe, setAboutMe] = useState<string>("");
   const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([]);
+  const [projectDescriptions, setProjectDescriptions] = useState<Record<string, string>>({});
   const [showProjectModal, setShowProjectModal] = useState<boolean>(false);
   const [hasHydratedDraft, setHasHydratedDraft] = useState(false);
 
@@ -200,6 +268,10 @@ export default function NewDocumentPage() {
       setSelectedProjectIds(
         portfolioProjects.projectIds.map((id: number) => String(id))
       );
+      // Load project descriptions
+      if (portfolioProjects.projectDescriptions) {
+        setProjectDescriptions(portfolioProjects.projectDescriptions);
+      }
     } else {
       setSelectedProjectIds(draft?.selectedProjectIds ?? []);
     }
@@ -211,6 +283,49 @@ export default function NewDocumentPage() {
     queryKey: ["projects", careerFocus],
     enabled: !!careerFocus,
     queryFn: () => fetchProjects(careerFocus as CareerFocusOption),
+  });
+
+  // Fetch profile data
+  const { data: profile } = useQuery({
+    queryKey: ["me-profile"],
+    queryFn: async () => {
+      const res = await http.get<ProfileDetail>("/api/me/profile");
+      return res.data;
+    },
+  });
+
+  const { data: me } = useMe();
+
+  const { data: studentRow } = useQuery<StudentRow | null>({
+    queryKey: ["student"],
+    queryFn: async () => {
+      const res = await http.get("/api/student");
+      return (res.data?.data?.[0] ?? null) as StudentRow | null;
+    },
+    retry: false,
+  });
+
+  const { data: courses = [] } = useQuery({
+    queryKey: ["portfolio-courses-by-focus", careerFocus],
+    enabled: !!careerFocus,
+    queryFn: async () => {
+      const res = await http.get<Course[]>("/api/courses", {
+        params: { careerFocus },
+      });
+      return res.data;
+    },
+  });
+
+  const { data: skillScores = [] } = useQuery<SkillScoreRow[]>({
+    queryKey: ["skillScoreByFocus", careerFocus],
+    enabled: !!careerFocus,
+    queryFn: async () => {
+      const res = await http.get<{ data: SkillScoreRow[] }>("/api/skill_score", {
+        params: { careerFocus },
+      });
+      return res.data?.data ?? [];
+    },
+    retry: false,
   });
 
   const rankedProjects = useMemo(() => {
@@ -226,6 +341,31 @@ export default function NewDocumentPage() {
       .map((projectId) => projectMap.get(Number(projectId)))
       .filter((project): project is Project => Boolean(project));
   }, [rankedProjects, selectedProjectIds]);
+
+  // Extract skills from skill scores
+  const skillScoreSkills = useMemo(() => {
+    const titles = new Set<string>();
+    skillScores.forEach((row) => {
+      const title = String(row.skill_title ?? "").trim();
+      if (title) titles.add(title);
+    });
+    return Array.from(titles).sort((a, b) => a.localeCompare(b));
+  }, [skillScores]);
+
+  const hardSkills = useMemo(() => {
+    return skillScoreSkills.filter((skill) => !isSoftSkill(skill));
+  }, [skillScoreSkills]);
+
+  const softSkills = useMemo(() => {
+    return skillScoreSkills.filter((skill) => isSoftSkill(skill));
+  }, [skillScoreSkills]);
+
+  // Get contact information
+  const personalEmail = profile?.personalEmail || profile?.email || studentRow?.personal_email || studentRow?.personalEmail || "—";
+  const linkedInUrl = profile?.linkedinUrl || studentRow?.linkedin_url || studentRow?.linkedinUrl || "";
+  const githubUrl = profile?.githubUrl || studentRow?.github_url || studentRow?.githubUrl || "";
+  const universityEmail = profile?.universityEmail || "—";
+  const studentName = `${me?.name ?? ""} ${me?.surname ?? ""}`.trim() || "Student";
 
   const titleError = touched.title && title.trim().length === 0 ? "Title is required" : "";
   const aboutMeError =
@@ -279,7 +419,11 @@ export default function NewDocumentPage() {
         });
         // Save projects to portfolio
         if (selectedProjectIds.length > 0) {
-          await saveProjectsToPortfolio(docId, selectedProjectIds.map(Number));
+          await http.post("/api/projects", {
+            portfolioId: docId,
+            projectIds: selectedProjectIds.map(Number),
+            projectDescriptions,
+          });
         }
         await qc.invalidateQueries({ queryKey: PORTFOLIO_DOCS_QUERY_KEY });
         await qc.invalidateQueries({ queryKey: ["portfolioDoc", docId] });
@@ -295,7 +439,11 @@ export default function NewDocumentPage() {
 
       // Save projects to portfolio
       if (selectedProjectIds.length > 0) {
-        await saveProjectsToPortfolio(created.id, selectedProjectIds.map(Number));
+        await http.post("/api/projects", {
+          portfolioId: created.id,
+          projectIds: selectedProjectIds.map(Number),
+          projectDescriptions,
+        });
       }
 
       qc.setQueryData<PortfolioDocLite[]>(
@@ -314,7 +462,7 @@ export default function NewDocumentPage() {
       <PageHeader
         title={isEditing ? "Edit Document" : "New Document"}
         careerExtra={
-          <button type="button" className="ndBackBtn" onClick={goBack}>
+          <button type="button" className="docBackLink" onClick={goBack}>
             ← Back
           </button>
         }
@@ -322,143 +470,228 @@ export default function NewDocumentPage() {
 
       <div className="dividerLine" />
 
-      <div className="ndWrap ndCard">
-        <div className="ndRow ndCareerRow">
-          <div className="ndLabel">Career Focus:</div>
-
-          <select
-            className="ndSelect"
-            value={careerFocus}
-            onChange={(e) => setCareerFocus(e.target.value as CareerFocus)}
-          >
-            <option value="">Select career focus</option>
-            {careerFocusOptions.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt}
-              </option>
-            ))}
-          </select>
-
-          <div className="ndCareerHint">Used to recommend projects and skills in the portfolio</div>
-        </div>
-
-        <div className="ndLine" />
-
-        <div className="ndField">
-          <div className="ndFieldLabel">
-            Title:<span className="ndReq">*</span>
+      <div className="docWrap">
+        <div className="docPaper">
+          <div className="docPaperHeader">
+            <div className="docPaperTitle">
+              {title || "Untitled Document"}
+            </div>
+            {careerFocus && (
+              <div className="docMetaRow">
+                <span>Career Focus: <strong>{careerFocus}</strong></span>
+              </div>
+            )}
           </div>
-          <input
-            className={`ndInput ${titleError ? "error" : ""}`}
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            onBlur={() => setTouched((prev) => ({ ...prev, title: true }))}
-            placeholder="Enter document title"
-          />
-          {titleError ? <div className="ndError">{titleError}</div> : null}
-        </div>
 
-        <div className="ndField">
-          <div className="ndFieldLabel">
-            About Me:<span className="ndReq">*</span>
+          <div className="docSection">
+            <h2>Career Focus<span className="docReq">*</span></h2>
+            <select
+              className="docSelect"
+              value={careerFocus}
+              onChange={(e) => setCareerFocus(e.target.value as CareerFocus)}
+            >
+              <option value="">Select career focus</option>
+              {careerFocusOptions.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
+            <p className="docHint">Used to recommend projects and skills in the portfolio</p>
           </div>
-          <textarea
-            className={`ndTextarea ${aboutMeError ? "error" : ""}`}
-            value={aboutMe}
-            onChange={(e) => setAboutMe(e.target.value)}
-            onBlur={() => setTouched((prev) => ({ ...prev, aboutMe: true }))}
-            placeholder="Write your own introduction for the portfolio"
-          />
-          {aboutMeError ? <div className="ndError">{aboutMeError}</div> : null}
-        </div>
 
-        <div className="ndRow projectsRow">
-          <div className="ndLabel">Academic Projects:</div>
+          <div className="docSection">
+            <h2>Document Title<span className="docReq">*</span></h2>
+            <input
+              className={`docInput ${titleError ? "error" : ""}`}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              onBlur={() => setTouched((prev) => ({ ...prev, title: true }))}
+              placeholder="Enter document title"
+            />
+            {titleError ? <div className="docError">{titleError}</div> : null}
+          </div>
+          
+          <div className="docSection">
+            <h2>Occupation / Position</h2>
+            <p>{careerFocus || "—"}</p>
+          </div>
 
-          <div className="ndSelectedBox">
-            <span>{selectedCount} Projects Selected</span>
-            {selectedCount > 0 ? (
-              <button
-                type="button"
-                className="ndClearX"
-                onClick={clearProjects}
-                title="Clear selected projects"
-              >
-                ×
+          <div className="docSection">
+            <h2>Name and Surname</h2>
+            <p>{studentName}</p>
+          </div>
+
+          <div className="docSection">
+            <h2>About Me<span className="docReq">*</span></h2>
+            <textarea
+              className={`docTextarea ${aboutMeError ? "error" : ""}`}
+              value={aboutMe}
+              onChange={(e) => setAboutMe(e.target.value)}
+              onBlur={() => setTouched((prev) => ({ ...prev, aboutMe: true }))}
+              placeholder="Write your own introduction for the portfolio"
+            />
+            {aboutMeError ? <div className="docError">{aboutMeError}</div> : null}
+          </div>
+
+          <div className="docSection">
+            <h2>Skills</h2>
+            {hardSkills.length > 0 ? (
+              <ul className="docSkillsList">
+                {hardSkills.map((skill) => (
+                  <li key={skill}>{skill}</li>
+                ))}
+              </ul>
+            ) : (
+              <p>No skills available yet. Select projects and career focus to see recommended skills.</p>
+            )}
+          </div>
+
+          <div className="docSection">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+              <h2 style={{ margin: 0 }}>Academic Projects</h2>
+              <button type="button" className="docBtn secondary" onClick={() => setShowProjectModal(true)}>
+                Select Projects
               </button>
+            </div>
+            
+            <div className="docProjectsSummary">
+              <span>{selectedCount} Projects Selected</span>
+              {selectedCount > 0 ? (
+                <button
+                  type="button"
+                  className="docClearBtn"
+                  onClick={clearProjects}
+                  title="Clear selected projects"
+                >
+                  Clear All
+                </button>
+              ) : null}
+            </div>
+
+            {selectedProjects.length > 0 ? (
+              <div className="docProjectsList">
+                {selectedProjects.map((project, idx) => (
+                  <div key={project.projectId} className="docProjectItem">
+                    <div className="docProjectNumber">{idx + 1}</div>
+                    <div className="docProjectContent">
+                      <div className="docProjectName">{project.projectName}</div>
+                      <div className="docProjectMeta">
+                        {project.courseName ? project.courseName : "No course name"}
+                        {project.yearSemester ? ` • ${project.yearSemester}` : ""}
+                        {project.type ? ` • ${project.type}` : ""}
+                      </div>
+                      <div className="docProjectDescriptionBox">
+                        <label className="docProjectDescriptionLabel">Description</label>
+                        <textarea
+                          className="docProjectDescriptionInput"
+                          placeholder="Add a description for this project (optional)"
+                          value={projectDescriptions[project.projectId] || ""}
+                          onChange={(e) =>
+                            setProjectDescriptions((prev) => ({
+                              ...prev,
+                              [project.projectId]: e.target.value,
+                            }))
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : null}
           </div>
 
-          <button type="button" className="ndChange" onClick={() => setShowProjectModal(true)}>
-            Change
-          </button>
-        </div>
+          <div className="" />
 
-        {selectedProjects.length > 0 ? (
-          <div className="ndSelectedProjects">
-            {selectedProjects.map((project) => (
-              <div key={project.projectId} className="ndSelectedProjectCard">
-                <div className="ndSelectedProjectName">{project.projectName}</div>
-                <div className="ndSelectedProjectMeta">
-                  {project.courseName ? project.courseName : "No course name"}
-                  {project.yearSemester ? ` • ${project.yearSemester}` : ""}
-                  {project.type ? ` • ${project.type}` : ""}
-                </div>
-              </div>
-            ))}
+          <div className="docSection">
+            <h2>Contact Information</h2>
+            <div className="docInlineList">
+              <span><b>University Email:</b> {universityEmail}</span>
+              <span><b>Personal Email:</b> {personalEmail}</span>
+              <span><b>Phone Number:</b> {profile?.contactNumber || "—"}</span>
+              <span className="docReq">*Note: You can edit Personal Email and Phone Number in your profile settings.</span>
+            </div>
+
           </div>
-        ) : null}
 
-        <div className="ndActions">
-          <button
-            type="button"
-            className="ndBtn primary"
-            onClick={onGenerate}
-            disabled={!canGenerate}
-          >
-            {isEditing ? "Save Portfolio" : "Generate Document"}
-          </button>
+          <div className="docSection">
+            <h2>LinkedIn / GitHub</h2>
+            <div className="docSocialGrid">
+              <div className="docSocialCard">
+                <div className="docSocialLabel">LinkedIn</div>
+                {linkedInUrl ? (
+                  <a href={normalizeUrl(linkedInUrl)} target="_blank" rel="noreferrer">
+                    {linkedInUrl}
+                  </a>
+                ) : (
+                  <span>—</span>
+                )}
+              </div>
+              <div className="docSocialCard">
+                <div className="docSocialLabel">GitHub</div>
+                {githubUrl ? (
+                  <a href={normalizeUrl(githubUrl)} target="_blank" rel="noreferrer">
+                    {githubUrl}
+                  </a>
+                ) : (
+                  <span>—</span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="docActions">
+            <button
+              type="button"
+              className="docBtn primary"
+              onClick={onGenerate}
+              disabled={!canGenerate}
+            >
+              {isEditing ? "Save Portfolio" : "Generate Document"}
+            </button>
+          </div>
         </div>
       </div>
 
       {showProjectModal ? (
-        <div className="ndModalOverlay" onMouseDown={() => setShowProjectModal(false)}>
-          <div className="ndModal" onMouseDown={(e) => e.stopPropagation()}>
-            <div className="ndModalHeader">
-              <div className="ndModalTitle">Select Academic Projects</div>
+        <div className="docModalOverlay" onMouseDown={() => setShowProjectModal(false)}>
+          <div className="docModal" onMouseDown={(e) => e.stopPropagation()}>
+            <div className="docModalHeader">
+              <div className="docModalTitle">Select Academic Projects</div>
               <button
                 type="button"
-                className="ndModalClose"
+                className="docModalClose"
                 onClick={() => setShowProjectModal(false)}
               >
                 ×
               </button>
             </div>
 
-            <div className="ndModalBody">
+            <div className="docModalBody">
               {!careerFocus ? (
-                <div className="ndModalHint">Select a career focus first to load recommended projects.</div>
+                <div className="docModalHint">Select a career focus first to load recommended projects.</div>
               ) : isProjectsLoading ? (
-                <div className="ndModalHint">Loading projects...</div>
+                <div className="docModalHint">Loading projects...</div>
               ) : rankedProjects.length === 0 ? (
-                <div className="ndModalHint">No projects found.</div>
+                <div className="docModalHint">No projects found.</div>
               ) : (
-                <div className="ndProjectList">
-                  <div className="ndModalHint">
+                <div className="docProjectList">
+                  <div className="docModalHint">
                     Ranked by relevance for <b>{careerFocus}</b> (highest first)
                   </div>
                   {rankedProjects.map((project) => {
                     const checked = selectedProjectIds.includes(String(project.projectId));
                     return (
-                      <label key={project.projectId} className="ndProjectItem">
+                      <label key={project.projectId} className="docProjectCheckItem">
                         <input
                           type="checkbox"
                           checked={checked}
                           onChange={() => toggleProject(project.projectId)}
                         />
-                        <div className="ndProjectInfo">
-                          <div className="ndProjectName">{project.projectName}</div>
-                          <div className="ndProjectMeta">
+                        <div className="docProjectInfo">
+                          <div className="docProjectName">{project.projectName}</div>
+                          <div className="docProjectMeta">
                             {project.courseName ? project.courseName : ""}
                             {project.yearSemester ? ` • ${project.yearSemester}` : ""}
                             {project.type ? ` • ${project.type}` : ""}
@@ -474,11 +707,11 @@ export default function NewDocumentPage() {
               )}
             </div>
 
-            <div className="ndModalFooter">
-              <div className="ndModalCount">{selectedCount} selected</div>
+            <div className="docModalFooter">
+              <div className="docModalCount">{selectedCount} selected</div>
               <button
                 type="button"
-                className="ndBtn primary small"
+                className="docBtn primary"
                 onClick={() => setShowProjectModal(false)}
               >
                 Done

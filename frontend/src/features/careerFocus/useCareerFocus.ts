@@ -1,31 +1,31 @@
 import { useCallback, useEffect, useState } from "react";
 
 export const CAREER_FOCUS_OPTIONS = [
-  "Application Support",
-  "Automation Tester",
-  "Business Analyst",
+  // "Application Support",
+  // "Automation Tester",
+  // "Business Analyst",
   "Data Analyst",
-  "Data Engineer",
-  "Data Scientist",
-  "Database Administrator",
+  // "Data Engineer",
+  // "Data Scientist",
+  // "Database Administrator",
   "Front-end Developer",
-  "Game Developer",
-  "IT Auditor",
+  // "Game Developer",
+  // "IT Auditor",
   "IT Project Manager",
   "IT Support",
   "Manual Tester",
-  "Network Administrator",
-  "Penetration Tester",
-  "Platform Engineer",
-  "Pre-sale Consultant",
+  // "Network Administrator",
+  // "Penetration Tester",
+  // "Platform Engineer",
+  // "Pre-sale Consultant",
   "Sales Engineer",
   "Security Engineer",
   "Software Engineer",
   "System Administrator",
   "System Analyst",
-  "Technical Consultant",
-  "UI Designer",
-  "UX Designer"
+  // "Technical Consultant",
+  // "UI Designer",
+  // "UX Designer"
 ] as const;
 
 export type CareerFocusOption = (typeof CAREER_FOCUS_OPTIONS)[number];

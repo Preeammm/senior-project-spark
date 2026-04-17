@@ -1378,7 +1378,7 @@ app.post("/api/projects", requireUser, async (req, res) => {
     const profile = meStore[req.user.id];
     if (!profile) return res.status(404).json({ message: "Profile not found" });
 
-    const { portfolioId, projectIds } = req.body;
+    const { portfolioId, projectIds, projectDescriptions } = req.body;
 
     if (!portfolioId) {
       return res.status(400).json({ message: "portfolioId is required" });
@@ -1423,16 +1423,18 @@ app.post("/api/projects", requireUser, async (req, res) => {
 
     // Then insert new projects
     for (const project_id of project_ids) {
+      const description = (projectDescriptions && projectDescriptions[project_id]) || "";
       await pool.query(
         `
         INSERT INTO portfolio_project (
           portfolio_id,
           project_id,
+          project_description,
           added_at
         )
-        VALUES ($1, $2, NOW())
+        VALUES ($1, $2, $3, NOW())
         `,
-        [portfolio_id, project_id]
+        [portfolio_id, project_id, description]
       );
     }
 
@@ -1478,7 +1480,7 @@ app.get("/api/projects/:portfolioId", requireUser, async (req, res) => {
     // Get all projects for this portfolio
     const result = await pool.query(
       `
-      SELECT project_id, added_at
+      SELECT project_id, project_description, added_at
       FROM portfolio_project
       WHERE portfolio_id = $1
       ORDER BY added_at DESC
@@ -1487,10 +1489,17 @@ app.get("/api/projects/:portfolioId", requireUser, async (req, res) => {
     );
 
     const projectIds = result.rows.map((row) => row.project_id);
+    const projectDescriptions = {};
+    result.rows.forEach((row) => {
+      if (row.project_description) {
+        projectDescriptions[row.project_id] = row.project_description;
+      }
+    });
 
     res.json({
       portfolioId: portfolio_id,
       projectIds,
+      projectDescriptions,
       projectCount: projectIds.length,
     });
 
