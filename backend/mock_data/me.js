@@ -58,14 +58,14 @@ const me = {
     avatarUrl: null,
 
     // read-only university email + editable personal email
-    universityEmail: "u6588107@student.mahidol.ac.th",
+    universityEmail: "Apivich.pre@student.mahidol.ac.th",
     personalEmail: "apivich@gmail.com",
-    contactNumber: "",
+    contactNumber: "0899999999",
     address: "",
     githubUrl: "",
     linkedinUrl: "",
     dateOfBirth: "",
-    gender: "",
+    gender: "Male",
   },
 };
 

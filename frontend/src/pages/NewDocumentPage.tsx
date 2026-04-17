@@ -49,6 +49,8 @@ type StudentRow = {
   personal_email?: string;
   linkedin_url?: string;
   github_url?: string;
+  contact_number?: string;
+  contactNumber?: string;
   personalEmail?: string;
   linkedinUrl?: string;
   githubUrl?: string;
@@ -364,6 +366,7 @@ export default function NewDocumentPage() {
   const personalEmail = profile?.personalEmail || profile?.email || studentRow?.personal_email || studentRow?.personalEmail || "—";
   const linkedInUrl = profile?.linkedinUrl || studentRow?.linkedin_url || studentRow?.linkedinUrl || "";
   const githubUrl = profile?.githubUrl || studentRow?.github_url || studentRow?.githubUrl || "";
+  const contactNumber = profile?.contactNumber || studentRow?.contact_number || studentRow?.contactNumber || "—";
   const universityEmail = profile?.universityEmail || "—";
   const studentName = `${me?.name ?? ""} ${me?.surname ?? ""}`.trim() || "Student";
 
@@ -609,7 +612,7 @@ export default function NewDocumentPage() {
             <div className="docInlineList">
               <span><b>University Email:</b> {universityEmail}</span>
               <span><b>Personal Email:</b> {personalEmail}</span>
-              <span><b>Phone Number:</b> {profile?.contactNumber || "—"}</span>
+              <span><b>Phone Number:</b> {contactNumber}</span>
               <span className="docReq">*Note: You can edit Personal Email and Phone Number in your profile settings.</span>
             </div>
 

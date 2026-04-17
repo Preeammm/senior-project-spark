@@ -402,7 +402,7 @@ app.get("/api/student", requireUser, async (req, res) => {
   res.status(200).json({
     data: results.rows,
   });
-}); // this call data for student information (personal email, github, linkedin)
+}); // this call data for student information (personal email, github, linkedin, phone number, contact details)
 
 app.get("/api/my-courses", requireUser, async (req, res) => {
   try {
@@ -709,7 +709,7 @@ app.get("/api/me", requireUser, (req, res) => {
   const profile = meStore[req.user.id];
   if (!profile) return res.status(404).json({ message: "Profile not found" });
 
-  // Home wants: name, surname, year, minor, studentId, faculty, githubUrl, linkedinUrl
+  // Home wants: name, surname, year, minor, studentId, faculty, githubUrl, linkedinUrl, contactNumber
   res.json({
     studentId: profile.studentId ?? "",
     name: profile.name ?? "",
@@ -719,6 +719,7 @@ app.get("/api/me", requireUser, (req, res) => {
     year: profile.year ?? "",
     githubUrl: profile.githubUrl ?? "",
     linkedinUrl: profile.linkedinUrl ?? "",
+    contactNumber: profile.contactNumber ?? "",
   });
 });
 
@@ -789,15 +790,17 @@ const studentId = sanitizeText(profile.studentId, 40).replace(/[^\w.-]/g, "");
   const personalEmail = sanitizeEmail(profile.personalEmail ?? profile.email ?? "");
   const githubUrl = sanitizeUrl(profile.githubUrl);
   const linkedinUrl = sanitizeUrl(profile.linkedinUrl);
+  const contactNumber = sanitizePhone(profile.contactNumber ?? "");
 
   await pool.query(
-    `INSERT INTO students (student_id, personal_email, github_url, linkedin_url)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO students (student_id, personal_email, github_url, linkedin_url, contact_number, updated_at)
+     VALUES ($1, $2, $3, $4, $5, NOW())
      ON CONFLICT (student_id) DO UPDATE SET
        personal_email = EXCLUDED.personal_email,
        github_url = EXCLUDED.github_url,
-       linkedin_url = EXCLUDED.linkedin_url`,
-    [studentId, personalEmail, githubUrl, linkedinUrl]
+       linkedin_url = EXCLUDED.linkedin_url,
+       contact_number = EXCLUDED.contact_number`,
+    [studentId, personalEmail, githubUrl, linkedinUrl, contactNumber]
   );
 }
 
