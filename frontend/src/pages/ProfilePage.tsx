@@ -91,6 +91,8 @@ function normalizeStudentRow(raw: Partial<Record<string, any>>): Partial<Profile
   return {
     personalEmail:
       raw.personalEmail || raw.personal_email || raw.email || "",
+    contactNumber:
+      raw.contactNumber || raw.contact_number || "",
     githubUrl:
       raw.githubUrl || raw.githubURL || raw.github || raw.github_url || "",
     linkedinUrl:
@@ -207,6 +209,7 @@ export default function ProfilePage() {
         personalEmail: draft.personalEmail,
         // compatibility for older backend consumers expecting `email`
         email: draft.personalEmail,
+        contactNumber: draft.contactNumber,
         githubUrl: draft.githubUrl,
         linkedinUrl: draft.linkedinUrl,
       };
@@ -313,20 +316,12 @@ export default function ProfilePage() {
             {/* Row 1 */}
             <div className="pfCell">
               <div className="pfCellLabel">First Name</div>
-              {isPersonal ? (
-                <input className="pfInput" value={profile.name} disabled />
-              ) : (
-                <div className="pfCellValue">{profile.name || "—"}</div>
-              )}
+              <div className="pfCellValue">{profile.name || "—"}</div>
             </div>
 
             <div className="pfCell">
               <div className="pfCellLabel">Last Name</div>
-              {isPersonal ? (
-                <input className="pfInput" value={profile.surname} disabled />
-              ) : (
-                <div className="pfCellValue">{profile.surname || "—"}</div>
-              )}
+              <div className="pfCellValue">{profile.surname || "—"}</div>
             </div>
 
             <div className="pfCell">
@@ -360,7 +355,17 @@ export default function ProfilePage() {
 
             <div className="pfCell">
               <div className="pfCellLabel">Phone Number</div>
-              <div className="pfCellValue">{profile.contactNumber || "—"}</div>
+              {isPersonal ? (
+                <input
+                  className="pfInput"
+                  name="contactNumber"
+                  value={draft.contactNumber}
+                  onChange={onChange}
+                  placeholder="+66 XXX-XXXXX"
+                />
+              ) : (
+                <div className="pfCellValue">{profile.contactNumber || "—"}</div>
+              )}
             </div>
 
             <div className="pfCell">

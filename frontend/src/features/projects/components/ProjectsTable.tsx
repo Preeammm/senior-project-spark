@@ -47,7 +47,7 @@ export default function ProjectsTable({
                 <td>
                   <div className="projectNameCell">
                     <span className="projectIcon" aria-hidden>
-                      📄
+                      
                     </span>
                     <span className="projectName">{p.projectName}</span>
                   </div>

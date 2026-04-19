@@ -402,7 +402,7 @@ app.get("/api/student", requireUser, async (req, res) => {
   res.status(200).json({
     data: results.rows,
   });
-}); // this call data for student information (personal email, github, linkedin)
+}); // this call data for student information (personal email, github, linkedin, phone number, contact details)
 
 app.get("/api/my-courses", requireUser, async (req, res) => {
   try {
@@ -709,7 +709,7 @@ app.get("/api/me", requireUser, (req, res) => {
   const profile = meStore[req.user.id];
   if (!profile) return res.status(404).json({ message: "Profile not found" });
 
-  // Home wants: name, surname, year, minor, studentId, faculty, githubUrl, linkedinUrl
+  // Home wants: name, surname, year, minor, studentId, faculty, githubUrl, linkedinUrl, contactNumber
   res.json({
     studentId: profile.studentId ?? "",
     name: profile.name ?? "",
@@ -719,6 +719,7 @@ app.get("/api/me", requireUser, (req, res) => {
     year: profile.year ?? "",
     githubUrl: profile.githubUrl ?? "",
     linkedinUrl: profile.linkedinUrl ?? "",
+    contactNumber: profile.contactNumber ?? "",
   });
 });
 
@@ -789,15 +790,17 @@ const studentId = sanitizeText(profile.studentId, 40).replace(/[^\w.-]/g, "");
   const personalEmail = sanitizeEmail(profile.personalEmail ?? profile.email ?? "");
   const githubUrl = sanitizeUrl(profile.githubUrl);
   const linkedinUrl = sanitizeUrl(profile.linkedinUrl);
+  const contactNumber = sanitizePhone(profile.contactNumber ?? "");
 
   await pool.query(
-    `INSERT INTO students (student_id, personal_email, github_url, linkedin_url)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO students (student_id, personal_email, github_url, linkedin_url, contact_number, updated_at)
+     VALUES ($1, $2, $3, $4, $5, NOW())
      ON CONFLICT (student_id) DO UPDATE SET
        personal_email = EXCLUDED.personal_email,
        github_url = EXCLUDED.github_url,
-       linkedin_url = EXCLUDED.linkedin_url`,
-    [studentId, personalEmail, githubUrl, linkedinUrl]
+       linkedin_url = EXCLUDED.linkedin_url,
+       contact_number = EXCLUDED.contact_number`,
+    [studentId, personalEmail, githubUrl, linkedinUrl, contactNumber]
   );
 }
 
@@ -821,6 +824,94 @@ const COURSE_RELEVANCE_BY_FOCUS = {
     "Data Analyst": 85,
     "Data Engineer": 90,
     "Software Engineer": 72,
+  },
+  c4: { // ITCS227 - Introduction to Data Science
+    "Data Analyst": 94,
+    "Data Engineer": 78,
+    "Software Engineer": 70,
+  },
+  c5: { // ITCS348 - Introduction to Natural Language Processing
+    "Data Analyst": 92,
+    "Data Engineer": 80,
+    "Software Engineer": 75,
+  },
+};
+
+const COURSE_DETAIL_META = {
+  c1: {
+    courseTitleTH: "ทสคพ495 หัวข้อพิเศษทางระบบฐานข้อมูลและระบบเชิงฉลาด",
+    session: "1st Semester / Seniors",
+    description:
+      "This course aims to teach students advanced database and knowledge engineering technologies and applications beyond the relational database management systems including distributed database management systems, Big Data and NoSQL databases, and Ontology. Students will be expected to practice NoSQL data modeling for business case studies. Also, students will be expected to select and use appropriate advanced database and knowledge engineering technologies and applications to solve a wide range of real-world problems. Students will get a chance to survey and study on a recent and challenging research in emerging database technologies and applications.",
+    learningOutcomes: [
+      "Explain the concepts of advanced database and knowledge engineering technologies and applications beyond relational database management systems.",
+      "Apply critical thinking and appropriate processes to select data for specific users.",
+      "Use the database and intelligent systems currently in market trends to solve a wide range of real-world problems.",
+      "Create a solution for database and decision-making applications using an appropriate database and intelligent technologies.",
+      "Carry out research practices on recent and challenging research in emerging database technologies and applications.",
+    ],
+    evaluation: [
+      { label: "Quiz", value: "10%" },
+      { label: "Participation", value: "10%" },
+      { label: "Assignment", value: "20%" },
+      { label: "Project", value: "30%" },
+      { label: "Final Exam", value: "30%" },
+    ],
+    instructors: [
+      {
+        name: "Asst. Prof. Dr. Srisupa Palakvangsa Na Ayudhya",
+        email: "srisupa.pal@mahidol.ac.th",
+      },
+      { name: "Dr. Wudhichart Sawangphol", email: "wudhichart.saw@mahidol.ac.th" },
+    ],
+  },
+  c4: {
+    courseTitleTH: "ทสคพ227 บทนำสู่การวิเคราะห์ข้อมูล",
+    session: "1st Semester / Seniors",
+    description:
+      "This course introduces students to the fundamentals of data science, including data collection and cleaning, exploratory analysis, visualization, and introductory machine learning techniques. Students will build practical skills with Python, statistics, and data storytelling while working on real-world case studies.",
+    learningOutcomes: [
+      "Describe the basic concepts and workflow of data science.",
+      "Collect, clean, and preprocess data for analysis.",
+      "Use Python tools to visualize and interpret data.",
+      "Apply introductory machine learning methods to solve practical problems.",
+      "Present data-driven findings clearly for stakeholders.",
+    ],
+    evaluation: [
+      { label: "Quiz", value: "10%" },
+      { label: "Participation", value: "10%" },
+      { label: "Assignment", value: "20%" },
+      { label: "Project", value: "30%" },
+      { label: "Final Exam", value: "30%" },
+    ],
+    instructors: [
+      { name: "Asst. Prof. Dr. Jane Data", email: "jane.data@mahidol.ac.th" },
+      { name: "Dr. John Statistics", email: "john.statistics@mahidol.ac.th" },
+    ],
+  },
+  c5: {
+    courseTitleTH: "ทสคพ348 บทนำสู่การประมวลผลภาษาไทยตามธรรมชาติ",
+    session: "1st Semester / Seniors",
+    description:
+      "This course covers foundational concepts in natural language processing, including text processing, language modeling, and information retrieval. Students will explore modern NLP tools and techniques while applying them to real-world text datasets and building language-aware solutions.",
+    learningOutcomes: [
+      "Explain the basic principles of natural language processing.",
+      "Preprocess and analyze text data using Python.",
+      "Apply language models to practical NLP problems.",
+      "Design solutions for text classification and information retrieval tasks.",
+      "Evaluate the performance of NLP systems and improve their results.",
+    ],
+    evaluation: [
+      { label: "Quiz", value: "10%" },
+      { label: "Participation", value: "10%" },
+      { label: "Assignment", value: "20%" },
+      { label: "Project", value: "30%" },
+      { label: "Final Exam", value: "30%" },
+    ],
+    instructors: [
+      { name: "Asst. Prof. Dr. Natural Language", email: "nlp@mahidol.ac.th" },
+      { name: "Dr. Text Mining", email: "text.mining@mahidol.ac.th" },
+    ],
   },
 };
 
@@ -1034,6 +1125,8 @@ app.get("/api/courses/:courseId", requireUser, (req, res) => {
     return res.status(403).json({ message: "Forbidden" });
   }
 
+  const detailMeta = COURSE_DETAIL_META[course.id] ?? {};
+
   res.json({
     ...course,
     relevancePercent: getFocusedRelevance(
@@ -1041,14 +1134,25 @@ app.get("/api/courses/:courseId", requireUser, (req, res) => {
       COURSE_RELEVANCE_BY_FOCUS[course.id],
       careerFocus
     ),
-    description: "Mock course detail data (replace later).",
-    learningOutcomes: ["Outcome 1 (mock)", "Outcome 2 (mock)", "Outcome 3 (mock)"],
-    credits: "3 (3–0–6)",
-    semester: 1,
-    year: 4,
-    instructors: [{ name: "Asst. Prof. Dr. (Mock Instructor)", email: "instructor@mahidol.ac.th" }],
+    description: detailMeta.description ?? "Mock course detail data (replace later).",
+    learningOutcomes:
+      detailMeta.learningOutcomes ?? ["Outcome 1 (mock)", "Outcome 2 (mock)", "Outcome 3 (mock)"],
+    credits: course.credits ?? "3 (3–0–6)",
+    semester: course.semester ?? 1,
+    year: course.year ?? 4,
+    session: detailMeta.session ?? "1st Semester / Seniors",
+    instructors:
+      detailMeta.instructors ?? [{ name: "Asst. Prof. Dr. (Mock Instructor)", email: "instructor@mahidol.ac.th" }],
+    evaluation:
+      detailMeta.evaluation ?? [
+        { label: "Quiz", value: "10%" },
+        { label: "Participation", value: "10%" },
+        { label: "Assignment", value: "20%" },
+        { label: "Project", value: "30%" },
+        { label: "Final Exam", value: "30%" },
+      ],
     courseTitleEN: course.courseName,
-    courseTitleTH: "—",
+    courseTitleTH: detailMeta.courseTitleTH ?? "—",
   });
 });
 

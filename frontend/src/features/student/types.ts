@@ -10,4 +10,5 @@ export type Me = {
 
   githubUrl?: string;
   linkedinUrl?: string;
+  contactNumber?: string;
 };

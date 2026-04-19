@@ -1,7 +1,6 @@
 // CourseDetailPage.tsx  (FULL - career dropdown can change now)
 // NOTE: this file assumes your PageHeader calls onCareerFocusChange(newValue)
 
-import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 
@@ -18,11 +17,9 @@ import "./CourseDetailPage.css";
 
 type Instructor = { name: string; email?: string };
 
-type BreakdownRow = {
-  assessmentType: string;
-  weightPercent: number;
-  competencyTags: string[];
-  competencyIndex: number;
+type EvaluationRow = {
+  label: string;
+  value: string;
 };
 
 type CourseDetail = {
@@ -33,13 +30,22 @@ type CourseDetail = {
   credits: string;
   semester: string;
   year: number;
+  session?: string;
   instructors: Instructor[];
   summary: string;
+  description?: string;
   competencyTags: string[];
   finalGrade: string;
   overallCompetencyIndex: number;
   relevancePercent: number;
-  breakdown: BreakdownRow[];
+  learningOutcomes?: string[];
+  evaluation?: EvaluationRow[];
+  breakdown: {
+    assessmentType: string;
+    weightPercent: number;
+    competencyTags: string[];
+    competencyIndex: number;
+  }[];
 };
 
 function pctTone(v: number) {
@@ -55,7 +61,12 @@ function indexColorClass(v: number) {
 }
 
 function normalize(raw: any): CourseDetail {
-  const breakdown: BreakdownRow[] = [
+  const breakdown: {
+    assessmentType: string;
+    weightPercent: number;
+    competencyTags: string[];
+    competencyIndex: number;
+  }[] = [
     {
       assessmentType: "Midterm Exam",
       weightPercent: 25,
@@ -97,6 +108,7 @@ function normalize(raw: any): CourseDetail {
           email: "instructor@mahidol.ac.th",
         },
       ],
+    description: raw?.description ?? raw?.summary ?? "Mock course detail data (replace later).",
     summary: raw?.summary ?? raw?.description ?? "Mock course detail data (replace later).",
     competencyTags: normalizeCompetencyTags(
       raw?.competencyTags ?? [
@@ -112,6 +124,17 @@ function normalize(raw: any): CourseDetail {
     finalGrade: raw?.finalGrade ?? raw?.grade ?? "A",
     overallCompetencyIndex: 82, // mock
     relevancePercent: raw?.relevancePercent ?? 90,
+    learningOutcomes: Array.isArray(raw?.learningOutcomes)
+      ? raw.learningOutcomes.map((outcome: any) => String(outcome))
+      : [],
+    evaluation: Array.isArray(raw?.evaluation)
+      ? raw.evaluation.map((item: any) => ({
+          label: String(item?.label ?? ""),
+          value: String(item?.value ?? ""),
+        }))
+      : [],
+    session: raw?.session ??
+      (raw?.semester ? `Semester ${raw.semester} / Year ${raw.year}` : ""),
     breakdown: breakdown.map((row) => ({
       ...row,
       competencyTags: normalizeCompetencyTags(
@@ -126,12 +149,6 @@ export default function CourseDetailPage() {
   useProtectedRoute();
   const { courseId } = useParams();
 
-  // ✅ requested defaults:
-  // - Course Information: hidden by default
-  // - Competency Breakdown: shown by default
-  const [courseInfoOpen, setCourseInfoOpen] = useState(false);
-  const [breakdownOpen, setBreakdownOpen] = useState(true);
-
   const { careerFocus, setCareerFocus, careerFocusOptions } = useCareerFocus();
 
   const { data, isLoading, error } = useQuery({
@@ -139,8 +156,6 @@ export default function CourseDetailPage() {
     enabled: !!courseId && !!careerFocus,
     queryFn: async () => normalize(await getCourseDetail(String(courseId), careerFocus)),
   });
-
-  const breakdownRows = useMemo(() => data?.breakdown ?? [], [data]);
 
   if (!careerFocus) {
     return (
@@ -182,157 +197,97 @@ export default function CourseDetailPage() {
       <div className="dividerLine" />
 
       <h1 className="detailTitle">
-        {data.courseCode} • {data.courseTitleEN}
+        {data.courseCode}_{data.courseTitleEN}
       </h1>
 
-      {/* ===== Course Information (Collapsible, default hidden) ===== */}
+      {/* ===== Course Information ===== */}
       <div className="dataCard">
         <div className="dataCardInner">
-          <button
-            type="button"
-            className="cardTitleRow"
-            onClick={() => setCourseInfoOpen((v) => !v)}
-            aria-expanded={courseInfoOpen}
-            aria-controls="course-info-panel"
-          >
-            <span className="cardTitleText">Course Information</span>
-            <span className={`chev ${courseInfoOpen ? "open" : ""}`}>›</span>
-          </button>
+          <strong>Course Title</strong>
+          <div className="infoList">
+            <InfoRow label="Course Code:" value={data.courseCode} />
+            <InfoRow label="Course Title (EN):" value={data.courseTitleEN} />
+            <InfoRow label="Course Title (TH):" value={data.courseTitleTH ?? "—"} />
+            <InfoRow label="Credits:" value={data.credits} />
+            <InfoRow label="Semester:" value={data.semester} />
+            <InfoRow label="Year:" value={String(data.year)} />
 
-          <div
-            id="course-info-panel"
-            className={`collapse ${courseInfoOpen ? "open" : ""}`}
-          >
-            <div className="infoList">
-              <InfoRow label="Course Code:" value={data.courseCode} />
-              <InfoRow label="Course Title (EN):" value={data.courseTitleEN} />
-              <InfoRow label="Course Title (TH):" value={data.courseTitleTH ?? "—"} />
-              <InfoRow label="Credits:" value={data.credits} />
-              <InfoRow label="Semester:" value={data.semester} />
-              <InfoRow label="Year:" value={String(data.year)} />
-
-              <div className="infoRow">
-                <div className="infoLabel">Instructors:</div>
-                <div className="infoValue">
-                  {data.instructors.map((ins, idx) => (
-                    <div key={`${ins.name}-${idx}`} className="instructorLine">
-                      {ins.name}{" "}
-                      {ins.email && (
-                        <a className="emailLink" href={`mailto:${ins.email}`}>
-                          [{ins.email}]
-                        </a>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="thinDivider" />
-
-            <div className="sectionTitle">Course Summary</div>
-            <p className="summaryText">{data.summary}</p>
-
-            <div className="tagsTitle">Competency Tags:</div>
-            <div className="tagWrap">
-              <ExpandableCompetencyTags
-                tags={data.competencyTags}
-                maxVisible={999}
-                contextText={`${data.courseCode} ${data.courseTitleEN}`}
-              />
-            </div>
-
-            <div className="thinDivider" />
-
-            <div className="statsRow">
-              <div className="statItem">
-                <div className="statLabel">Final Grade:</div>
-                <div className="statValue">{data.finalGrade}</div>
-              </div>
-
-              <div className="statItem">
-                <div className="statLabel">Overall Competency Index:</div>
-                <div className="statValueInline">
-                  <span className={`pctBox ${pctTone(data.overallCompetencyIndex)}`} />
-                  <span className="pctText">{data.overallCompetencyIndex}%</span>
-                </div>
-              </div>
-
-              <div className="statItem">
-                <div className="statLabel">Relevance to career:</div>
-                <div className="statValueInline">
-                  <span className={`pctBox ${pctTone(data.relevancePercent)}`} />
-                  <span className="pctText">{data.relevancePercent}%</span>
-                </div>
+            <div className="infoRow">
+              <div className="infoLabel">Instructors:</div>
+              <div className="infoValue">
+                {data.instructors.map((ins, idx) => (
+                  <div key={`${ins.name}-${idx}`} className="instructorLine">
+                    {ins.name}{" "}
+                    {ins.email && (
+                      <a className="emailLink" href={`mailto:${ins.email}`}>
+                        [{ins.email}]
+                      </a>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
           </div>
-        </div>
-      </div>
+                <br></br>
 
-      {/* ===== Competency Index Breakdown (Collapsible, default shown) ===== */}
-      <div className="dataCard breakdownCard">
-        <div className="dataCardInner">
-          <button
-            type="button"
-            className="cardTitleRow"
-            onClick={() => setBreakdownOpen((v) => !v)}
-            aria-expanded={breakdownOpen}
-            aria-controls="breakdown-panel"
-          >
-            <span className="cardTitleText">
-              Competency Index Breakdown <span className="mockNote">(Mock)</span>
-            </span>
-            <span className={`chev ${breakdownOpen ? "open" : ""}`}>›</span>
-          </button>
+    
+          <div className="courseDetailCopy">
+              
+              
 
-          <div id="breakdown-panel" className={`collapse ${breakdownOpen ? "open" : ""}`}>
-            <div className="breakDivider" />
-
-            <div className="breakTableWrap">
-              <table className="breakTable">
-                <thead>
-                  <tr>
-                    <th>Assessment Type</th>
-                    <th className="wWeight">Weight</th>
-                    <th>Competency Type</th>
-                    <th className="wIndex">Competency Index</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {breakdownRows.map((r, i) => (
-                    <tr key={i}>
-                      <td className="assessCell">{r.assessmentType}</td>
-                      <td className="center">{r.weightPercent}%</td>
-                      <td>
-                        <div className="tagWrap">
-                          <ExpandableCompetencyTags
-                            tags={r.competencyTags}
-                            maxVisible={2}
-                            contextText={`${data.courseCode} ${data.courseTitleEN} ${r.assessmentType}`}
-                          />
-                        </div>
-                      </td>
-                      <td>
-                        <div className="indexCell">
-                          <span className={indexColorClass(r.competencyIndex)} />
-                          <span className="idxText">{r.competencyIndex}%</span>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              <div className="overallRow">
-                <div className="overallLabel">Overall Competency Index:</div>
-                <div className="overallRight">
-                  <span className={`pctBox ${pctTone(data.overallCompetencyIndex)}`} />
-                  <span className="pctText">{data.overallCompetencyIndex}%</span>
+              <div className="courseDescriptionMeta">
+                <div>
+                  <strong>Number of Credits</strong>
+                  <div>{data.credits}</div>
+                  <div className="metaHint">Credits (Lecture – Laboratory – Self-study)</div>
                 </div>
+                <div className="thinDivider" />
+                {data.session ? (
+                  <div>
+                    <strong>Session</strong>
+                    <div>{data.session}</div>
+                  </div>
+                ) : null}
               </div>
+
+              <div className="thinDivider" />
+              <div className="sectionSubtitle"><strong>Course Description</strong></div>
+              <p className="summaryText">{data.description ?? data.summary}</p>
+                <br></br>
+              <div className="thinDivider" />
+              {data.learningOutcomes && data.learningOutcomes.length > 0 ? (
+                <>
+                  <div className="sectionSubtitle"><strong>Course Learning Outcome (CLOs)</strong></div>
+                  <ul className="learningOutcomesList">
+                    {data.learningOutcomes.map((outcome, idx) => (
+                      <li key={idx}>CLO{idx+1}: {outcome}</li>
+                    ))}
+                  </ul>
+                </>
+              ) : null}
+              <div className="thinDivider" />
+              {data.evaluation && data.evaluation.length > 0 ? (
+                <>
+                  <div className="sectionSubtitle"><strong>Course Evaluation</strong></div>
+                  <ul className="evaluationList">
+                    {data.evaluation.map((item, idx) => (
+                      <li key={idx}>
+                        {item.label} {item.value}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : null}
             </div>
+
+          <div className="thinDivider" />
+          <div className=""><strong>Competency Tags</strong></div>
+          <div className="tagWrap">
+            <ExpandableCompetencyTags
+              tags={data.competencyTags}
+              maxVisible={999}
+              contextText={`${data.courseCode} ${data.courseTitleEN}`}
+            />
           </div>
         </div>
       </div>

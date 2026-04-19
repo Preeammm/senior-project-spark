@@ -33,6 +33,38 @@ const courses = [
     grade: "A",
     visibleTo: ["u1", "u2", "u3"],
   },
+  {
+    id: "c4",
+    courseCode: "ITCS227",
+    courseName: "Introduction to Data Science",
+    competencyTags: [
+      "Data Analysis",
+      "Statistics",
+      "Python",
+      "Machine Learning Basics",
+      "Data Visualization",
+      "Data Cleaning",
+    ],
+    relevancePercent: 82,
+    grade: "A-",
+    visibleTo: ["u1", "u2", "u3"],
+  },
+  {
+    id: "c5",
+    courseCode: "ITCS348",
+    courseName: "Introduction to Natural Language Processing",
+    competencyTags: [
+      "NLP",
+      "Text Processing",
+      "Python",
+      "Machine Learning",
+      "Language Models",
+      "Information Retrieval",
+    ],
+    relevancePercent: 88,
+    grade: "A",
+    visibleTo: ["u1", "u2", "u3"],
+  },
 ];
 
 export default courses;

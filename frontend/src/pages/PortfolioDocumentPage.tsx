@@ -38,6 +38,8 @@ type StudentRow = {
   personal_email?: string;
   linkedin_url?: string;
   github_url?: string;
+  contact_number?: string;
+  contactNumber?: string;
   personalEmail?: string;
   linkedinUrl?: string;
   githubUrl?: string;
@@ -436,6 +438,11 @@ export default function PortfolioDocumentPage() {
     studentRow?.github_url ||
     studentRow?.githubUrl ||
     "";
+  const contactNumber =
+    profile?.contactNumber ||
+    studentRow?.contact_number ||
+    studentRow?.contactNumber ||
+    "—";
   const universityEmail = profile?.universityEmail || "—";
 
   if (!docId) return <div className="pageContainer">Loading document...</div>;
@@ -650,7 +657,7 @@ export default function PortfolioDocumentPage() {
              
               <span><b>University Email:</b> {universityEmail}</span>
               <span><b>Personal Email:</b> {personalEmail}</span>
-              <span><b>Phone Number:</b> {profile?.contactNumber || "—"}</span>
+              <span><b>Phone Number:</b> {contactNumber}</span>
             </div>
           </section>
 
