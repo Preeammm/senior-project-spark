@@ -978,7 +978,7 @@ function extractCourseNumber(courseCode: string): number {
                       </>
                     )}
                   </div>
-
+                  <p></p>
                   <div className="mpColorExplainBox">
                     <div className="mpSectionHeader mpColorExplainHeader">
                       <div className="mpColorExplainLabel">How to read this chart</div>
@@ -1046,7 +1046,6 @@ function extractCourseNumber(courseCode: string): number {
                       </>
                     ) : null}
                   </div>
-
                 </div>
               </div>
             ) : null}
