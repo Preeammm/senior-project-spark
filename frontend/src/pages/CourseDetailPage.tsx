@@ -258,11 +258,11 @@ export default function CourseDetailPage() {
               {data.learningOutcomes && data.learningOutcomes.length > 0 ? (
                 <>
                   <div className="sectionSubtitle"><strong>Course Learning Outcome (CLOs)</strong></div>
-                  <ol className="learningOutcomesList">
+                  <ul className="learningOutcomesList">
                     {data.learningOutcomes.map((outcome, idx) => (
-                      <li key={idx}>{outcome}</li>
+                      <li key={idx}>CLO{idx+1}: {outcome}</li>
                     ))}
-                  </ol>
+                  </ul>
                 </>
               ) : null}
               <div className="thinDivider" />
