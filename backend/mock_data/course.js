@@ -43,7 +43,7 @@ const courses = [
       "Data science",
     ],
     relevancePercent: 82,
-    grade: "A-",
+    grade: "A",
     visibleTo: ["u1", "u2", "u3"],
   },
   {
