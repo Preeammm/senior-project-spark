@@ -274,7 +274,6 @@ export default function ProfilePage() {
             <div className="pfTopInfo">
               <div className="pfTopName">{fullName}</div>
               <div className="pfTopRole">{roleText}</div>
-              <div className="pfTopSub">{subtitleText}</div>
             </div>
           </div>
 

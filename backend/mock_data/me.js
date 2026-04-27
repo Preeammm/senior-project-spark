@@ -61,10 +61,10 @@ const me = {
     universityEmail: "Apivich.pre@student.mahidol.ac.th",
     personalEmail: "apivich@gmail.com",
     contactNumber: "0899999999",
-    address: "",
+    address: "59/12 Soi Salaya 7, Phutthamonthon Sai 4 Rd, Salaya, Phutthamonthon District, Nakhon Pathom 73170, Thailand",
     githubUrl: "",
     linkedinUrl: "",
-    dateOfBirth: "",
+    dateOfBirth: "07/11/2003",
     gender: "Male",
   },
 };
