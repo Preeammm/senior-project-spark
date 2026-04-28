@@ -642,6 +642,10 @@ export default function NewDocumentPage() {
                 )}
               </div>
             </div>
+            <div className="docInlineList">
+              <span className="docReq">*Note: You can edit LinkedIn and GitHub in your profile settings.</span>
+            </div>
+
           </div>
 
           <div className="docActions">
