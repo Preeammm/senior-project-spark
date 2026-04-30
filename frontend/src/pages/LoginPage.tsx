@@ -92,7 +92,7 @@ export default function LoginPage() {
                   aria-label={showPw ? "Hide password" : "Show password"}
                   title={showPw ? "Hide password" : "Show password"}
                 >
-                  {showPw ? "🙈" : "👁️"}
+                  {showPw ? "*" : "#"}
                 </button>
               </div>
             </div>
