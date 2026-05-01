@@ -686,7 +686,7 @@ function extractCourseNumber(courseCode: string): number {
         {/* My Performance */}
         <section className="sectionCard">
           <div className="sectionHeader">
-            <div className="sectionTitle">My Performance</div>
+            <div className="sectionTitle">My Skill Achievements</div>
           </div>
 
           <div className="mpTopRow">
